@@ -1,0 +1,14 @@
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\Scripts.CS.dll
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\Scripts.CS.pdb
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\ServUO.exe
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\Ultima.dll
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\ServUO.pdb
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\ServUO.exe.config
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\obj\Release\Scripts.csproj.CoreCompileInputs.cache
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\obj\Release\Scripts.csproj.CopyComplete
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\obj\Release\Scripts.CS.dll
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\obj\Release\Scripts.CS.pdb
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\OrbServerSDK.dll
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\UOArchitectInterface.dll
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\Output\Ultima.pdb
+F:\Ultima Online\SERVERS\ServUO-master\Scripts\obj\Release\Scripts.csprojAssemblyReference.cache

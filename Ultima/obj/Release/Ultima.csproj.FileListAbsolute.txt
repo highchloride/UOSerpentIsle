@@ -1,0 +1,4 @@
+F:\Ultima Online\SERVERS\ServUO-master\Ultima\obj\Release\Ultima.csproj.CoreCompileInputs.cache
+F:\Ultima Online\SERVERS\ServUO-master\Ultima\obj\Release\Ultima.dll
+F:\Ultima Online\SERVERS\ServUO-master\Ultima.dll
+F:\Ultima Online\SERVERS\ServUO-master\Ultima\obj\Release\Ultima.csprojAssemblyReference.cache

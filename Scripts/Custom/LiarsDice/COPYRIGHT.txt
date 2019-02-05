@@ -1,0 +1,6 @@
+Liars Dice for UO copyright information, released under GPL 3.0 license
+
+Any redistribution, source code or game must retain the original attribution(s) to the author Bobby Kramer.
+
+In addition, you may not use this software/algorithm in any way proprietary, 
+without explicit permission from Bobby Kramer.

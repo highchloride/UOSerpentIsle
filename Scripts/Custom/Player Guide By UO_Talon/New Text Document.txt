@@ -1,0 +1,24 @@
+Player Guide
+
+http://www.runuo.com/community/threads/player-guide.463967/
+
+
+Instead of having people manually type in their client version, consider this:
+This code snippet will automatically show the player their client version # in your gump
+
+CLIENT VERSION
+------------------------------------------------
+//Make The Method Look Like This:
+public GumpName(Mobile from): base(0, 0)
+{
+
+//Copy This Under The Method Above:
+NetState ns = from.NetState;
+ClientVersion v = ns.Version;
+
+//Place This In The Body Of The Gump:
+AddLabel(0, 0, 0, @"Client Version:");
+AddLabel(0, 0, 0, v == null ? "(null)" : v.ToString());
+
+//To Call Gump From NPC Or Item Code:
+from.SendGump(new AccountLogin(from));

@@ -1,0 +1,32 @@
+Fountains and Wells by Alari (alarihyena@gmail.com)
+
+
+MagicFountain - A "magic" fountain, though it will
+ be non-magical when first placed, must be set
+ magic = true by a Game Master or better. Once "magic",
+ you can toss coins into it and get valuable
+ prizes. ;)  (these vary depending on the type of
+ fountain.)  All MagicFountains, whether the magical
+ bit is set or not, give special messages when drunk
+ from, and have a very slight chance of refilling a
+ character's health, mana, or stamina (the player will
+ see a longer 'fill' message when this happens)
+
+  FountainMessage.Cool: Gives gold (two tries)
+  FountainMessage.Warm: Gives a random item, or gold.
+  FountainMessage.Clean: Gives a random food, or gold.
+  FountainMessage.Calm: Gives a pet horse, or gold.
+  FountainMessage.Fruit: Gives a random fruit, or gold.
+
+ To toss a coin, left-click on a magic=true fountain
+ and choose "Activate"
+
+ Some of the food items may be from the Better Food and
+ Cooking package.
+
+WellAddon - Based off the well in Ilsh. You know the
+ one I'm talking about. This isn't magical at all.
+ The WellBucket can be added seperately, in
+ case.. you.. need.. a bucket. (It's not movable but
+ is drinkable-from. I put one in each jail cell so
+ players don't die of thirst. Aren't I nice? =)

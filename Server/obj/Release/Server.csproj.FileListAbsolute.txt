@@ -1,0 +1,7 @@
+F:\Ultima Online\SERVERS\ServUO-master\Server\obj\Release\Server.csproj.CoreCompileInputs.cache
+F:\Ultima Online\SERVERS\ServUO-master\Server\obj\Release\Server.csproj.CopyComplete
+F:\Ultima Online\SERVERS\ServUO-master\Server\obj\Release\ServUO.exe
+F:\Ultima Online\SERVERS\ServUO-master\Server\obj\Release\ServUO.pdb
+F:\Ultima Online\SERVERS\ServUO-master\ServUO.exe
+F:\Ultima Online\SERVERS\ServUO-master\ServUO.pdb
+F:\Ultima Online\SERVERS\ServUO-master\Server\obj\Release\Server.csprojAssemblyReference.cache

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--This is a quest save file for UoDevPro-->
+<!--Created by UODevPro-->
+<QuestDesign>
+  <QuestTitle name="Goblin Slayer" />
+  <QuestDescription name="Monitor is constantly under assault by the goblin hordes. We would be grateful if you would lend your skills to the cause of defending Monitor." />
+  <QuestRefuse name="Perhaps I misjudged you...thinking you bold enough to take on the goblin horde..." />
+  <QuestUncomplete name="The goblins continue to assault us! How goes your progress?" />
+  <QuestComplete name="The City of Monitor is in your debt." />
+  <SlayObjective name="Green Goblin" type="GreenGoblin" amount="8" region="" />
+  <SlayObjective name="Green Goblin Scout" type="GreenGoblinScout" amount="2" region="" />
+  <GoldReward min="500" max="1000" />
+  <QuestRequirements canrepete="true" doallobjectives="true" delay="true" delaytime="15" />
+</QuestDesign>
