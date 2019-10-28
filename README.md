@@ -29,17 +29,17 @@ Scripts/SerpentIsle holds both fully-custom scripts and plug-and-play scripts th
   
   -Overland passages have been added to mountain ranges where such geography was impossible in the '93 game. This does not interfere with existing undermountain geography.
   
-  -Monitor, Fawn, Moonshade, Monk Isle and Sleeping Bull have their first floors mapped out. A second pass is planned to add second floors and roofing.
+  -Monitor, Fawn, Moonshade, Monk Isle and Sleeping Bull are entirely mapped out.
   
-  -Big castles(White Dragon / Shamino) are underway.
+  -Castle of the White Dragon is entirely mapped out and Castle Shamino is underway.
   
-  -Undercities such as Spinebreaker, Skullcrusher, and Furnace.
+  -Undercities such as Spinebreaker, Skullcrusher, and Furnace are mapped and awaiting details.
   
   -Dungeons such as the Mountains of Freedom, the Knight's Test, ice caves and the Goblin Tunnels.
   
-  -Minor locations on the map, such as Erstam's Isle, the portal beside Gorlab, Gorlab itself, etc.
+  -Minor locations on the map, such as Erstam's Isle, the portal beside Gorlab, etc.
   
-  -Second/Roofing pass for the major cities.
+  -The Gorlab Swamp is mapped and players will find themselves in the Land of Dreams if they lack key items.
   
   -Sunrise Isle.
   
@@ -47,9 +47,9 @@ Scripts/SerpentIsle holds both fully-custom scripts and plug-and-play scripts th
     
 #### 2. Add functionality and NPCs.
   
-  -Add NPCs to each of the cities.
+  -Add NPCs to each of the cities. Vendors are already available.
   
-  -Add fauna, goblins, etc to overland map.  
+  -Add fauna, goblins, etc to overland map. This is roughly 50% complete.
  
 #### 3. Testing and Balancing
 
