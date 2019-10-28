@@ -1,4 +1,4 @@
-﻿using Server.ContextMenus;
+using Server.ContextMenus;
 using Server.Mobiles;
 
 namespace Server.Engines.Points

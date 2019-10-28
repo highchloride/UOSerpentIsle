@@ -144,7 +144,8 @@ namespace Server.Items
                     typeof(PutridUndeadGuardian), typeof(Juonar),
                     typeof(Spellbinder), typeof(AngeredSpirit),
                     typeof(BoneSwordSlinger), typeof(CovetousRevenant),
-                    typeof(DiseasedLich), typeof(VileCadaver)
+                    typeof(DiseasedLich), typeof(VileCadaver),
+                    typeof(GrizzledMare), typeof(SkeletalCat)
                 );
 
             undead.Entries = new SlayerEntry[0];
@@ -323,7 +324,8 @@ namespace Server.Items
                         typeof(UsagralemBallem), typeof(EffetePutridGargoyle),
                         typeof(EffeteUndeadGargoyle), typeof(PitFiend),
                         typeof(ArchDaemon), typeof(AbyssalAbomination),
-                        typeof(Virtuebane), typeof(LesserOni)
+                        typeof(Virtuebane), typeof(LesserOni),
+                        typeof(Lifestealer)
                     );
 
                 abyss.Entries = new SlayerEntry[]

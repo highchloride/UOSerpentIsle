@@ -12,6 +12,16 @@ namespace Server.Items
     {
         private Item m_Target;
         private SecureLevel m_Level;
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public BaseHouse House
+        {
+            get
+            {
+                return BaseHouse.FindHouseAt(this);
+            }
+        }
+
         [Constructable]
         public HouseTeleporter(int itemID)
             : this(itemID, null)
@@ -60,6 +70,12 @@ namespace Server.Items
         public virtual bool CheckAccess(Mobile m)
         {
             BaseHouse house = BaseHouse.FindHouseAt(this);
+
+            if (house != null && house.IsCombatRestricted(m))
+            {
+                m.SendLocalizedMessage(1071514); // You cannot use this item during the heat of battle.
+                return false;
+            }
 
             if (house != null && (house.Public ? house.IsBanned(m) : !house.HasAccess(m)))
             {
@@ -143,7 +159,7 @@ namespace Server.Items
         {
         }
 
-        private class EffectTimer : Timer
+        public class EffectTimer : Timer
         {
             private readonly Point3D m_Location;
             private readonly Map m_Map;

@@ -4,7 +4,7 @@ using Server.Items;
 namespace Server.Mobiles
 {
     [CorpseName("an acid slug corpse")]
-    public class AcidSlug : BaseCreature
+    public class AcidSlug : BaseCreature, IAcidCreature
     {
         [Constructable]
         public AcidSlug()
@@ -75,6 +75,17 @@ namespace Server.Mobiles
         public override int GetDeathSound()
         {
             return 1497;
+        }
+
+        public override bool CheckMovement(Direction d, out int newZ)
+        {
+            if (!base.CheckMovement(d, out newZ))
+                return false;
+
+            if (Region.IsPartOf("Underworld") && newZ > Location.Z)
+                return false;
+
+            return true;
         }
 
         public override void Serialize(GenericWriter writer)

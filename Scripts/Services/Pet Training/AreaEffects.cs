@@ -8,101 +8,92 @@ using Server.Items;
 
 namespace Server.Mobiles
 {
-	public abstract class AreaEffect
-	{
-		public virtual int ManaCost { get { return 10;  } }
-		public virtual int MaxRange { get { return 3; } }
-		public virtual double TriggerChance { get { return 1.0; } }
-		public virtual TimeSpan CooldownDuration { get { return TimeSpan.FromSeconds(30); } }
+    public abstract class AreaEffect
+    {
+        public virtual int ManaCost { get { return 20; } }
+        public virtual int MaxRange { get { return 3; } }
+        public virtual double TriggerChance { get { return 1.0; } }
+        public virtual TimeSpan CooldownDuration { get { return TimeSpan.FromSeconds(30); } }
+        public virtual bool RequiresCombatant { get { return true; } }
 
         public virtual int EffectRange { get { return 5; } }
-		
-		public AreaEffect()
-		{
-		}
-		
-		public static bool CheckThinkTrigger(BaseCreature bc)
-		{
-			var combatant = bc.Combatant;
 
-			if(combatant is Mobile)
-			{
-                var profile = PetTrainingHelper.GetAbilityProfile(bc);
+        public AreaEffect()
+        {
+        }
 
-                if (profile != null)
+        public static bool CheckThinkTrigger(BaseCreature bc)
+        {
+            var profile = PetTrainingHelper.GetAbilityProfile(bc);
+
+            if (profile != null)
+            {
+                AreaEffect effect = null;
+
+                var effects = profile.GetAreaEffects().Where(a => !a.IsInCooldown(bc)).ToArray();
+
+                if (effects != null && effects.Length > 0)
                 {
-                    AreaEffect effect = null;
-
-                    var effects = profile.GetAreaEffects().Where(a => !a.IsInCooldown(bc)).ToArray();
-
-                    if (effects != null && effects.Length > 0)
-                    {
-                        effect = effects[Utility.Random(effects.Length)];
-                    }
-
-                    if (effect != null)
-                    {
-                        return effect.Trigger(bc, (Mobile)combatant);
-                    }
+                    effect = effects[Utility.Random(effects.Length)];
                 }
-			}
+
+                if (effect != null)
+                {
+                    return effect.Trigger(bc, bc.Combatant as Mobile);
+                }
+            }
+
             return false;
-		}
-		
-		public virtual bool Trigger(BaseCreature creature, Mobile combatant)
-		{
+        }
+
+        public virtual bool Trigger(BaseCreature creature, Mobile combatant)
+        {
             if (CheckMana(creature) && Validate(creature, combatant) && TriggerChance >= Utility.RandomDouble())
-			{
+            {
                 creature.Mana -= ManaCost;
 
                 DoEffects(creature, combatant);
                 AddToCooldown(creature);
                 return true;
-			}
+            }
 
             return false;
-		}
-		
-		public virtual bool Validate(BaseCreature attacker, Mobile defender)
-		{
-			return defender != null && defender.Alive && !defender.Deleted && !defender.IsDeadBondedPet &&
-					attacker.Alive && !attacker.IsDeadBondedPet && defender.InRange(attacker.Location, MaxRange) && 
-					defender.Map == attacker.Map && attacker.InLOS(defender) && !attacker.BardPacified;
-		}
-		
-		public bool CheckMana(Mobile m)
-		{
-			return m.Mana >= ManaCost;
-		}
+        }
+
+        public virtual bool Validate(BaseCreature attacker, Mobile defender)
+        {
+            if (!attacker.Alive || attacker.Deleted || attacker.IsDeadBondedPet || attacker.BardPacified)
+            {
+                return false;
+            }
+
+            return !RequiresCombatant || (defender != null && defender.Alive && !defender.Deleted &&
+                    !defender.IsDeadBondedPet && defender.InRange(attacker.Location, MaxRange) &&
+                    defender.Map == attacker.Map && attacker.InLOS(defender));
+        }
+
+        public bool CheckMana(BaseCreature bc)
+        {
+            return !bc.Controlled || bc.Mana >= ManaCost;
+        }
 
         public virtual void DoEffects(BaseCreature creature, Mobile combatant)
         {
             if (creature.Map == null || creature.Map == Map.Internal)
                 return;
 
-            IPooledEnumerable eable = creature.GetMobilesInRange(EffectRange);
-            List<Mobile> toAffect = new List<Mobile>();
+            var count = 0;
 
-            foreach (Mobile m in eable)
+            foreach (var m in FindValidTargets(creature, EffectRange))
             {
-                if (ValidTarget(creature, m))
-                {
-                    toAffect.Add(m);
-                }
-            }
-            eable.Free();
-
-            foreach (var m in toAffect)
-            {
+                count++;
                 DoEffect(creature, m);
             }
 
-            if (toAffect.Count > 0)
+            if (count > 0)
             {
                 OnAfterEffects(creature, combatant);
             }
-
-            ColUtility.Free(toAffect);
         }
 
         public virtual void DoEffect(BaseCreature creature, Mobile defender)
@@ -113,6 +104,21 @@ namespace Server.Mobiles
         {
         }
 
+        public static IEnumerable<Mobile> FindValidTargets(BaseCreature creature, int range)
+        {
+            IPooledEnumerable eable = creature.GetMobilesInRange(range);
+
+            foreach (Mobile m in eable.OfType<Mobile>())
+            {
+                if (ValidTarget(creature, m))
+                {
+                    yield return m;
+                }
+            }
+
+            eable.Free();
+        }
+
         public static bool ValidTarget(Mobile from, Mobile to)
         {
             return to != from && to.Alive && !to.IsDeadBondedPet &&
@@ -121,37 +127,57 @@ namespace Server.Mobiles
                     from.InLOS(to);
         }
 
-		public List<Mobile> _Cooldown;
-		
-		public bool IsInCooldown(Mobile m)
-		{
-			return _Cooldown != null && _Cooldown.Contains(m);
-		}
-		
-		public void AddToCooldown(Mobile m)
-		{
-			if(CooldownDuration != TimeSpan.MinValue)
-			{
-                if (_Cooldown == null)
-                    _Cooldown = new List<Mobile>();
+        public List<BaseCreature> _Cooldown;
 
-				_Cooldown.Add(m);
-				Timer.DelayCall<Mobile>(CooldownDuration, RemoveFromCooldown, m);
-			}
-		}
-		
-		public void RemoveFromCooldown(Mobile m)
-		{
-			_Cooldown.Remove(m);
-		}
+        public bool IsInCooldown(BaseCreature m)
+        {
+            return _Cooldown != null && _Cooldown.Contains(m);
+        }
+
+        public void AddToCooldown(BaseCreature bc)
+        {
+            var cooldown = GetCooldown(bc);
+
+            if (cooldown != TimeSpan.MinValue)
+            {
+                if (_Cooldown == null)
+                    _Cooldown = new List<BaseCreature>();
+
+                _Cooldown.Add(bc);
+                Timer.DelayCall<BaseCreature>(cooldown, RemoveFromCooldown, bc);
+            }
+        }
+
+        public virtual TimeSpan GetCooldown(BaseCreature m)
+        {
+            return CooldownDuration;
+        }
+
+        public void RemoveFromCooldown(BaseCreature m)
+        {
+            _Cooldown.Remove(m);
+        }
+
+        public static AreaEffect[] Effects { get { return _Effects; } }
+        private static AreaEffect[] _Effects;
+
+        static AreaEffect()
+        {
+            _Effects = new AreaEffect[7];
+
+            _Effects[0] = new AuraOfEnergy();
+            _Effects[1] = new AuraOfNausea();
+            _Effects[2] = new EssenceOfDisease();
+            _Effects[3] = new EssenceOfEarth();
+            _Effects[4] = new ExplosiveGoo();
+            _Effects[5] = new AuraDamage();
+            _Effects[6] = new PoisonBreath();
+        }
 
         public static AreaEffect AuraOfEnergy
         {
             get
             {
-                if (_Effects[0] == null)
-                    _Effects[0] = new AuraOfEnergy();
-
                 return _Effects[0];
             }
         }
@@ -160,9 +186,6 @@ namespace Server.Mobiles
         {
             get
             {
-                if (_Effects[1] == null)
-                    _Effects[1] = new AuraOfNausea();
-
                 return _Effects[1];
             }
         }
@@ -171,9 +194,6 @@ namespace Server.Mobiles
         {
             get
             {
-                if (_Effects[2] == null)
-                    _Effects[2] = new EssenceOfDisease();
-
                 return _Effects[2];
             }
         }
@@ -182,9 +202,6 @@ namespace Server.Mobiles
         {
             get
             {
-                if (_Effects[3] == null)
-                    _Effects[3] = new EssenceOfEarth();
-
                 return _Effects[3];
             }
         }
@@ -193,20 +210,14 @@ namespace Server.Mobiles
         {
             get
             {
-                if (_Effects[4] == null)
-                    _Effects[4] = new ExplosiveGoo();
-
                 return _Effects[4];
             }
         }
 
-        public static AreaEffect Firestorm
+        public static AreaEffect AuraDamage
         {
             get
             {
-                if (_Effects[5] == null)
-                    _Effects[5] = new Firestorm();
-
                 return _Effects[5];
             }
         }
@@ -215,15 +226,9 @@ namespace Server.Mobiles
         {
             get
             {
-                if (_Effects[6] == null)
-                    _Effects[6] = new PoisonBreath();
-
                 return _Effects[6];
             }
         }
-
-        public static AreaEffect[] Effects { get { return _Effects; } }
-        private static AreaEffect[] _Effects = new AreaEffect[7];
     }
 
     public class AuraOfEnergy : AreaEffect
@@ -236,6 +241,9 @@ namespace Server.Mobiles
         {
             AOS.Damage(defender, creature, Utility.RandomMinMax(20, 30), 0, 0, 0, 0, 100);
 
+            defender.SendLocalizedMessage(1072073, false, creature.Name); //  : The creature's aura of energy is damaging you!
+
+            creature.DoHarmful(defender);
             defender.FixedParticles(0x374A, 10, 30, 5052, 1278, 0, EffectLayer.Waist);
             defender.PlaySound(0x51D);
         }
@@ -311,6 +319,9 @@ namespace Server.Mobiles
         {
             AOS.Damage(defender, creature, Utility.RandomMinMax(20, 30), 0, 0, 0, 100, 0);
 
+            defender.SendLocalizedMessage(1072074, false, creature.Name);
+
+            creature.DoHarmful(defender);
             defender.FixedParticles(0x374A, 10, 30, 5052, 1272, 0, EffectLayer.Waist);
             defender.PlaySound(0x476);
         }
@@ -326,6 +337,9 @@ namespace Server.Mobiles
         {
             AOS.Damage(defender, creature, Utility.RandomMinMax(20, 30), 100, 0, 0, 0, 0);
 
+            defender.SendLocalizedMessage(1072075, false, creature.Name);
+
+            creature.DoHarmful(defender);
             defender.FixedParticles(0x374A, 10, 30, 5052, 1836, 0, EffectLayer.Waist);
             defender.PlaySound(0x22C);
         }
@@ -373,21 +387,11 @@ namespace Server.Mobiles
                         }
                     }
 
+                    creature.DoHarmful(defender);
                     AOS.Damage(m, creature, Utility.RandomMinMax(30, 40), 0, 100, 0, 0, 0);
                     m.SendLocalizedMessage(1112366); // The flammable goo covering you bursts into flame!
                 }
             }, defender);
-        }
-    }
-
-    public class Firestorm : AreaEffect
-    {
-        public Firestorm()
-        {
-        }
-
-        public override void DoEffect(BaseCreature creature, Mobile defender)
-        {
         }
     }
 
@@ -403,16 +407,18 @@ namespace Server.Mobiles
 
         public override void DoEffect(BaseCreature creature, Mobile m)
         {
-            m.ApplyPoison(creature, creature.HitAreaPoison);
+            m.ApplyPoison(creature, GetPoison(creature));
 
             Server.Effects.SendLocationParticles(
                 EffectItem.Create(m.Location, m.Map, EffectItem.DefaultDuration), 0x36B0, 1, 14, 63, 7, 9915, 0);
 
             Server.Effects.PlaySound(m.Location, m.Map, 0x229);
+            var damage = GetDamage(creature);
 
-            if (creature.AreaPoisonDamage > 0)
+            if (damage > 0)
             {
-                AOS.Damage(m, creature, creature.AreaPoisonDamage, 0, 0, 0, 100, 0);
+                creature.DoHarmful(m);
+                AOS.Damage(m, creature, damage, 0, 0, 0, 100, 0);
             }
         }
 
@@ -424,6 +430,166 @@ namespace Server.Mobiles
 
                 if ((profile != null && profile.HasAbility(MagicalAbility.Poisoning)) || 0.2 > Utility.RandomDouble())
                     creature.CheckSkill(SkillName.Poisoning, 0, creature.Skills[SkillName.Poisoning].Cap);
+            }
+        }
+
+        public Poison GetPoison(BaseCreature bc)
+        {
+            int level = 0;
+            double total = bc.Skills[SkillName.Poisoning].Value;
+
+            if (total >= 100)
+                level = 4;
+            else if (total > 60)
+                level = 3;
+            else if (total > 40)
+                level = 2;
+            else if (total > 20)
+                level = 1;
+
+            return Poison.GetPoison(level);
+        }
+
+        public int GetDamage(BaseCreature bc)
+        {
+            if (_DamageCreatures.Any(t => t == bc.GetType()))
+                return 50;
+
+            return 0;
+        }
+
+        private Type[] _DamageCreatures =
+        {
+            typeof(ValoriteElemental), typeof(BronzeElemental), typeof(Dimetrosaur), typeof(ChiefParoxysmus)
+        };
+    }
+
+    public class AuraDamage : AreaEffect
+    {
+        public override double TriggerChance { get { return 0.4; } }
+        public override int EffectRange { get { return 10; } }
+        public override int ManaCost { get { return 0; } }
+        public override bool RequiresCombatant { get { return false; } }
+
+        public AuraDamage()
+        {
+        }
+
+        public override TimeSpan GetCooldown(BaseCreature bc)
+        {
+            return AuraDefinition.GetDefinition(bc).Cooldown;
+        }
+
+        public override void DoEffect(BaseCreature creature, Mobile m)
+        {
+            var def = AuraDefinition.GetDefinition(creature);
+
+            if (def.Damage > 0)
+            {
+                AOS.Damage(
+                    m,
+                    creature,
+                    def.Damage,
+                    def.Physical,
+                    def.Fire,
+                    def.Cold,
+                    def.Poison,
+                    def.Energy,
+                    def.Chaos,
+                    def.Direct,
+                    DamageType.SpellAOE);
+
+                m.RevealingAction();
+            }
+
+            if (creature is IAuraCreature)
+            {
+                ((IAuraCreature)creature).AuraEffect(m);
+            }
+        }
+
+        public class AuraDefinition
+        {
+            public TimeSpan Cooldown { get; set; }
+            public int Range { get; set; }
+
+            public int Damage { get; set; }
+            public int Physical { get; set; }
+            public int Fire { get; set; }
+            public int Cold { get; set; }
+            public int Poison { get; set; }
+            public int Energy { get; set; }
+            public int Chaos { get; set; }
+            public int Direct { get; set; }
+
+            public Type[] Uses { get; private set; }
+
+            public AuraDefinition()
+                : this(TimeSpan.FromSeconds(5), 4, 5, 0, 0, 0, 0, 0, 0, 100, new Type[] { })
+            {
+            }
+
+            public AuraDefinition(params Type[] uses)
+                : this(TimeSpan.FromSeconds(5), 2, 5, 0, 100, 0, 0, 0, 0, 0, uses)
+            {
+            }
+
+            public AuraDefinition(TimeSpan cooldown, int range, int baseDamage, int phys, int fire, int cold, int poison, int energy, int chaos, int direct, Type[] uses)
+            {
+                Cooldown = cooldown;
+                Range = range;
+                Damage = baseDamage;
+                Physical = phys;
+                Fire = fire;
+                Cold = cold;
+                Poison = poison;
+                Energy = energy;
+                Chaos = chaos;
+                Direct = direct;
+
+                Uses = uses;
+            }
+
+            public static List<AuraDefinition> Definitions { get; private set; } = new List<AuraDefinition>();
+
+            public static void Initialize()
+            {
+                AuraDefinition defaul;
+                AuraDefinition cora;
+                AuraDefinition fireAura;
+                AuraDefinition coldAura;
+
+                defaul = new AuraDefinition();
+                Definitions.Add(defaul);
+
+                cora = new AuraDefinition(typeof(CoraTheSorceress));
+                cora.Range = 3;
+                cora.Damage = 10;
+                cora.Fire = 0;
+                Definitions.Add(cora);
+
+                fireAura = new AuraDefinition(typeof(FlameElemental), typeof(FireDaemon), typeof(LesserFlameElemental));
+                fireAura.Range = 5;
+                fireAura.Damage = 7;
+                Definitions.Add(fireAura);
+
+                coldAura = new AuraDefinition(typeof(ColdDrake), typeof(FrostDrake), typeof(FrostDragon), typeof(SnowElemental), typeof(FrostMite), typeof(IceFiend), typeof(IceElemental), typeof(CorporealBrume));
+                coldAura.Damage = 15;
+                coldAura.Fire = 0;
+                coldAura.Cold = 100;
+                Definitions.Add(coldAura);
+            }
+
+            public static AuraDefinition GetDefinition(BaseCreature bc)
+            {
+                var def = Definitions.FirstOrDefault(d => d.Uses.Any(t => t == bc.GetType()));
+
+                if (def == null)
+                {
+                    return Definitions[0]; // Default
+                }
+
+                return def;
             }
         }
     }

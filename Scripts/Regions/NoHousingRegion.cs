@@ -1,3 +1,4 @@
+using Server.Mobiles;
 using System;
 using System.Xml;
 
@@ -13,7 +14,7 @@ namespace Server.Regions
         public NoHousingRegion(XmlElement xml, Map map, Region parent)
             : base(xml, map, parent)
         {
-            ReadBoolean(xml["smartNoHousing"], "active", ref this.m_SmartChecking, false);
+            ReadBoolean(xml["smartNoHousing"], "active", ref this.m_SmartChecking, true);
         }
 
         [CommandProperty(AccessLevel.GameMaster)]

@@ -35,7 +35,8 @@ namespace Server.Multis
             this.AddMobile(new Banker(), -4, 3, 7, 0);
             this.AddMobile(new Banker(), 4, -2, 0, 0);
 
-            SetDecayTime();
+            //SetDecayTime();
+            RefreshDecay(true);
             
         }
 

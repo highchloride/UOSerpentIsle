@@ -121,8 +121,16 @@ namespace Server.Mobiles
             m.PlaySound(0x1F2);
             m.FixedEffect(0x376A, 10, 16);
 
-            m.CloseGump(typeof(ResurrectGump));
-            m.SendGump(new ResurrectGump(m, ResurrectMessage.Healer));
+            if(m.GetType() == typeof(Xanthos.Evo.Mercenary))
+            {
+                ((BaseCreature)m).ResurrectPet();
+                m.Hits = (m.HitsMax / 10);
+            }
+            else
+            {
+                m.CloseGump(typeof(ResurrectGump));
+                m.SendGump(new ResurrectGump(m, ResurrectMessage.Healer));
+            }            
         }
 
         public virtual void OfferHeal(PlayerMobile m)
@@ -148,7 +156,7 @@ namespace Server.Mobiles
         {
             if (!m.Frozen && DateTime.UtcNow >= this.m_NextResurrect && this.InRange(m, 4) && !this.InRange(oldLocation, 4) && this.InLOS(m))
             {
-                if (!m.Alive)
+                if (!m.Alive || m.IsDeadBondedPet)
                 {
                     this.m_NextResurrect = DateTime.UtcNow + ResurrectDelay;
 

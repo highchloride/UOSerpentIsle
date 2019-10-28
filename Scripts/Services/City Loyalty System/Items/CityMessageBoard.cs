@@ -9,6 +9,7 @@ using Server.ContextMenus;
 
 namespace Server.Items
 {
+    [Flipable]
     public class CityMessageBoard : BasePlayerBB
 	{
         public City City { get; set; }

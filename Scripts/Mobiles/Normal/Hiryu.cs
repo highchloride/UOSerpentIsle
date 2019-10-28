@@ -46,7 +46,7 @@ namespace Server.Mobiles
                 PackItem(Engines.Plants.Seed.RandomBonsaiSeed());
 
             if (Core.ML && Utility.RandomDouble() < .33)
-                PackItem(Engines.Plants.Seed.RandomPeculiarSeed(3));
+                PackItem(Engines.Plants.Seed.RandomPeculiarSeed(4));
 
             SetWeaponAbility(WeaponAbility.Dismount);
             SetSpecialAbility(SpecialAbility.GraspingClaw);
@@ -137,7 +137,7 @@ namespace Server.Mobiles
 
         public override void OnAfterTame(Mobile tamer)
         {
-            if (PetTrainingHelper.Enabled)
+            if (Owners.Count == 0 && PetTrainingHelper.Enabled)
             {
                 RawStr = (int)Math.Max(1, RawStr * 0.5);
                 RawDex = (int)Math.Max(1, RawDex * 0.5);

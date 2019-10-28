@@ -40,7 +40,25 @@ namespace Server.Engines.Craft
         DragonTurtleHideBustier = 584,
 
         // doom
-        CuffsOfTheArchmage = 585
+        CuffsOfTheArchmage = 585,
+
+        KrampusMinionHat = 586,
+        KrampusMinionBoots = 587,
+        KrampusMinionTalons = 588,
+
+        MaceBelt = 1100,
+        SwordBelt = 1101,
+        DaggerBelt = 1102,
+        ElegantCollar = 1103,
+        CrimsonMaceBelt = 1104,
+        CrimsonSwordBelt = 1105,
+        CrimsonDaggerBelt = 1106,
+        ElegantCollarOfFortune = 1107,
+        AssassinsCowl = 1108,
+        MagesHood = 1109,
+        CowlOfTheMaceAndShield = 1110,
+        MagesHoodOfScholarlyInsight = 1111
+
     }
 
     public class DefTailoring : CraftSystem
@@ -84,7 +102,8 @@ namespace Server.Engines.Craft
 
         public override double GetChanceAtMin(CraftItem item)
         {
-            if (item.NameNumber == 1157348) // Cuffs of the Archmage
+            if (item.NameNumber == 1157348 || item.NameNumber == 1159225 || item.NameNumber == 1159213 || item.NameNumber == 1159212 ||
+                item.NameNumber == 1159211 || item.NameNumber == 1159228 || item.NameNumber == 1159229)
                 return 0.05; // 5%
 
             return 0.5; // 50%
@@ -182,11 +201,20 @@ namespace Server.Engines.Craft
 
             if (Core.HS)
             {
-                index = AddCraft(typeof(LightPowderCharge), 1044457, 1116159, 0.0, 50.0, typeof(Cloth), 1044455, 1, 1044253);
-                AddRes(index, typeof(BlackPowder), 1095826, 1, 1044253);
+                if (Core.EJ)
+                {
+                    index = AddCraft(typeof(PowderCharge), 1044457, 1116160, 0.0, 50.0, typeof(Cloth), 1044455, 1, 1044253);
+                    AddRes(index, typeof(BlackPowder), 1095826, 4, 1044253);
+                    SetUseAllRes(index, true);
+                }
+                else
+                {
+                    index = AddCraft(typeof(LightPowderCharge), 1044457, 1116159, 0.0, 50.0, typeof(Cloth), 1044455, 1, 1044253);
+                    AddRes(index, typeof(BlackPowder), 1095826, 1, 1044253);
 
-                index = AddCraft(typeof(HeavyPowderCharge), 1044457, 1116160, 0.0, 50.0, typeof(Cloth), 1044455, 1, 1044253);
-                AddRes(index, typeof(BlackPowder), 1095826, 4, 1044253);
+                    index = AddCraft(typeof(HeavyPowderCharge), 1044457, 1116160, 0.0, 50.0, typeof(Cloth), 1044455, 1, 1044253);
+                    AddRes(index, typeof(BlackPowder), 1095826, 4, 1044253);
+                }
             }
 
             if (Core.SA)
@@ -234,6 +262,37 @@ namespace Server.Engines.Craft
                 index = AddCraft(typeof(ChefsToque), 1011375, 1109618, 6.2, 21.2, typeof(Cloth), 1044455, 11, 1044287);
                 AddRecipe(index, (int)TailorRecipe.ChefsToque);
             }
+
+            index = AddCraft(typeof(KrampusMinionHat), 1011375, 1125639, 100.0, 500.0, typeof(Cloth), 1044455, 8, 1044287);
+            AddRecipe(index, (int)TailorRecipe.KrampusMinionHat);
+
+            if (Core.EJ)
+            {
+                index = AddCraft(typeof(AssassinsCowl), 1011375, 1126024, 90.0, 110.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(VileTentacles), 1113333, 5, 1044253);
+                AddRecipe(index, (int)TailorRecipe.AssassinsCowl);
+
+                index = AddCraft(typeof(MagesHood), 1011375, 1159227, 90.0, 110.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(VoidCore), 1113334, 5, 1044253);
+                AddRecipe(index, (int)TailorRecipe.MagesHood);
+                
+                index = AddCraft(typeof(CowlOfTheMaceAndShield), 1011375, 1159228, 120.0, 215.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(MaceAndShieldGlasses), 1073381, 1, 1044253);
+                AddRes(index, typeof(VileTentacles), 1113333, 10, 1044253);
+                AddRecipe(index, (int)TailorRecipe.CowlOfTheMaceAndShield);
+                ForceExceptional(index);
+
+                index = AddCraft(typeof(MagesHoodOfScholarlyInsight), 1011375, 1159229, 120.0, 215.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(TheScholarsHalo), 1157354, 1, 1044253);
+                AddRes(index, typeof(VoidCore), 1113334, 10, 1044253);
+                AddRecipe(index, (int)TailorRecipe.MagesHoodOfScholarlyInsight);
+                ForceExceptional(index);
+            }
+
             #endregion
 
             #endregion
@@ -408,6 +467,57 @@ namespace Server.Engines.Craft
 
                 index = AddCraft(typeof(BrocadeSquareGozaMatSouthDeed), 1015283, 1030410, 55.0, 80.0, typeof(Cloth), 1044455, 25, 1044287);
             }
+
+            if (Core.EJ)
+            {
+                index = AddCraft(typeof(MaceBelt), 1015283, 1126020, 90.0, 110.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(Lodestone), 1113332, 5, 1044253);
+                AddRecipe(index, (int)TailorRecipe.MaceBelt);
+
+                index = AddCraft(typeof(SwordBelt), 1015283, 1126021, 90.0, 110.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(Lodestone), 1113332, 5, 1044253);
+                AddRecipe(index, (int)TailorRecipe.SwordBelt);
+
+                index = AddCraft(typeof(DaggerBelt), 1015283, 1159210, 90.0, 110.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(Lodestone), 1113332, 5, 1044253);
+                AddRecipe(index, (int)TailorRecipe.DaggerBelt);
+
+                index = AddCraft(typeof(ElegantCollar), 1015283, 1159224, 90.0, 110.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(FeyWings), 1113332, 5, 1044253);
+                AddRecipe(index, (int)TailorRecipe.ElegantCollar);
+
+                index = AddCraft(typeof(CrimsonMaceBelt), 1015283, 1159211, 120.0, 215.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(CrimsonCincture), 1075043, 1, 1044253);
+                AddRes(index, typeof(Lodestone), 1113332, 10, 1044253);
+                AddRecipe(index, (int)TailorRecipe.CrimsonMaceBelt);
+                ForceExceptional(index);
+
+                index = AddCraft(typeof(CrimsonSwordBelt), 1015283, 1159212, 120.0, 215.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(CrimsonCincture), 1075043, 1, 1044253);
+                AddRes(index, typeof(Lodestone), 1113332, 10, 1044253);
+                AddRecipe(index, (int)TailorRecipe.CrimsonSwordBelt);
+                ForceExceptional(index);
+
+                index = AddCraft(typeof(CrimsonDaggerBelt), 1015283, 1159213, 120.0, 215.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(CrimsonCincture), 1075043, 1, 1044253);
+                AddRes(index, typeof(Lodestone), 1113332, 10, 1044253);
+                AddRecipe(index, (int)TailorRecipe.CrimsonDaggerBelt);
+                ForceExceptional(index);
+
+                index = AddCraft(typeof(ElegantCollarOfFortune), 1015283, 1159225, 120.0, 215.0, typeof(Cloth), 1044455, 5, 1044287);
+                AddRes(index, typeof(Leather), 1044462, 5, 1044463);
+                AddRes(index, typeof(LeurociansMempoOfFortune), 1071460, 1, 1044253);
+                AddRes(index, typeof(FeyWings), 1113332, 10, 1044253);
+                AddRecipe(index, (int)TailorRecipe.ElegantCollarOfFortune);
+                ForceExceptional(index);
+            }
             
             #endregion
 
@@ -450,6 +560,14 @@ namespace Server.Engines.Craft
             }
             #endregion
 
+            index = AddCraft(typeof(KrampusMinionBoots), 1015288, 1125637, 100.0, 500.0, typeof(Leather), 1044462, 6, 1044463);
+            AddRes(index, typeof(Cloth), 1044455, 4, 1044287);
+            AddRecipe(index, (int)TailorRecipe.KrampusMinionBoots);
+
+            index = AddCraft(typeof(KrampusMinionTalons), 1015288, 1125644, 100.0, 500.0, typeof(Leather), 1044462, 6, 1044463);
+            AddRes(index, typeof(Cloth), 1044455, 4, 1044287);
+            AddRecipe(index, (int)TailorRecipe.KrampusMinionTalons);
+
             #endregion
 
             #region Leather Armor
@@ -459,7 +577,7 @@ namespace Server.Engines.Craft
             {
                 index = AddCraft(typeof(SpellWovenBritches), 1015293, 1072929, 92.5, 117.5, typeof(Leather), 1044462, 15, 1044463);
                 AddRes(index, typeof(EyeOfTheTravesty), 1032685, 1, 1044253);
-                AddRes(index, typeof(Putrefication), 1032678, 10, 1044253);
+                AddRes(index, typeof(Putrefaction), 1032678, 10, 1044253);
                 AddRes(index, typeof(Scourge), 1032677, 10, 1044253);
                 AddRecipe(index, (int)TailorRecipe.SpellWovenBritches);
                 ForceNonExceptional(index);
@@ -708,8 +826,8 @@ namespace Server.Engines.Craft
             if (Core.SA)
             {
                 index = AddCraft(typeof(CuffsOfTheArchmage), 1049149, 1157348, 120.0, 120.1, typeof(Cloth), 1044455, 8, 1044287);
-                AddRes(index, typeof(MidnightBracers), 1061093, 1, 1049063);
-                AddRes(index, typeof(BloodOfTheDarkFather), 1157343, 5, 1049063);
+                AddRes(index, typeof(MidnightBracers), 1061093, 1, 1044253);
+                AddRes(index, typeof(BloodOfTheDarkFather), 1157343, 5, 1044253);
                 AddRes(index, typeof(DarkSapphire), 1032690, 5, 1044253);
                 ForceNonExceptional(index);
                 AddRecipe(index, (int)TailorRecipe.CuffsOfTheArchmage);

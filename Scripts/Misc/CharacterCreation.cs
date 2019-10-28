@@ -270,19 +270,20 @@ namespace Server.Misc
 			if (TestCenter.Enabled)
 				TestCenter.FillBankbox(newChar);
 
-			if (young)
-			{
-				var ticket = new NewPlayerTicket
-				{
-					Owner = newChar
-				};
+            //UOSI idk what this is for, so now its gone.
+			//if (young)
+			//{
+			//	var ticket = new NewPlayerTicket
+			//	{
+			//		Owner = newChar
+			//	};
 				
-				newChar.BankBox.DropItem(ticket);
-			}
+			//	newChar.BankBox.DropItem(ticket);
+			//}
 
             //UOSI Added starting items
             newChar.AddToBackpack(new Waterskin());
-
+            //newChar.AddToBackpack(new PlayerGuide());
 
             //UOSI Override the starting city
             var tCity = new CityInfo("", "", 236, 265, 0, Map.Tokuno);

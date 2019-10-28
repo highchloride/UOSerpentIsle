@@ -361,7 +361,26 @@ namespace Server.Misc
                 Utility.PopColor();
                 e.State.Account = acct;
                 e.Accepted = true;
-                e.CityInfo = Siege.SiegeShard ? SiegeStartingCities : StartingCities;
+
+                //UOSI - We only need the one starting place
+                //if(Siege.SiegeShard)
+                //{
+                //    e.CityInfo = SiegeStartingCities;
+                //}
+                //else if (!Core.UOR)
+                //{
+                //    e.CityInfo = StartingCitiesT2A;
+                //}
+                //else if (!Core.SA)
+                //{
+                //    e.CityInfo = StartingCities;
+                //}
+                //else
+                //{
+                //    e.CityInfo = StartingCitiesSA;
+                //}
+
+                e.CityInfo = StartingCities;
             }
 
             if (!e.Accepted)

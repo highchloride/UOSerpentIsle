@@ -116,7 +116,7 @@ namespace VitaNex.Items
 				var spell = new RecallSpell(
 					m,
 					null,
-					new RunebookEntry(_Location.Location, _Location.Map, _Description, null),
+					new RunebookEntry(_Location.Location, _Location.Map, _Description, null, RecallRuneType.Normal),
 					null);
 
 				if (!spell.Cast())
@@ -157,7 +157,7 @@ namespace VitaNex.Items
 					return false;
 				}
 
-				var spell = new GateTravelSpell(m, null, new RunebookEntry(_Location.Location, _Location.Map, _Description, null));
+				var spell = new GateTravelSpell(m, null, new RunebookEntry(_Location.Location, _Location.Map, _Description, null, RecallRuneType.Normal));
 
 				if (!spell.Cast())
 				{
@@ -197,7 +197,7 @@ namespace VitaNex.Items
 			if (Sextant.Format(Location, Location.Map, ref xLong, ref yLat, ref xMins, ref yMins, ref xEast, ref ySouth))
 			{
 				html.AppendLine(
-					"Coords: {0}° {1}'{2}, {3}° {4}'{5}",
+					"Coords: {0}Â° {1}'{2}, {3}Â° {4}'{5}",
 					yLat,
 					yMins,
 					ySouth ? "S" : "N",

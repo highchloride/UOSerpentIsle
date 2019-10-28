@@ -4,8 +4,13 @@
     <StartAction>Program</StartAction>
     <StartProgram>F:\Ultima Online\SERVERS\ServUO-master\ServUO.exe</StartProgram>
     <StartArguments>-debug</StartArguments>
+    <RemoteDebugEnabled>false</RemoteDebugEnabled>
+    <RemoteDebugMachine>SERVUO:4022</RemoteDebugMachine>
   </PropertyGroup>
   <PropertyGroup>
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <RemoteDebugMachine>SERVUO:4022</RemoteDebugMachine>
   </PropertyGroup>
 </Project>

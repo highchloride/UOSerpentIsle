@@ -1,6 +1,9 @@
 using System;
+
+using Server.Items;
 using Server.Network;
 using System.Collections.Generic;
+using Server.Multis;
 
 namespace Server.Mobiles
 {
@@ -19,8 +22,6 @@ namespace Server.Mobiles
     {
         private static Dictionary<Mobile, BlockEntry> m_Table = new Dictionary<Mobile, BlockEntry>();
         private Mobile m_Rider;
-        private Item m_InternalItem;
-        private DateTime m_NextMountAbility;
 
         public BaseMount(string name, int bodyID, int itemID, AIType aiType, FightMode fightMode, int rangePerception, int rangeFight, double activeSpeed, double passiveSpeed)
             : base(aiType, fightMode, rangePerception, rangeFight, activeSpeed, passiveSpeed)
@@ -28,7 +29,7 @@ namespace Server.Mobiles
             Name = name;
             Body = bodyID;
 
-            m_InternalItem = new MountItem(this, itemID);
+            InternalItem = new MountItem(this, itemID);
         }
 
         public BaseMount(Serial serial)
@@ -43,18 +44,10 @@ namespace Server.Mobiles
                 return TimeSpan.Zero;
             }
         }
+
         [CommandProperty(AccessLevel.GameMaster)]
-        public DateTime NextMountAbility
-        {
-            get
-            {
-                return m_NextMountAbility;
-            }
-            set
-            {
-                m_NextMountAbility = value;
-            }
-        }
+        public DateTime NextMountAbility { get; set; }
+
         public virtual bool AllowMaleRider
         {
             get
@@ -62,6 +55,7 @@ namespace Server.Mobiles
                 return true;
             }
         }
+
         public virtual bool AllowFemaleRider
         {
             get
@@ -69,6 +63,7 @@ namespace Server.Mobiles
                 return true;
             }
         }
+
         [Hue, CommandProperty(AccessLevel.GameMaster)]
         public override int Hue
         {
@@ -80,26 +75,28 @@ namespace Server.Mobiles
             {
                 base.Hue = value;
 
-                if (m_InternalItem != null)
-                    m_InternalItem.Hue = value;
+                if (InternalItem != null)
+                    InternalItem.Hue = value;
             }
         }
+
         [CommandProperty(AccessLevel.GameMaster)]
         public int ItemID
         {
             get
             {
-                if (m_InternalItem != null)
-                    return m_InternalItem.ItemID;
+                if (InternalItem != null)
+                    return InternalItem.ItemID;
                 else
                     return 0;
             }
             set
             {
-                if (m_InternalItem != null)
-                    m_InternalItem.ItemID = value;
+                if (InternalItem != null)
+                    InternalItem.ItemID = value;
             }
         }
+
         [CommandProperty(AccessLevel.GameMaster)]
         public Mobile Rider
         {
@@ -133,8 +130,8 @@ namespace Server.Mobiles
                             ns.Send(new PetWindow((PlayerMobile)m_Rider, this));
                         }
 
-                        if (m_InternalItem != null)
-                            m_InternalItem.Internalize();
+                        if (InternalItem != null)
+                            InternalItem.Internalize();
                     }
                     else
                     {
@@ -143,8 +140,8 @@ namespace Server.Mobiles
 
                         Dismount(value);
 
-                        if (m_InternalItem != null)
-                            value.AddItem(m_InternalItem);
+                        if (InternalItem != null)
+                            value.AddItem(InternalItem);
 
                         value.Direction = Direction;
 
@@ -156,13 +153,7 @@ namespace Server.Mobiles
             }
         }
 
-        protected Item InternalItem
-        {
-            get
-            {
-                return m_InternalItem;
-            }
-        }
+        protected Item InternalItem { get; private set; }
 
         public static bool OnFlightPath(Mobile m)
         {
@@ -374,10 +365,10 @@ namespace Server.Mobiles
 
             writer.Write((int)1); // version
 
-            writer.Write(m_NextMountAbility);
+            writer.Write(NextMountAbility);
 
             writer.Write(m_Rider);
-            writer.Write(m_InternalItem);
+            writer.Write(InternalItem);
         }
 
         public override bool OnBeforeDeath()
@@ -389,10 +380,10 @@ namespace Server.Mobiles
 
         public override void OnAfterDelete()
         {
-            if (m_InternalItem != null)
-                m_InternalItem.Delete();
+            if (InternalItem != null)
+                InternalItem.Delete();
 
-            m_InternalItem = null;
+            InternalItem = null;
 
             base.OnAfterDelete();
         }
@@ -402,6 +393,23 @@ namespace Server.Mobiles
             Rider = null;
 
             base.OnDelete();
+        }
+
+        public override void OnDeath(Container c)
+        {
+            base.OnDeath(c);
+
+            var owner = GetMaster();
+
+            if (owner != null && m_Table.ContainsKey(owner))
+            {
+                var entry = m_Table[owner];
+
+                if (entry.m_Type >= BlockMountType.RidingSwipe && entry.m_Mount == this)
+                {
+                    ExpireMountPrevention(owner);
+                }
+            }
         }
 
         public override void Deserialize(GenericReader reader)
@@ -414,15 +422,15 @@ namespace Server.Mobiles
             {
                 case 1:
                     {
-                        m_NextMountAbility = reader.ReadDateTime();
+                        NextMountAbility = reader.ReadDateTime();
                         goto case 0;
                     }
                 case 0:
                     {
                         m_Rider = reader.ReadMobile();
-                        m_InternalItem = reader.ReadItem();
+                        InternalItem = reader.ReadItem();
 
-                        if (m_InternalItem == null)
+                        if (InternalItem == null)
                             Delete();
 
                         break;
@@ -452,6 +460,11 @@ namespace Server.Mobiles
 
             if (!CheckMountAllowed(from, this, true, false))
                 return;
+
+            if (from.Mount is BaseBoat)
+            {
+                return;
+            }
 
             if (from.Mounted)
             {
@@ -511,20 +524,27 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual void OnRiderDamaged(int amount, Mobile from, bool willKill)
+        public virtual void OnRiderDamaged(Mobile from, ref int amount, bool willKill)
         {
             if (m_Rider == null)
                 return;
 
             Mobile attacker = from;
+
             if (attacker == null)
                 attacker = m_Rider.FindMostRecentDamager(true);
 
-            if (!(attacker == this || attacker == m_Rider || willKill || DateTime.UtcNow > m_NextMountAbility))
+            if (!(attacker == this || attacker == m_Rider || willKill || DateTime.UtcNow > NextMountAbility))
             {
                 if (DoMountAbility(amount, from))
-                    m_NextMountAbility = DateTime.UtcNow + MountAbilityDelay;
+                    NextMountAbility = DateTime.UtcNow + MountAbilityDelay;
             }
+        }
+
+        [Obsolete("Call: OnRiderDamaged(Mobile from, ref int amount, bool willKill)")]
+        public virtual void OnRiderDamaged(int amount, Mobile from, bool willKill)
+        {
+            OnRiderDamaged(from, ref amount, willKill);
         }
 
         public virtual bool DoMountAbility(int damage, Mobile attacker)
@@ -557,6 +577,11 @@ namespace Server.Mobiles
                     }
                     else
                     {
+                        if (mount != m_Mount)
+                        {
+                            return true;
+                        }
+
                         switch (m_Type)
                         {
                             default:

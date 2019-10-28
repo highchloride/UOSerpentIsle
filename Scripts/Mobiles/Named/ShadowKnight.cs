@@ -82,6 +82,7 @@ namespace Server.Mobiles
             }
         }
 
+        public override bool CanFlee { get { return false; } }
         public override TribeType Tribe { get { return TribeType.Undead; } }
 
         public override OppositionGroup OppositionGroup
@@ -235,9 +236,6 @@ namespace Server.Mobiles
         {
             base.Deserialize(reader);
             int version = reader.ReadInt();
-
-            if (BaseSoundID == 357)
-                BaseSoundID = -1;
         }
     }
 }

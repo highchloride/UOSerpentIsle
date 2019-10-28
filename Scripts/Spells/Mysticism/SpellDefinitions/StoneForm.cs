@@ -80,6 +80,16 @@ namespace Server.Spells.Mysticism
             BuffInfo.RemoveBuff(m, BuffIcon.PoisonImmunity);
 		}
 
+        //UOSI
+        //Same great taste as above, now publicly accessible!
+        public static void EndEffect(Mobile m)
+        {
+            m.Delta(MobileDelta.WeaponDamage);
+            m_Effected.Remove(m);
+            BuffInfo.RemoveBuff(m, BuffIcon.StoneForm);
+            BuffInfo.RemoveBuff(m, BuffIcon.PoisonImmunity);
+        }
+
         public static int GetMaxResistBonus(Mobile m)
         {
             if (TransformationSpellHelper.UnderTransformation(m, typeof(StoneFormSpell)))
@@ -141,6 +151,9 @@ namespace Server.Spells.Mysticism
 
         private static int GetMaxResistance(Mobile m)
         {
+            if (Server.Items.BaseArmor.HasRefinedResist(m))
+                return 0;
+
             int prim = (int)m.Skills[SkillName.Mysticism].Value;
             int sec = (int)m.Skills[SkillName.Imbuing].Value;
 

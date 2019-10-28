@@ -15,6 +15,8 @@ using Server.Network;
 using Server.Regions;
 using Server.Services.Virtues;
 using Server.Targeting;
+
+using Server.Gumps;
 #endregion
 
 namespace Server.Mobiles
@@ -55,7 +57,23 @@ namespace Server.Mobiles
 
 		public override bool BardImmune { get { return true; } }
 
-		public override bool PlayerRangeSensitive { get { return true; } }
+        //UOSI
+        public override void OnDoubleClick(Mobile from)
+        {
+            bool enabled;
+            enabled = CheckVendorAccess(from);
+
+            if (enabled)
+            {
+                if (from.InRange(this.Location, 2))
+                {
+                    from.CloseGump(typeof(BuySellGump));
+                    from.SendGump(new BuySellGump(from, this));
+                }
+            }
+        }
+
+        public override bool PlayerRangeSensitive { get { return true; } }
 
         public override bool UseSmartAI { get { return true; } }
 
@@ -135,15 +153,17 @@ namespace Server.Mobiles
 			private readonly BaseVendor m_Vendor;
 
 			public BulkOrderInfoEntry(Mobile from, BaseVendor vendor)
-				: base(6152, 3)
+				: base(6152, 10)
 			{
+                Enabled = vendor.CheckVendorAccess(from);
+
 				m_From = from;
 				m_Vendor = vendor;
 			}
 
 			public override void OnClick()
 			{
-                if (!m_From.InRange(m_Vendor.Location, 3))
+                if (!m_From.InRange(m_Vendor.Location, 10))
                     return;
 
 				EventSink.InvokeBODOffered(new BODOfferEventArgs(m_From, m_Vendor));
@@ -158,10 +178,12 @@ namespace Server.Mobiles
 
                             if (bulkOrder is LargeBOD)
                             {
+								m_From.CloseGump(typeof (LargeBODAcceptGump));
                                 m_From.SendGump(new LargeBODAcceptGump(m_From, (LargeBOD)bulkOrder));
                             }
                             else if (bulkOrder is SmallBOD)
                             {
+								m_From.CloseGump(typeof (SmallBODAcceptGump));
                                 m_From.SendGump(new SmallBODAcceptGump(m_From, (SmallBOD)bulkOrder));
                             }
                         }
@@ -194,10 +216,12 @@ namespace Server.Mobiles
 
                                 if (bulkOrder is LargeBOD)
                                 {
+									m_From.CloseGump(typeof (LargeBODAcceptGump));
                                     m_From.SendGump(new LargeBODAcceptGump(m_From, (LargeBOD)bulkOrder));
                                 }
                                 else if (bulkOrder is SmallBOD)
                                 {
+									m_From.CloseGump(typeof (SmallBODAcceptGump));
                                     m_From.SendGump(new SmallBODAcceptGump(m_From, (SmallBOD)bulkOrder));
                                 }
                             }
@@ -232,6 +256,8 @@ namespace Server.Mobiles
             public BribeEntry(Mobile from, BaseVendor vendor)
                 : base(1152294, 2)
             {
+                Enabled = vendor.CheckVendorAccess(from);
+
                 m_From = from;
                 m_Vendor = vendor;
             }
@@ -263,33 +289,40 @@ namespace Server.Mobiles
             public ClaimRewardsEntry(Mobile from, BaseVendor vendor)
                 : base(1155593, 3)
 			{
+                Enabled = vendor.CheckVendorAccess(from);
+
 				m_From = from;
 				m_Vendor = vendor;
 			}
 
-			public override void OnClick()
-			{
+            public override void OnClick()
+            {
                 if (!m_From.InRange(m_Vendor.Location, 3) || !(m_From is PlayerMobile))
                     return;
 
-                if (!BulkOrderSystem.CanClaimRewards(m_From, m_Vendor.BODType))
+                var context = BulkOrderSystem.GetContext(m_From);
+                int pending = context.GetPendingRewardFor(m_Vendor.BODType);
+
+                if (pending > 0)
+                {
+                    if (context.PointsMode == PointsMode.Enabled)
+                    {
+                        m_From.SendGump(new ConfirmBankPointsGump((PlayerMobile)m_From, m_Vendor, m_Vendor.BODType, pending, (double)pending * 0.02));
+                    }
+                    else
+                    {
+                        m_From.SendGump(new RewardsGump(m_Vendor, (PlayerMobile)m_From, m_Vendor.BODType, pending));
+                    }
+                }
+                else if (!BulkOrderSystem.CanClaimRewards(m_From))
                 {
                     m_Vendor.SayTo(m_From, 1157083, 0x3B2); // You must claim your last turn-in reward in order for us to continue doing business.
                 }
                 else
                 {
-                    int pending = BulkOrderSystem.GetPendingRewardFor(m_From, m_Vendor.BODType);
-
-                    if (pending > 0)
-                    {
-                        m_From.SendGump(new RewardsGump(m_Vendor, (PlayerMobile)m_From, m_Vendor.BODType, pending));
-                    }
-                    else
-                    {
-                        m_From.SendGump(new RewardsGump(m_Vendor, (PlayerMobile)m_From, m_Vendor.BODType));
-                    }
+                    m_From.SendGump(new RewardsGump(m_Vendor, (PlayerMobile)m_From, m_Vendor.BODType));
                 }
-			}
+            }
         }
 
 		public BaseVendor(string title)
@@ -1166,7 +1199,7 @@ namespace Server.Mobiles
 
 			if (dropped is SmallBOD || dropped is LargeBOD)
 			{
-				PlayerMobile pm = from as PlayerMobile;
+                PlayerMobile pm = from as PlayerMobile;
                 IBOD bod = dropped as IBOD;
 
                 if (bod != null && BulkOrderSystem.NewSystemEnabled && Bribes != null && Bribes.ContainsKey(from) && Bribes[from].BOD == bod)
@@ -1188,8 +1221,12 @@ namespace Server.Mobiles
                     SayTo(from, 1045130, 0x3B2); // That order is for some other shopkeeper.
 					return false;
 				}
-				else if ((dropped is SmallBOD && !((SmallBOD)dropped).Complete) ||
-						 (dropped is LargeBOD && !((LargeBOD)dropped).Complete))
+                else if (!BulkOrderSystem.CanClaimRewards(from))
+                {
+                    SayTo(from, 1157083, 0x3B2); // You must claim your last turn-in reward in order for us to continue doing business.
+                    return false;
+                }
+                else if (bod == null || !bod.Complete)
 				{
                     SayTo(from, 1045131, 0x3B2); // You have not completed the order yet.
 					return false;
@@ -1226,16 +1263,16 @@ namespace Server.Mobiles
                     switch (context.PointsMode)
                     {
                         case PointsMode.Enabled:
-                            from.SendGump(new ConfirmBankPointsGump((PlayerMobile)from, this, (Item)bod, this.BODType, points, banked));
+                            context.AddPending(BODType, points);
+                            from.SendGump(new ConfirmBankPointsGump((PlayerMobile)from, this, this.BODType, points, banked));
                             break;
                         case PointsMode.Disabled:
+                            context.AddPending(BODType, points);
                             from.SendGump(new RewardsGump(this, (PlayerMobile)from, this.BODType, points));
                             break;
                         case PointsMode.Automatic:
-                            {
-                                BulkOrderSystem.SetPoints(from, this.BODType, banked);
-                                from.SendGump(new RewardsGump(this, (PlayerMobile)from, this.BODType));
-                            }
+                            BulkOrderSystem.SetPoints(from, this.BODType, banked);
+                            from.SendGump(new RewardsGump(this, (PlayerMobile)from, this.BODType));
                             break;
                     }
 
@@ -1511,8 +1548,6 @@ namespace Server.Mobiles
 			{
 				Item item = (Item)o;
 
-                bii.OnBought(this, amount);
-
 				if (item.Stackable)
 				{
 					item.Amount = amount;
@@ -1546,12 +1581,14 @@ namespace Server.Mobiles
 						}
 					}
 				}
-			}
+
+                bii.OnBought(buyer, this, item, amount);
+            }
 			else if (o is Mobile)
 			{
 				Mobile m = (Mobile)o;
 
-                bii.OnBought(this, amount);
+                bii.OnBought(buyer, this, m, amount);
 
 				m.Direction = (Direction)Utility.Random(8);
 				m.MoveToWorld(buyer.Location, buyer.Map);
@@ -2185,8 +2222,12 @@ namespace Server.Mobiles
 							}
 						}
 
-						GiveGold += ssi.GetSellPriceFor(resp.Item, this) * amount;
-						break;
+                        var singlePrice = ssi.GetSellPriceFor(resp.Item, this);
+                        GiveGold += singlePrice * amount;
+
+                        EventSink.InvokeValidVendorSell(new ValidVendorSellEventArgs(seller, this, resp.Item, singlePrice));
+
+                        break;
 					}
 				}
 			}
@@ -2501,7 +2542,7 @@ namespace Server.Mobiles
 
         protected virtual bool CanConvertArmor(Mobile from, BaseArmor armor)
         {
-            if (armor == null || armor is BaseShield || armor.ArtifactRarity != 0 || armor.IsArtifact)
+            if (armor == null || armor is BaseShield/*|| armor.ArtifactRarity != 0 || armor.IsArtifact*/)
             {
                 from.SendLocalizedMessage(1113044); // You can't convert that.
                 return false;
@@ -2651,6 +2692,8 @@ namespace Server.ContextMenus
         public UpgradeMageArmor(Mobile from, BaseVendor vendor)
             : base(1154114) // Convert Mage Armor
         {
+            Enabled = vendor.CheckVendorAccess(from);
+
             From = from;
             Vendor = vendor;
         }
@@ -2723,7 +2766,7 @@ namespace Server
         int TotalBought { get; set; }
         int TotalSold { get; set; }
 
-        void OnBought(BaseVendor vendor, int amount);
+        void OnBought(Mobile buyer, BaseVendor vendor, IEntity entity, int amount);
         void OnSold(BaseVendor vendor, int amount);
 
 		//display price of the item

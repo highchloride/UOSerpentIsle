@@ -36,8 +36,9 @@ namespace Server.Misc
                 Server.Engines.Help.PageQueue.Pages_OnCalled(m);
             }
 
-            m.CloseGump(typeof(WelcomeGump));
-            m.SendGump(new WelcomeGump());
+            //UOSI - This is the old WelcomeGump. Replaced it with VNC MOTD System.
+            //m.CloseGump(typeof(WelcomeGump));
+            //m.SendGump(new WelcomeGump());
         }
     }
 }

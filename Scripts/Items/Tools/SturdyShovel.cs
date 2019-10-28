@@ -35,8 +35,8 @@ namespace Server.Items
         {
             get
             {
-                //return DynamicMining.GetSystem(this);
-                return Mining.System;
+                return DynamicMining.GetSystem(this);
+                //return Mining.System;
             }
         }
         public override void Serialize(GenericWriter writer)

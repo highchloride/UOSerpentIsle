@@ -21,6 +21,7 @@ namespace Server.SerpentIsle
         {
             m_SBInfos.Add(new SBProvisioner());
         }
+
         private static bool m_Talked;
 
         string[] kfcsay = new string[]
@@ -32,10 +33,17 @@ namespace Server.SerpentIsle
             "This will be but one of my many successful expeditions.",
         };
 
+        string[] sicsay = new string[]
+        {
+            "We made it, as I knew we would.",
+            "We have arrived precisely where I intended.",
+            "Of course I will be taking a larger share of the rations. I am the leader, after all.",
+            "Thou shouldst scout ahead for us."
+        };
+
         [Constructable]
         public ByronWelms() : base("the Great Explorer")//base(AIType.AI_Melee, FightMode.None, 10, 1, 1, 1)
         {
-
         }
 
         public ByronWelms(Serial serial) : base(serial)
@@ -44,6 +52,7 @@ namespace Server.SerpentIsle
                
         public override void InitBody()
         {
+            Name = "Byron Welms";
             Title = "the Great Explorer";
 
             SpeechHue = Utility.RandomDyedHue();
@@ -125,7 +134,10 @@ namespace Server.SerpentIsle
                 if (m.InRange(this, 5))
                 {
                     m_Talked = true;
-                    SayRandom(kfcsay, this);
+                    if (Map == Map.SerpentIsle)
+                        SayRandom(sicsay, this);
+                    else
+                        SayRandom(kfcsay, this);
                     this.Move(GetDirectionTo(m.Location));
                     SpamTimer t = new SpamTimer();
                     t.Start();

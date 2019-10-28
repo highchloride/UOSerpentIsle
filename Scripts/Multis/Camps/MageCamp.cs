@@ -32,7 +32,8 @@ namespace Server.Multis
             AddMobile(new Mage(), -4, 3, 7, 0);
             AddMobile(new Mage(), 4, -2, 0, 0);
 
-            SetDecayTime();
+            //SetDecayTime();
+            RefreshDecay(true);
         }
 
         public override void Serialize(GenericWriter writer)

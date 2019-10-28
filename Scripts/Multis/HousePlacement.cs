@@ -36,7 +36,11 @@ namespace Server.Multis
             0x0442, 0x0479, // Sand stones
             0x0501, 0x0510, // Sand stones
             0x0009, 0x0015, // Furrows
-            0x0150, 0x015C  // Furrows
+            0x0150, 0x015C,  // Furrows
+            0x0201, 0x0202, //Flagstones (Serpent Highway)
+            0x0203, 0x0204, //Flagstones (Serpent Highway)
+            0x03E9, 0x03EA, //Cobblestones
+            0x03EB, 0x03EC  //Cobblestones
         };
         private const int YardSize = 5;
         public static HousePlacementResult Check(Mobile from, int multiID, Point3D center, out ArrayList toMove)

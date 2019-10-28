@@ -68,17 +68,21 @@ namespace Server.Engines.CityLoyalty
                 City city = (City)c;
                 CityLoyaltySystem sys = null;
 
+                //UOSI - Updated to include SI towns.
                 switch (city)
                 {
-                    case City.Moonglow: sys = CityLoyaltySystem.Moonglow; break;
-                    case City.Britain: sys = CityLoyaltySystem.Britain; break;
-                    case City.Jhelom: sys = CityLoyaltySystem.Jhelom; break;
-                    case City.Yew: sys = CityLoyaltySystem.Yew; break;
-                    case City.Minoc: sys = CityLoyaltySystem.Minoc; break;
-                    case City.Trinsic: sys = CityLoyaltySystem.Trinsic; break;
-                    case City.SkaraBrae: sys = CityLoyaltySystem.SkaraBrae; break;
-                    case City.NewMagincia: sys = CityLoyaltySystem.NewMagincia; break;
-                    case City.Vesper: sys = CityLoyaltySystem.Vesper; break;
+                    //case City.Moonglow: sys = CityLoyaltySystem.Moonglow; break;
+                    //case City.Britain: sys = CityLoyaltySystem.Britain; break;
+                    //case City.Jhelom: sys = CityLoyaltySystem.Jhelom; break;
+                    //case City.Yew: sys = CityLoyaltySystem.Yew; break;
+                    //case City.Minoc: sys = CityLoyaltySystem.Minoc; break;
+                    //case City.Trinsic: sys = CityLoyaltySystem.Trinsic; break;
+                    //case City.SkaraBrae: sys = CityLoyaltySystem.SkaraBrae; break;
+                    //case City.NewMagincia: sys = CityLoyaltySystem.NewMagincia; break;
+                    //case City.Vesper: sys = CityLoyaltySystem.Vesper; break;
+                    case City.Monitor: sys = CityLoyaltySystem.Monitor; break;
+                    case City.Fawn: sys = CityLoyaltySystem.Fawn; break;
+                    case City.Moonshade: sys = CityLoyaltySystem.Moonshade; break;
                 }
 
                 if (sys != null)
@@ -90,12 +94,19 @@ namespace Server.Engines.CityLoyalty
                     itemdonation = new CityItemDonation(sys.City, minister);
                     petdonation = new CityPetDonation(sys.City, minister);
                     box = new BoxOfRopes(sys.City);
-                    board = new CityMessageBoard(sys.City, 0xA0C5);
+                    board = new CityMessageBoard(sys.City, 0x1E5E); //UOSI - Changed the item ID to match the bulletin board item in UOFiddler. was 0xA0C5
+
+                    //UOSI - Changes the map if the town is on SI.
+                    Map destination;
+                    if (sys.City == City.Monitor || sys.City == City.Fawn || sys.City == City.Moonshade)
+                        destination = Map.SerpentIsle;
+                    else
+                        destination = Map.Trammel;
 
                     if (!HasType(sys, minister.GetType()))
                     {
                         sys.Minister = minister;
-                        minister.MoveToWorld(sys.Definition.TradeMinisterLocation, Map.Trammel);
+                        minister.MoveToWorld(sys.Definition.TradeMinisterLocation, CityLoyaltySystem.SystemMap);
                     }
                     else
                         minister.Delete();
@@ -103,7 +114,7 @@ namespace Server.Engines.CityLoyalty
                     if (!HasType(sys, herald.GetType()))
                     {
                         sys.Herald = herald;
-                        herald.MoveToWorld(sys.Definition.HeraldLocation, Map.Trammel);
+                        herald.MoveToWorld(sys.Definition.HeraldLocation, CityLoyaltySystem.SystemMap);
                     }
                     else
                         herald.Delete();
@@ -111,7 +122,7 @@ namespace Server.Engines.CityLoyalty
                     if (!HasType(sys, capt.GetType()))
                     {
                         sys.Captain = capt;
-                        capt.MoveToWorld(sys.Definition.GuardsmanLocation, Map.Trammel);
+                        capt.MoveToWorld(sys.Definition.GuardsmanLocation, CityLoyaltySystem.SystemMap);
                     }
                     else
                         capt.Delete();
@@ -119,29 +130,29 @@ namespace Server.Engines.CityLoyalty
                     if (!HasType(sys, stone.GetType()))
                     {
                         sys.Stone = stone;
-                        stone.MoveToWorld(sys.Definition.StoneLocation, Map.Trammel);
+                        stone.MoveToWorld(sys.Definition.StoneLocation, CityLoyaltySystem.SystemMap);
                     }
                     else
                         stone.Delete();
 
                     if (!HasType(sys, itemdonation.GetType()))
-                        itemdonation.MoveToWorld(new Point3D(sys.Definition.TradeMinisterLocation.X, sys.Definition.TradeMinisterLocation.Y - 1, sys.Definition.TradeMinisterLocation.Z), Map.Trammel);
+                        itemdonation.MoveToWorld(new Point3D(sys.Definition.TradeMinisterLocation.X, sys.Definition.TradeMinisterLocation.Y - 1, sys.Definition.TradeMinisterLocation.Z), CityLoyaltySystem.SystemMap);
                     else
                         itemdonation.Delete();
 
                     if (!HasType(sys, petdonation.GetType()))
-                        petdonation.MoveToWorld(new Point3D(sys.Definition.TradeMinisterLocation.X, sys.Definition.TradeMinisterLocation.Y - 2, sys.Definition.TradeMinisterLocation.Z), Map.Trammel);
+                        petdonation.MoveToWorld(new Point3D(sys.Definition.TradeMinisterLocation.X, sys.Definition.TradeMinisterLocation.Y - 2, sys.Definition.TradeMinisterLocation.Z), CityLoyaltySystem.SystemMap);
                     else
                         petdonation.Delete();
 
                     if (!HasType(sys, box.GetType()))
-                        box.MoveToWorld(new Point3D(sys.Definition.GuardsmanLocation.X, sys.Definition.GuardsmanLocation.Y - 1, sys.Definition.GuardsmanLocation.Z), Map.Trammel);
+                        box.MoveToWorld(new Point3D(sys.Definition.GuardsmanLocation.X, sys.Definition.GuardsmanLocation.Y - 1, sys.Definition.GuardsmanLocation.Z), CityLoyaltySystem.SystemMap);
                     else
                         box.Delete();
 
                     if (!HasType(sys, board.GetType()))
                     {
-                        board.MoveToWorld(sys.Definition.BoardLocation, Map.Trammel);
+                        board.MoveToWorld(sys.Definition.BoardLocation, CityLoyaltySystem.SystemMap);
                         sys.Board = board;
                     }
                     else
@@ -176,6 +187,10 @@ namespace Server.Engines.CityLoyalty
                 }
 
                 Region r = Region.Regions.FirstOrDefault(reg => reg.Map == Map.Felucca && reg.Name == name);
+
+                //UOSI - Region naming fix for Serpent Isle
+                if (r == null)
+                    r = Region.Regions.FirstOrDefault(reg => reg.Map == Map.SerpentIsle && reg.Name == name);
 
                 if (r != null)
                 {

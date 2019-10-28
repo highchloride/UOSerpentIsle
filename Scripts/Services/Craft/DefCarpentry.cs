@@ -441,7 +441,7 @@ namespace Server.Engines.Craft
 
                 index = AddCraft(typeof(PhantomStaff), 1044566, 1072919, 90.0, 130.0, typeof(Board), 1044041, 16, 1044351);
                 AddRes(index, typeof(DiseasedBark), 1032683, 1, 1053098);
-                AddRes(index, typeof(Putrefication), 1032678, 10, 1053098);
+                AddRes(index, typeof(Putrefaction), 1032678, 10, 1053098);
                 AddRes(index, typeof(Taint), 1032679, 10, 1053098);
                 AddRecipe(index, (int)CarpRecipes.PhantomStaff);
                 ForceNonExceptional(index);
@@ -528,7 +528,7 @@ namespace Server.Engines.Craft
                 index = AddCraft(typeof(IronwoodCrown), 1062760, 1072924, 85.0, 120.0, typeof(Board), 1044041, 10, 1044351);
                 AddRes(index, typeof(DiseasedBark), 1032683, 1, 1053098);
                 AddRes(index, typeof(Corruption), 1032676, 10, 1053098);
-                AddRes(index, typeof(Putrefication), 1032678, 10, 1053098);
+                AddRes(index, typeof(Putrefaction), 1032678, 10, 1053098);
                 AddRecipe(index, (int)CarpRecipes.IronwoodCrown);
                 ForceNonExceptional(index);
 
@@ -560,7 +560,7 @@ namespace Server.Engines.Craft
                 index = AddCraft(typeof(DarkwoodLegs), 1062760, 1073484, 85.0, 120.0, typeof(Board), 1044041, 15, 1044351);
                 AddRes(index, typeof(GrizzledBones), 1032684, 1, 1053098);
                 AddRes(index, typeof(Corruption), 1032676, 10, 1053098);
-                AddRes(index, typeof(Putrefication), 1072137, 10, 1053098);
+                AddRes(index, typeof(Putrefaction), 1072137, 10, 1053098);
                 ForceNonExceptional(index);
 
                 index = AddCraft(typeof(DarkwoodPauldrons), 1062760, 1073485, 85.0, 120.0, typeof(Board), 1044041, 15, 1044351);
@@ -571,7 +571,7 @@ namespace Server.Engines.Craft
 
                 index = AddCraft(typeof(DarkwoodGloves), 1062760, 1073486, 85.0, 120.0, typeof(Board), 1044041, 15, 1044351);
                 AddRes(index, typeof(CapturedEssence), 1032686, 1, 1053098);
-                AddRes(index, typeof(Putrefication), 1032678, 10, 1053098);
+                AddRes(index, typeof(Putrefaction), 1032678, 10, 1053098);
                 AddRes(index, typeof(Muculent), 1032680, 10, 1053098);
                 ForceNonExceptional(index);
             }
@@ -998,11 +998,11 @@ namespace Server.Engines.Craft
             // This will override the overridable material	TODO: Verify the required skill amount
             AddSubRes(typeof(Board), 1072643, 00.0, 1044041, 1072652);
             AddSubRes(typeof(OakBoard), 1072644, 65.0, 1044041, 1072652);
-            AddSubRes(typeof(AshBoard), 1072645, 80.0, 1044041, 1072652);
-            AddSubRes(typeof(YewBoard), 1072646, 95.0, 1044041, 1072652);
-            AddSubRes(typeof(HeartwoodBoard), 1072647, 100.0, 1044041, 1072652);
-            AddSubRes(typeof(BloodwoodBoard), 1072648, 100.0, 1044041, 1072652);
-            AddSubRes(typeof(FrostwoodBoard), 1072649, 100.0, 1044041, 1072652);
+            AddSubRes(typeof(AshBoard), 1072645, 75.0, 1044041, 1072652);
+            AddSubRes(typeof(YewBoard), 1072646, 85.0, 1044041, 1072652);
+            AddSubRes(typeof(HeartwoodBoard), 1072647, 95.0, 1044041, 1072652);
+            AddSubRes(typeof(BloodwoodBoard), 1072648, 95.0, 1044041, 1072652);
+            AddSubRes(typeof(FrostwoodBoard), 1072649, 95.0, 1044041, 1072652);
         }
     }
 }

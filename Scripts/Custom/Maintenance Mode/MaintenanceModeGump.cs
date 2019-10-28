@@ -1,4 +1,4 @@
-﻿//Maintenance Mode
+//Maintenance Mode
 //By Tresdni (aka DxMonkey)
 //Last Update:  07/26/2015
 
@@ -19,7 +19,7 @@ namespace Server.Gumps
             AddLabel(375, 129, 155, @"Maintenance Mode");
             AddItem(472, 131, 4138);
             AddItem(331, 131, 4138);
-            AddHtml(179, 167, 496, 60, @"The shard is currently under maintenance mode.  Please try logging in again in a few moments.", (bool)true, (bool)true);
+            AddHtml(179, 167, 496, 60, @"The shard is currently under maintenance mode.  Please visit uoserpentisle.com for updates.", (bool)true, (bool)true);
         }
     }
 }

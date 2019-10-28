@@ -16,7 +16,7 @@ namespace Server.Engines.Craft
         PendantOfTheMagi = 451,
         ResilientBracer = 452,
         ScrappersCompendium = 453,
-        HoveringWisp = 454,
+        HoveringWisp = 454, // Removed at OSI Publish 103
 
         KotlPowerCore = 455,
 
@@ -28,7 +28,12 @@ namespace Server.Engines.Craft
         WeatheredBronzeArcherSculpture = 459,
         WeatheredBronzeFairySculpture = 460,
         WeatheredBronzeGlobeSculpture = 461,
-        WeatheredBronzeManOnABench = 462
+        WeatheredBronzeManOnABench = 462,
+
+        KrampusMinionEarrings = 463,
+        EnchantedPicnicBasket = 464,
+
+        Telescope = 465
     }
 
     public class DefTinkering : CraftSystem
@@ -233,6 +238,9 @@ namespace Server.Engines.Craft
             AddJewelrySet(GemType.Tourmaline, typeof(Tourmaline));
             AddJewelrySet(GemType.Amber, typeof(Amber));
             AddJewelrySet(GemType.Diamond, typeof(Diamond));
+
+            index = AddCraft(typeof(KrampusMinionEarrings), 1044049, 1125645, 100.0, 500.0, typeof(IronIngot), 1044036, 3, 1044037);
+            AddRecipe(index, (int)TinkerRecipes.KrampusMinionEarrings);
             #endregion
 
             #region Wooden Items
@@ -253,8 +261,11 @@ namespace Server.Engines.Craft
             {
                 AddCraft(typeof(Ramrod), 1044042, 1095839, 0.0, 50.0, typeof(Board), 1044041, 8, 1044253);
 
-                index = AddCraft(typeof(Swab), 1044042, 1095840, 0.0, 50.0, typeof(Cloth), 1044286, 1, 1044253);
-                AddRes(index, typeof(Board), 1044041, 4, 1044253);
+                if (!Core.EJ)
+                {
+                    index = AddCraft(typeof(Swab), 1044042, 1095840, 0.0, 50.0, typeof(Cloth), 1044286, 1, 1044253);
+                    AddRes(index, typeof(Board), 1044041, 4, 1044253);
+                }
             }
             
             if (Core.SA)
@@ -316,6 +327,12 @@ namespace Server.Engines.Craft
 
                 index = AddCraft(typeof(SmallRoundBasket), 1044042, 1112298, 75.0, 100.0, typeof(SoftenedReeds), 1112249, 1, 1112251);
                 AddRes(index, typeof(Shaft), 1027125, 2, 1044351);
+                SetRequireResTarget(index);
+                SetRequiresBasketWeaving(index);
+
+                index = AddCraft(typeof(EnchantedPicnicBasket), 1044042, 1158333, 75.0, 100.0, typeof(SoftenedReeds), 1112249, 2, 1112251);
+                AddRes(index, typeof(Shaft), 1027125, 3, 1044351);
+                AddRecipe(index, (int)TinkerRecipes.EnchantedPicnicBasket);
                 SetRequireResTarget(index);
                 SetRequiresBasketWeaving(index);
             }
@@ -429,8 +446,9 @@ namespace Server.Engines.Craft
             {
                 index = AddCraft(typeof(TerMurStyleCandelabra), 1044050, 1095313, 55.0, 105.0, typeof(IronIngot), 1044036, 4, 1044037);
             }
-            
-            if (Core.HS)
+
+            // Removed for Dark Tides Cannon Changes
+            if (Core.HS && !Core.EJ)
             {
                 index = AddCraft(typeof(Matches), 1044050, 1096648, 15.0, 70.0, typeof(Matchcord), 1095184, 10, 1044367);
                 AddRes(index, typeof(Board), 1044041, 4, 1044351);
@@ -632,12 +650,12 @@ namespace Server.Engines.Craft
             ForceNonExceptional(index);
             SetNeededThemePack(index, ThemePack.Gothic);
 
-            index = AddCraft(typeof(DistillerySouthAddonDeed), 1044051, 1150663, 90.0, 120.0, typeof(MetalKeg), 1150675, 2, 1044253);
+            index = AddCraft(typeof(DistillerySouthAddonDeed), 1044051, 1150663, 90.0, 110.0, typeof(MetalKeg), 1150675, 2, 1044253);
             AddRes(index, typeof(HeatingStand), 1011224, 4, 1044253);
             AddRes(index, typeof(CopperWire), 1026265, 1, 1044253);
             ForceNonExceptional(index);
 
-            index = AddCraft(typeof(DistilleryEastAddonDeed), 1044051, 1150664, 90.0, 120.0, typeof(MetalKeg), 1150675, 2, 1044253);
+            index = AddCraft(typeof(DistilleryEastAddonDeed), 1044051, 1150664, 90.0, 110.0, typeof(MetalKeg), 1150675, 2, 1044253);
             AddRes(index, typeof(HeatingStand), 1011224, 4, 1044253);
             AddRes(index, typeof(CopperWire), 1026265, 1, 1044253);
             ForceNonExceptional(index);
@@ -650,6 +668,11 @@ namespace Server.Engines.Craft
                 AddRes(index, typeof(StasisChamberPowerCore), 1156623, 1, 1157000);
                 AddRes(index, typeof(InoperativeAutomatonHead), 1157002, 1, 1157001);
                 AddRecipe(index, (int)TinkerRecipes.KotlAutomatonHead);
+
+                index = AddCraft(typeof(PersonalTelescope), 1044051, 1125284, 95.0, 196.0, typeof(IronIngot), 1044036, 25, 1044037);
+                AddRes(index, typeof(WorkableGlass), 1154170, 1, 1154171);
+                AddRes(index, typeof(SextantParts), 1044175, 1, 1044253);
+                AddRecipe(index, (int)TinkerRecipes.Telescope);
             }
             #endregion
 

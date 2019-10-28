@@ -69,6 +69,8 @@ namespace Server.Spells.SkillMasteries
             {
                 IPoint3D p = o as IPoint3D;
 
+                SpellHelper.Turn(Caster, p);
+
                 if (SpellHelper.CheckTown(Caster, Caster) && CheckSequence())
                 {
                     double skill = ((Caster.Skills[CastSkill].Value * 2) + Caster.Skills[DamageSkill].Value) / 3;
@@ -83,10 +85,11 @@ namespace Server.Spells.SkillMasteries
                             {
                                 int x = loc.X;
                                 int y = loc.Y;
+                                int z = loc.Z;
 
                                 Movement.Movement.Offset(d, ref x, ref y);
 
-                                loc = new Point3D(x, y, Caster.Map.GetAverageZ(x, y));
+                                loc = new Point3D(x, y, z);
 
                                 bool canFit = SpellHelper.AdjustField(ref loc, Caster.Map, 12, false);
 
@@ -147,22 +150,12 @@ namespace Server.Spells.SkillMasteries
                 if (this.Deleted)
                     return;
 
-                IPooledEnumerable eable = GetMobilesInRange(1);
-                var affect = new List<Mobile>();
-
-                foreach(Mobile m in eable)
-                {
-                    if (!affect.Contains(m) && (m.Z + 16) > this.Z && (this.Z + 12) > m.Z && m != Caster && SpellHelper.ValidIndirectTarget(Caster, m) && Caster.CanBeHarmful(m, false))
-                        affect.Add(m);
-                }
-
-                foreach (var m in affect)
+                foreach (var m in Owner.AcquireIndirectTargets(Location, 1).OfType<Mobile>().Where(m =>
+                    (m.Z + 16) > Z && 
+                    (Z + 12) > m.Z))
                 {
                     DoDamage(m);
                 }
-
-                ColUtility.Free(affect);
-                eable.Free();
             }
 
             public override void OnAfterDelete()

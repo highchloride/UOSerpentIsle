@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Server.ContextMenus;
 using Server.Mobiles;
 using Server.Regions;
@@ -9,7 +10,12 @@ using Server.Targeting;
 namespace Server.Engines.Quests
 {
     public class QuestHelper
-    { 
+    {
+        public static void Initialize()
+        {
+            EventSink.OnKilledBy += OnKilledBy;
+        }
+
         public static void RemoveAcceleratedSkillgain(PlayerMobile from)
         {
             Region region = from.Region;
@@ -33,40 +39,46 @@ namespace Server.Engines.Quests
 
         public static BaseQuest RandomQuest(PlayerMobile from, Type[] quests, object quester, bool message)
         {
-            if (quests == null || (quests != null && quests.Length == 0))
+            if (quests == null)
                 return null;
-				
-            // give it 10 tries to generate quest
-            for (int i = 0; i < 10; i ++)
-            {
-                BaseQuest quest = Construct(quests[Utility.Random(quests.Length)]) as BaseQuest;
-				
-                if (quest != null)
-                {
-                    quest.Owner = from;
-                    quest.Quester = quester;
 
-                    if (CanOffer(from, quest, message))
+            BaseQuest quest = null;
+
+            if (quester is ITierQuester)
+            {
+                quest = TierQuestInfo.RandomQuest(from, (ITierQuester)quester);
+            }
+            else if (quests.Length > 0)
+            {
+                // give it 10 tries to generate quest
+                for (int i = 0; i < 10; i++)
+                {
+                    quest = Construct(quests[Utility.Random(quests.Length)]) as BaseQuest;
+                }
+            }
+
+            if (quest != null)
+            {
+                quest.Owner = from;
+                quest.Quester = quester;
+
+                if (CanOffer(from, quest, message))
+                {
+                    return quest;
+                }
+                else if (quester is Mobile && message)
+                {
+                    if (quester is MondainQuester)
                     {
-                        return quest;
+                        ((MondainQuester)quester).OnOfferFailed();
                     }
-                    else if (quester is Mobile && message)
+                    else if (quester is Mobile)
                     {
-                        if (quester is MondainQuester)
-                        {
-                            ((MondainQuester)quester).OnOfferFailed();
-                        }
-                        else if (quester is Mobile)
-                        {
-                            ((Mobile)quester).Say(1080107); // I'm sorry, I have nothing for you at this time.
-                        }
+                        ((Mobile)quester).Say(1080107); // I'm sorry, I have nothing for you at this time.
                     }
                 }
-				
-                if (quests.Length == 1)
-                    return null;
             }
-			
+
             return null;
         }
 
@@ -203,8 +215,6 @@ namespace Server.Engines.Quests
 
             return false;
         }
-
-        //public static void AddQuestItemDelay(PlayerMobile 
 
         public static void Delay(PlayerMobile player, Type type, TimeSpan delay)
         { 
@@ -432,7 +442,10 @@ namespace Server.Engines.Quests
 
             if (Map.TerMur.Regions.TryGetValue(name, out reg))
                 return reg;
-				
+
+            if (Map.SerpentIsle.Regions.TryGetValue(name, out reg))
+                return reg;
+
             return reg;
         }
 
@@ -520,14 +533,25 @@ namespace Server.Engines.Quests
             if (quest == null)
                 return false;
 
-            for (int i = 0; i < quest.Objectives.Count; i ++)
+            bool complete = false;
+
+            for (int i = 0; i < quest.Objectives.Count && !complete; i ++)
             {
                 if (quest.Objectives[i] is ObtainObjective)
                 {
                     ObtainObjective obtain = (ObtainObjective)quest.Objectives[i];
-					
-                    if (obtain.MaxProgress > CountQuestItems(quest.Owner, obtain.Obtain))
+
+                    if (CountQuestItems(quest.Owner, obtain.Obtain) >= obtain.MaxProgress)
+                    {
+                        if (!quest.AllObjectives)
+                        {
+                            complete = true;
+                        }
+                    }
+                    else
+                    {
                         return false;
+                    }
                 }
                 else if (quest.Objectives[i] is DeliverObjective)
                 {
@@ -630,7 +654,15 @@ namespace Server.Engines.Quests
             }
         }
 
-        public static bool CheckCreature(PlayerMobile player, BaseCreature creature)
+        public static void OnKilledBy(OnKilledByEventArgs e)
+        {
+            if (e.KilledBy is PlayerMobile)
+            {
+                CheckCreature((PlayerMobile)e.KilledBy, e.Killed);
+            }
+        }
+
+        public static bool CheckCreature(PlayerMobile player, Mobile creature)
         {
             for (int i = player.Quests.Count - 1; i >= 0; i --)
             {
@@ -685,6 +717,25 @@ namespace Server.Engines.Quests
                 }
             }
 			
+            return false;
+        }
+
+        public static bool CheckRewardItem(PlayerMobile player, Item item)
+        {
+            foreach(var quest in player.Quests.Where(q => q.Objectives.Any(obj => obj is ObtainObjective)))
+            {
+                foreach (var obtain in quest.Objectives.OfType<ObtainObjective>())
+                {
+                    if (obtain.IsObjective(item))
+                    {
+                        obtain.CurProgress += item.Amount;
+                        quest.OnObjectiveUpdate(item);
+
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 
@@ -848,11 +899,11 @@ namespace Server.Engines.Quests
 
         public override void OnClick()
         {
-            if (!this.Owner.From.Alive)
+            if (!Owner.From.Alive)
                 return;
 				
-            this.Owner.From.SendLocalizedMessage(1072352); // Target the item you wish to toggle Quest Item status on <ESC> to cancel			
-            this.Owner.From.BeginTarget(-1, false, TargetFlags.None, new TargetCallback(ToggleQuestItem_Callback));
+            Owner.From.SendLocalizedMessage(1072352); // Target the item you wish to toggle Quest Item status on <ESC> to cancel			
+            Owner.From.BeginTarget(-1, false, TargetFlags.None, new TargetCallback(ToggleQuestItem_Callback));
         }
 
         private void ToggleQuestItem_Callback(Mobile from, object obj)

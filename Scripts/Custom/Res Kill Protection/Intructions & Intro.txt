@@ -1,0 +1,53 @@
+Anti RK system to prevent pvpers re-killing the same person over and over.
+This package also comes with a toggle off command for players if they're granted immortal and they want to
+remove it all they have to do is type [RK, you may change command in RKPOff.cs "RK", Let players know.
+
+
+
+To Install:
+*Copy RK Protect folder to your custom script's folder
+*edit playermobile.cs in mobiles folder
+
+
+
+in playermobile.cs search for: 
+			if ( this.Alive && !wasAlive )
+
+
+
+
+after the brace add:
+				if ( this.AccessLevel < AccessLevel.GameMaster )
+					new RKProtect( this, 60.0).Start();
+
+
+
+
+it should look something like this:
+
+
+
+		public override void Resurrect()
+		{
+			bool wasAlive = this.Alive;
+
+			base.Resurrect();
+
+			if ( this.Alive && !wasAlive )
+			{
+				if ( this.AccessLevel < AccessLevel.GameMaster )
+					new RKProtect( this, 60.0).Start();
+
+				Item deathRobe = new DeathRobe();
+
+				if ( !EquipItem( deathRobe ) )
+					deathRobe.Delete();
+			}
+		}
+
+To modify timer/count down change 60.00 in line: new RKProtect( this, 60.0).Start();
+60.00 is in seconds it's the count down for the immortal privilage you may change it to whatever you like.
+
+
+
+You're all welcome to change modify or improve this script, Enjoy!

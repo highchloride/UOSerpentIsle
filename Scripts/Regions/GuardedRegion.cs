@@ -72,7 +72,14 @@ namespace Server.Regions
 				}
                 else if (Map == Map.SerpentIsle) //UOSI Change - Spawn Pikeman by default
                 {
-                    return typeof(PikemanGuard);
+                    if (Name == "Monitor")
+                        return typeof(PikemanGuard);
+                    else if (Name == "Fawn")
+                        return typeof(FawnGuard);
+                    else if (Name == "Moonshade")
+                        return typeof(MoonshadeGuard);
+                    else
+                        return typeof(PikemanGuard);
                 }
                 else
 				{
@@ -106,7 +113,7 @@ namespace Server.Regions
 				return true;
 			}
 
-			return (from.Kills < 5);
+            return !from.Murderer;
 		}
 
 		public override bool OnBeginSpellCast(Mobile m, ISpell s)
@@ -205,7 +212,7 @@ namespace Server.Regions
 		{
 			base.OnAggressed(aggressor, aggressed, criminal);
 
-			if (!IsDisabled() && aggressor != aggressed && criminal)
+            if (!IsDisabled() && aggressor != aggressed && criminal && Utility.InRange(aggressor.Location, aggressed.Location, 12))
 			{
 				CheckGuardCandidate(aggressor, aggressor is BaseCreature && ((BaseCreature)aggressor).IsAggressiveMonster);
 			}

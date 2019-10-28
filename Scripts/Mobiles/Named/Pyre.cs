@@ -65,24 +65,8 @@ namespace Server.Mobiles
             base.OnDeath( c );
 
             if ( Paragon.ChestChance > Utility.RandomDouble() )
-            c.DropItem( new ParagonChest( Name, TreasureMapLevel ) );
+            c.DropItem( new ParagonChest( Name, 5 ) );
 
-        }
-
-        public override int TreasureMapLevel
-        {
-            get
-            {
-                return 5;
-            }
-        }
-
-        public override bool HasAura { get { return false; } }
-        public override int AuraRange { get { return 2; } }
-
-        public override void AuraEffect(Mobile m)
-        {
-            m.SendMessage("The radiating heat scorches your skin!");
         }
 
         public override void GenerateLoot()

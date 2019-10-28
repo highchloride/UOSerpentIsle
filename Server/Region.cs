@@ -235,7 +235,10 @@ namespace Server
 		[CommandProperty(AccessLevel.GameMaster)]
 		public virtual MusicName DefaultMusic { get { return m_Parent != null ? m_Parent.Music : MusicName.Invalid; } }
 
-		public Region(string name, Map map, int priority, params Rectangle2D[] area)
+        [CommandProperty(AccessLevel.GameMaster)]
+        public virtual double InsuranceMultiplier { get { return 1.0; } }
+
+        public Region(string name, Map map, int priority, params Rectangle2D[] area)
 			: this(name, map, priority, ConvertTo3D(area))
 		{ }
 
@@ -967,7 +970,12 @@ namespace Server
 			return true;
 		}
 
-		public virtual bool OnBeginSpellCast(Mobile m, ISpell s)
+        public virtual double SkillGain(Mobile from)
+        {
+            return 0.1;
+        }
+
+        public virtual bool OnBeginSpellCast(Mobile m, ISpell s)
 		{
 			if (m_Parent != null)
 			{
@@ -1052,6 +1060,10 @@ namespace Server
 
 			return true;
 		}
+
+        public virtual void OnDelete(Item item)
+        {
+        }
 
         public virtual void GetContextMenuEntries(Mobile from, List<Server.ContextMenus.ContextMenuEntry> list, Item item)
         {

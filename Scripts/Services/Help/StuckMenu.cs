@@ -142,45 +142,45 @@ namespace Server.Menus.Questions
         private static readonly StuckMenuEntry[] m_T2AEntries = new StuckMenuEntry[]
         {
             // Papua
-            new StuckMenuEntry(1011057, new Point3D[]
-            {
-                new Point3D(5720, 3109, -1),
-                new Point3D(5677, 3176, -3),
-                new Point3D(5678, 3227, 0),
-                new Point3D(5769, 3206, -2),
-                new Point3D(5777, 3270, -1)
-            }),
+            //new StuckMenuEntry(1011057, new Point3D[]
+            //{
+            //    new Point3D(5720, 3109, -1),
+            //    new Point3D(5677, 3176, -3),
+            //    new Point3D(5678, 3227, 0),
+            //    new Point3D(5769, 3206, -2),
+            //    new Point3D(5777, 3270, -1)
+            //}),
 
             // Delucia
-            new StuckMenuEntry(1011058, new Point3D[]
-            {
-                new Point3D(5216, 4033, 37),
-                new Point3D(5262, 4049, 37),
-                new Point3D(5284, 4006, 37),
-                new Point3D(5189, 3971, 39),
-                new Point3D(5243, 3960, 37)
-            })
+            //new StuckMenuEntry(1011058, new Point3D[]
+            //{
+            //    new Point3D(5216, 4033, 37),
+            //    new Point3D(5262, 4049, 37),
+            //    new Point3D(5284, 4006, 37),
+            //    new Point3D(5189, 3971, 39),
+            //    new Point3D(5243, 3960, 37)
+            //})
         };
 
         private static readonly StuckMenuEntry[] m_TerMurEntries = new StuckMenuEntry[]
         {
             // Royal City
-            new StuckMenuEntry(1112571, new Point3D[]
-            {
-                new Point3D(750, 3440, -20),
-                new Point3D(709, 3444, -20),
-                new Point3D(802, 3431, -10),
-                new Point3D(848, 3450, -19),
-                new Point3D(738, 3486, -19)
-            }),
+            //new StuckMenuEntry(1112571, new Point3D[]
+            //{
+            //    new Point3D(750, 3440, -20),
+            //    new Point3D(709, 3444, -20),
+            //    new Point3D(802, 3431, -10),
+            //    new Point3D(848, 3450, -19),
+            //    new Point3D(738, 3486, -19)
+            //}),
 
             // Holy City
-            new StuckMenuEntry(1112572, new Point3D[]
-            {
-                new Point3D(997, 3869, -42),
-                new Point3D(961, 3921, -42),
-                new Point3D(996, 3962, -42)
-            })
+            //new StuckMenuEntry(1112572, new Point3D[]
+            //{
+            //    new Point3D(997, 3869, -42),
+            //    new Point3D(961, 3921, -42),
+            //    new Point3D(996, 3962, -42)
+            //})
         };
 
         private readonly Mobile m_Mobile;

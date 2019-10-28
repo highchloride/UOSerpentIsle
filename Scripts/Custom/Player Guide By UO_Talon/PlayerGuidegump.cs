@@ -50,7 +50,7 @@ namespace Server.Gumps
             this.AddButton(35, 320, 4014, 4014, (int)Buttons.BackButton1, GumpButtonType.Page, 1);//......Back to page 1
             this.AddImage(455, 71, 9000);
             this.AddHtml(42, 85, 407, 224, @"
-[hunger: Displays the Hunger/Thirst gump.
+[hunger: Displays the Hunger/Thirst gump. SYSTEM DISABLED
 [time: Displays the in-game and server times.
 [changeHairStyle: Only usable near Barbers, adjusts hair and beard.
 [afk: Set yourself away for others to know.", (bool)true, (bool)true);//......Add your command list here

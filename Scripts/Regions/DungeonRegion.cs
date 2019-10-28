@@ -1,3 +1,4 @@
+using Server.Mobiles;
 using System;
 using System.Xml;
 
@@ -53,6 +54,17 @@ namespace Server.Regions
             {
                 this.m_EntranceMap = value;
             }
+        }
+
+        //UOSI
+        public override void OnEnter(Mobile m)
+        {
+            base.OnEnter(m);
+
+            if (!(m is PlayerMobile))
+                return;
+
+            m.SendMessage("Thou hast entered " + Name);
         }
 
         public override bool AllowHousing(Mobile from, Point3D p)

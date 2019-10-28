@@ -20,7 +20,7 @@ namespace Server.Engines.Quests
 			//The player must slay 2 Green Goblin Scout
 			this.AddObjective(new SlayObjective(typeof(GreenGoblinScout), "Green Goblin Scout", 2));
 			//Reward the Player Gold
-			this.AddReward(new BaseReward("500-1000 Gold"));
+			this.AddReward(new BaseReward("2000-5000 Gold"));
 		}
 
 		//The player will have a delay before they can redo quest again
@@ -40,7 +40,7 @@ namespace Server.Engines.Quests
 		public override void GiveRewards()
 		{
 			//Give Gold to player in form of a bank check
-			BankCheck gold = new BankCheck(Utility.RandomMinMax(500, 1000));
+			BankCheck gold = new BankCheck(Utility.RandomMinMax(2000, 5000));
 			if(!Owner.AddToBackpack( gold ))
 				gold.MoveToWorld(Owner.Location,Owner.Map);
 

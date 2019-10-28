@@ -62,11 +62,12 @@ namespace Server.SkillHandlers
 
                     from.PlaySound(0x241);
 					
-                    if (from.CheckTargetSkill(SkillName.RemoveTrap, targ, targ.TrapPower, targ.TrapPower + 30))
+                    if (from.CheckTargetSkill(SkillName.RemoveTrap, targ, targ.TrapPower, targ.TrapPower + 10))
                     {
                         targ.TrapPower = 0;
                         targ.TrapLevel = 0;
                         targ.TrapType = Server.Items.TrapType.None;
+                        targ.InvalidateProperties();
                         from.SendLocalizedMessage(502377); // You successfully render the trap harmless
                     }
                     else

@@ -5,8 +5,10 @@ using Server.Engines.VoidPool;
 
  namespace Server.Mobiles
  {
-	public class CoraTheSorceress : BaseCreature
+	public class CoraTheSorceress : BaseCreature, IElementalCreature, IAuraCreature
 	{
+        public ElementType ElementType { get { return ElementType.Chaos; } }
+
         public DateTime NextManaDrain { get; set; }
 
         public TimeSpan ManaDrainInterval { get { return TimeSpan.FromSeconds(Utility.RandomMinMax(15, 120)); } }
@@ -15,14 +17,14 @@ using Server.Engines.VoidPool;
         public CoraTheSorceress() : base(AIType.AI_Mage, FightMode.Closest, 10, 1, 0.2, 0.1)
         {
             Body = 0x191;
-            Name = "cora";
+            Name = "Cora";
             Title = "the sorceress";
 
             HairItemID = 0x2045;
             HairHue = 452;
 
             SetStr(909, 949);
-            SetDex(901, 948);
+            SetDex(125);
             SetInt(903, 947);
 
             SetHits(35000);
@@ -53,13 +55,21 @@ using Server.Engines.VoidPool;
             AddAndEquip(new ChainLegs(), 1936);
             AddAndEquip(new LeatherGloves(), 1910);
             AddAndEquip(new LeatherBustierArms(), 1947);
+
+            SetSpecialAbility(SpecialAbility.DragonBreath);
+            SetAreaEffect(AreaEffect.AuraDamage);
         }
 
-        public override int BreathChaosDamage { get { return 100; } }
-        public override bool HasBreath { get { return true; } }
         public override bool AlwaysMurderer { get { return true; } }
         public override bool ClickTitle { get { return false; } }
         public override bool ShowFameTitle { get { return false; } }
+
+        public void AuraEffect(Mobile m)
+        {
+            int mana = Utility.Random(1, m.Mana);
+            m.Mana -= mana;
+            m.SendLocalizedMessage(1153114, mana.ToString()); // Cora drains ~1_VAL~ points of your mana!
+        }
 
         public override bool TeleportsTo { get { return true; } }
         public override TimeSpan TeleportDuration { get { return TimeSpan.FromSeconds(Utility.RandomMinMax(30, 60)); } }
@@ -85,15 +95,14 @@ using Server.Engines.VoidPool;
         {
             base.OnThink();
 
-            if (Combatant == null)
-                return;
-
             if (NextManaDrain < DateTime.UtcNow)
                 DoManaDrain();
         }
 
         public void DoManaDrain()
         {
+            Animate(AnimationType.Spell, 1);
+
             DoEffects(Direction.North);
             DoEffects(Direction.West);
             DoEffects(Direction.South);
@@ -242,7 +251,7 @@ using Server.Engines.VoidPool;
                     }
                     else
                     {
-                        m.SendLocalizedMessage(1153114, m.Mana.ToString()); // Cora drains ~1_VAL~ points of your mana!
+                        m.FixedParticles(0x3779, 10, 25, 5002, EffectLayer.Head);
                         m.Mana = 0;
                     }
                 }

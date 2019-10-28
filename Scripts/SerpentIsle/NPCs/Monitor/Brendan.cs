@@ -34,8 +34,8 @@ namespace Server.Mobiles
 				FacialHairHue = Race.RandomHairHue();
 			this.Body = 0x190;
 		}
-		
-		public override void Serialize(GenericWriter writer)
+
+        public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
 			writer.Write((int)0); // version

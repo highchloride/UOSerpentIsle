@@ -86,7 +86,7 @@ namespace Server.Mobiles
                     Add(new GenericBuyInfo(typeof(NecromancerSpellbook), 115, 10, 0x2253, 0));
                 }
 
-                Add(new GenericBuyInfo(typeof(RecallRune), 15, 10, 0x1f14, 0));
+                //Add(new GenericBuyInfo(typeof(RecallRune), 15, 10, 0x1f14, 0));
                 Add(new GenericBuyInfo(typeof(Spellbook), 18, 10, 0xEFA, 0));
 
                 Add(new GenericBuyInfo("1041072", typeof(MagicWizardsHat), 11, 10, 0x1718, 0));

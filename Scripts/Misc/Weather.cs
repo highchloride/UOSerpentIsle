@@ -169,8 +169,18 @@ namespace Server.Misc
             *   AddDynamicWeather( temperature, chanceOfPercipitation, chanceOfExtremeTemperature, moveSpeed, width, height, bounds );
             */
 
-            for (int i = 0; i < 15; ++i)
-                AddDynamicWeather((5 + i), (76 + i), 5, 8, 400, 400, new Rectangle2D(0, 0, 1412, 1600));
+            //UOSI updated
+            //Snowy top band
+            for (int i = 0; i < 5; ++i)
+                AddDynamicWeather(-15, Utility.Random(75, 90), 5, Utility.Random(8, 80), Utility.Random(200,400), Utility.Random(200, 400), new Rectangle2D(0, 0, 1412, 600));
+
+            //This loop is for the middle band
+            for (int i = 0; i < 5; ++i)
+                AddDynamicWeather(Utility.Random(-15, 15), Utility.Random(75, 90), 5, Utility.Random(8, 80), Utility.Random(50, 150), Utility.Random(50, 150), new Rectangle2D(0, 600, 1412, 200));
+
+            //And this covers the rest of the island, all rain
+            for (int i = 0; i < 5; ++i)
+                AddDynamicWeather(20, Utility.Random(75, 90), 5, Utility.Random(8,80), Utility.Random(200, 400), Utility.Random(200, 400), new Rectangle2D(0, 800, 1412, 1600));
         }
 
         public static List<Weather> GetWeatherList(Map facet)

@@ -19,9 +19,14 @@ namespace Server.SerpentIsle
         }
         public override void InitSBInfo()
         {
-            m_SBInfos.Add(new SBWeaponSmith());
-            m_SBInfos.Add(new SBLeatherArmor());
-            m_SBInfos.Add(new SBWoodenShields());
+            if (Map != Map.SerpentIsle)
+            {
+                m_SBInfos.Add(new SBWeaponSmith());
+                m_SBInfos.Add(new SBLeatherArmor());
+                m_SBInfos.Add(new SBWoodenShields());
+            }
+            else
+                m_SBInfos.Add(new SBProvisioner());
         }
 
         private static bool m_Talked;
@@ -30,9 +35,17 @@ namespace Server.SerpentIsle
         {
             "More meat for the grinder!",
             "My name is Rond, Champion of the Trinsic Fighting Pits.",
-            "I've been paid well to guard this expedition.",
-            "Surely you do not intend to travel with such poor weapons?",
-            "Of course there are fighting pits in Trinsic! You must not have visited in a while!",
+            "I have been paid well to guard this expedition.",
+            "Surely thou dost not intend to travel with such poor weapons?",
+            "Of course there are fighting pits in Trinsic! Thou must not have visited in a while!",
+        };
+
+        string[] sicsay = new string[]
+        {
+            "This place is freezing!",
+            "I should've asked for more gold...",
+            "At least the wolves look the same as in Britannia!",
+            "Keep thy hands in plain view, stranger.",
         };
 
         [Constructable]
@@ -47,6 +60,7 @@ namespace Server.SerpentIsle
 
         public override void InitBody()
         {
+            Name = "Rond";
             Title = "the Pit-Fighter";
 
             SpeechHue = Utility.RandomDyedHue();
@@ -125,7 +139,7 @@ namespace Server.SerpentIsle
 
         public override void TurnToTokuno()
         {
-            Name = "Rond";
+            //Name = "Rond";
         }
 
         public override void OnMovement(Mobile m, Point3D oldLocation)
@@ -136,7 +150,10 @@ namespace Server.SerpentIsle
                 if (m.InRange(this, 5))
                 {
                     m_Talked = true;
-                    SayRandom(kfcsay, this);
+                    if (Map == Map.SerpentIsle)
+                        SayRandom(sicsay, this);
+                    else
+                        SayRandom(kfcsay, this);
                     this.Move(GetDirectionTo(m.Location));
                     SpamTimer t = new SpamTimer();
                     t.Start();

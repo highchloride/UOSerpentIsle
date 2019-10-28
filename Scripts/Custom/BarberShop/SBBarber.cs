@@ -22,9 +22,9 @@ namespace Server.Mobiles
 			{ 
 				Add( new GenericBuyInfo( "special beard dye", typeof( SpecialBeardDye ), 20000, 20, 0xE26, 0 ) ); 
 				Add( new GenericBuyInfo( "special hair dye", typeof( SpecialHairDye ), 20000, 20, 0xE26, 0 ) ); 
-				Add( new GenericBuyInfo( "barber scissors", typeof( BarberScissors ), 5000, 20, 0xDFC, 0 ) );
-				Add( new GenericBuyInfo( "brush", typeof( HairBrush ), 5000, 20, 0x1372, 0 ) );
-				Add( new GenericBuyInfo( "razor", typeof( BarberRazor ), 5000, 20, 0xEC4, 0 ) );
+				Add( new GenericBuyInfo( "barber scissors", typeof( BarberScissors ), 500, 20, 0xDFC, 0 ) );
+				Add( new GenericBuyInfo( "brush", typeof( HairBrush ), 500, 20, 0x1372, 0 ) );
+				Add( new GenericBuyInfo( "razor", typeof( BarberRazor ), 500, 20, 0xEC4, 0 ) );
 				Add( new GenericBuyInfo( "hair growth elixir", typeof( HairGrowthElixir ), 60, 20, 0xE26, 0 ) );
 				Add( new GenericBuyInfo( "1041060", typeof( HairDye ), 60, 20, 0xEFF, 0 ) ); 
 			} 

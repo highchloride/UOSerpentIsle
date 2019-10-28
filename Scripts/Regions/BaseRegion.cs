@@ -4,6 +4,10 @@ using System.Xml;
 using Server.Gumps;
 using Server.Items;
 using Server.Mobiles;
+using Server.Spells.Chivalry;
+using Server.Spells.Fourth;
+using Server.Spells.Seventh;
+using Server.Spells.Sixth;
 
 namespace Server.Regions
 {
@@ -30,6 +34,17 @@ namespace Server.Regions
         private int[] m_RectangleWeights;
         private int m_TotalWeight;
 
+        public override bool OnBeginSpellCast(Mobile m, ISpell s)
+        {
+            if ((s is GateTravelSpell || s is RecallSpell || s is MarkSpell || s is SacredJourneySpell) && m.IsPlayer())
+            {
+                m.SendLocalizedMessage(501802); // Thy spell doth not appear to work...
+
+                return false;
+            }
+
+            return base.OnBeginSpellCast(m, s);
+        }
         public BaseRegion(string name, Map map, int priority, params Rectangle2D[] area)
             : base(name, map, priority, area)
         {

@@ -142,6 +142,9 @@ namespace Server.Mobiles
                 }
             }
 
+            if (message)
+                from.SendLocalizedMessage(1155856, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold has been removed from your bank box.
+
             return true;
         }
 
@@ -200,14 +203,20 @@ namespace Server.Mobiles
                 }
             }
 
+            if (message)
+                from.SendLocalizedMessage(1042763, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold was deposited in your account.
+
             return true;
         }
 
-        public static int DepositUpTo(Mobile from, int amount)
+        public static int DepositUpTo(Mobile from, int amount, bool message = false)
         {
             // If for whatever reason the TOL checks fail, we should still try old methods for depositing currency.
 			if (AccountGold.Enabled && from.Account != null && from.Account.DepositGold(amount))
             {
+                if (message)
+                    from.SendLocalizedMessage(1042763, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold was deposited in your account.
+
                 return amount;
             }
 
@@ -304,8 +313,13 @@ namespace Server.Mobiles
 
 	    public static void HandleSpeech(Mobile vendor, SpeechEventArgs e)
 	    {
-			if (!e.Handled && e.Mobile.InRange(vendor, 12))
+            if (!e.Handled && e.Mobile.InRange(vendor, 12))
 			{
+                if (e.Mobile.Map.Rules != MapRules.FeluccaRules && vendor is BaseVendor && !((BaseVendor)vendor).CheckVendorAccess(e.Mobile))
+                {
+                    return;
+                }
+
 				foreach (var keyword in e.Keywords)
 				{
 					switch (keyword)
@@ -479,7 +493,11 @@ namespace Server.Mobiles
         {
             if (from.Alive)
             {
-                list.Add(new OpenBankEntry(this));
+                var entry = new OpenBankEntry(this);
+
+                entry.Enabled = from.Map.Rules == MapRules.FeluccaRules || CheckVendorAccess(from);
+
+                list.Add(entry);
             }
 
             base.AddCustomContextEntries(from, list);

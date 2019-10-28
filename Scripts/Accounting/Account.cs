@@ -20,7 +20,7 @@ namespace Server.Accounting
 	[PropertyObject]
 	public class Account : IAccount, IComparable, IComparable<Account>
 	{
-		public static readonly TimeSpan YoungDuration = TimeSpan.FromHours(40.0);
+		public static readonly TimeSpan YoungDuration = TimeSpan.FromHours(2.0); //UOSI 40 hours of young by default. No thanks.
 		public static readonly TimeSpan InactiveDuration = TimeSpan.FromDays(180.0);
 		public static readonly TimeSpan EmptyInactiveDuration = TimeSpan.FromDays(30.0);
 
@@ -584,7 +584,7 @@ namespace Server.Accounting
 		/// </summary>
 		[CommandProperty(AccessLevel.Administrator)]
 		//public int Limit { get { return (Siege.SiegeShard ? Siege.CharacterSlots : Core.SA ? 7 : Core.AOS ? 6 : 5); } }
-        public int Limit { get { return 1; } }
+        public int Limit { get { return 5; } }
 
 		/// <summary>
 		///     Gets the maxmimum amount of characters that this account can hold.
@@ -1630,7 +1630,11 @@ namespace Server.Accounting
 				return false;
 			}
 
-			TotalCurrency += amount;
+            double oldAmount = TotalCurrency;
+            TotalCurrency += amount;
+
+            EventSink.InvokeAccountGoldChange(new AccountGoldChangeEventArgs(this, oldAmount, TotalCurrency));
+
 			return true;
 		}
 
@@ -1678,35 +1682,38 @@ namespace Server.Accounting
 			return DepositCurrency(amount);
 		}
 
-		/// <summary>
-		///     Attempts to withdraw the given amount of Platinum and Gold from this account.
-		/// </summary>
-		/// <param name="amount">Amount to withdraw.</param>
-		/// <returns>True if successful, false if balance was too low.</returns>
-		public bool WithdrawCurrency(double amount)
-		{
-			if (amount <= 0)
-			{
-				return true;
-			}
+        /// <summary>
+        ///     Attempts to withdraw the given amount of Platinum and Gold from this account.
+        /// </summary>
+        /// <param name="amount">Amount to withdraw.</param>
+        /// <returns>True if successful, false if balance was too low.</returns>
+        public bool WithdrawCurrency(double amount)
+        {
+            if (amount <= 0)
+            {
+                return true;
+            }
 
-			if (amount > TotalCurrency)
-			{
-				return false;
-			}
+            if (amount > TotalCurrency)
+            {
+                return false;
+            }
 
-			TotalCurrency -= amount;
-			return true;
-		}
+            double oldAmount = TotalCurrency;
+            TotalCurrency -= amount;
 
-		/// <summary>
-		///     Attempts to withdraw the given amount of Gold from this account.
-		///     If the given amount is greater than the CurrencyThreshold,
-		///     Platinum will be withdrawn to offset the difference.
-		/// </summary>
-		/// <param name="amount">Amount to withdraw.</param>
-		/// <returns>True if successful, false if balance was too low.</returns>
-		public bool WithdrawGold(int amount)
+            EventSink.InvokeAccountGoldChange(new AccountGoldChangeEventArgs(this, oldAmount, TotalCurrency));
+            return true;
+        }
+
+        /// <summary>
+        ///     Attempts to withdraw the given amount of Gold from this account.
+        ///     If the given amount is greater than the CurrencyThreshold,
+        ///     Platinum will be withdrawn to offset the difference.
+        /// </summary>
+        /// <param name="amount">Amount to withdraw.</param>
+        /// <returns>True if successful, false if balance was too low.</returns>
+        public bool WithdrawGold(int amount)
 		{
 			return WithdrawCurrency(amount / Math.Max(1.0, CurrencyThreshold));
 		}

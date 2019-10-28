@@ -12,7 +12,6 @@ namespace Server.Items
         {
             Name = "Serpent Tooth";
             Hue = 0x492;
-            Tooth = SerpentsTeeth.Monitor;
         }
 
         public SerpentToothMonitor(Serial serial) : base(serial)

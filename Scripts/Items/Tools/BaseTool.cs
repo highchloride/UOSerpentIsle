@@ -15,7 +15,7 @@ namespace Server.Items
         bool CheckAccessible(Mobile from, ref int num);
     }
 
-    public abstract class BaseTool : Item, ITool, IResource
+    public abstract class BaseTool : Item, ITool, IResource, IQuality
     {
         private Mobile m_Crafter;
         private ItemQuality m_Quality;
@@ -126,17 +126,18 @@ namespace Server.Items
         {
         }
 
-        public override void GetProperties(ObjectPropertyList list)
+        public override void AddCraftedProperties(ObjectPropertyList list)
         {
-            base.GetProperties(list);
-
             if (m_Crafter != null)
                 list.Add(1050043, m_Crafter.TitleName); // crafted by ~1_NAME~
 
             if (m_Quality == ItemQuality.Exceptional)
                 list.Add(1060636); // exceptional
+        }
 
-            list.Add(1060584, m_UsesRemaining.ToString()); // uses remaining: ~1_val~
+        public override void AddUsesRemainingProperties(ObjectPropertyList list)
+        {
+            list.Add(1060584, UsesRemaining.ToString()); // uses remaining: ~1_val~
         }
 
         public virtual void DisplayDurabilityTo(Mobile m)
@@ -235,8 +236,6 @@ namespace Server.Items
                     }
                     else
                     {
-                        CraftContext context = system.GetContext(from);
-
                         from.SendGump(new CraftGump(from, system, this, null));
                     }
                 }

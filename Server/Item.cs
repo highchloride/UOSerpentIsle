@@ -761,12 +761,6 @@ namespace Server
         private DateTime m_LastMovedTime;
         private Direction m_Direction;
         private LightType m_Light;
-        private bool m_HonestyItem;
-        private string m_HonestyRegion;
-        private Mobile m_HonestyOwner;
-        private Timer m_HonestyTimer;
-        private DateTime m_HonestyPickup;
-        private Boolean m_HonestyTimerTicking;
         #endregion
 
         private ItemDelta m_DeltaFlags;
@@ -873,19 +867,19 @@ namespace Server
             {
                 if (Parent is Container)
                 {
-                    if ( value > 0 && value <= 0x7C)
+                    if (value < 0 || value > 0x7C || !((Container)Parent).IsFreePosition(value))
+                    {
+                        m_GridLocation = ((Container)Parent).GetNewPosition(0);
+                    }
+                    else
                     {
                         m_GridLocation = value;
-                        ((Container)Parent).SetPosition(m_GridLocation, this);
-                        return;
-                    }
-                    else if (value == 0)
-                    {
-                        ((Container)Parent).FreePosition(m_GridLocation);
                     }
                 }
-
-                m_GridLocation = value;
+                else
+                {
+                    m_GridLocation = value;
+                }
             }
         }
 
@@ -1069,12 +1063,12 @@ namespace Server
             }
             catch
             {
-		if(Core.Debug)
-		{
-                	Utility.PushColor(ConsoleColor.Red);
-                	Console.WriteLine("Ultima Art: Unable to read client files.");
-                	Utility.PopColor();
-		}
+                if (Core.Debug)
+                {
+                    Utility.PushColor(ConsoleColor.Red);
+                    Console.WriteLine("Ultima Art: Unable to read client files.");
+                    Utility.PopColor();
+                }
             }
 
             return null;
@@ -1266,17 +1260,20 @@ namespace Server
         /// </summary>
         public virtual void AddLootTypeProperty(ObjectPropertyList list)
         {
-            if (m_LootType == LootType.Blessed)
-            {
-                list.Add(1038021); // blessed
-            }
-            else if (m_LootType == LootType.Cursed)
-            {
-                list.Add(1049643); // cursed
-            }
-            else if (Insured)
-            {
-                list.Add(1061682); // <b>insured</b>
+            if (DisplayLootType)
+            {               
+                if (m_LootType == LootType.Blessed)
+                {
+                    list.Add(1038021); // blessed
+                }
+                else if (m_LootType == LootType.Cursed)
+                {
+                    list.Add(1049643); // cursed
+                }
+                else if (Insured)
+                {
+                    list.Add(1061682); // <b>insured</b>
+                }
             }
         }
 
@@ -1343,26 +1340,6 @@ namespace Server
         }
 
         /// <summary>
-        ///     Overridable. Displays cliloc 1072788-1072789.
-        /// </summary>
-        public virtual void AddWeightProperty(ObjectPropertyList list)
-        {
-            if (Weight == 0)
-                return;
-
-            int weight = PileWeight + TotalWeight;
-
-            if (weight == 1)
-            {
-                list.Add(1072788, weight.ToString()); //Weight: ~1_WEIGHT~ stone
-            }
-            else
-            {
-                list.Add(1072789, weight.ToString()); //Weight: ~1_WEIGHT~ stones
-            }
-        }
-
-        /// <summary>
         ///     Overridable. Adds header properties. By default, this invokes <see cref="AddNameProperty" />,
         ///     <see
         ///         cref="AddBlessedForProperty" />
@@ -1384,34 +1361,53 @@ namespace Server
                 AddLockedDownProperty(list);
             }
 
-            if (HonestyItem)
-            {
-                AddHonestyProperty(list);
-            }
+            AddCraftedProperties(list);
+            AddLootTypeProperty(list);
+            AddUsesRemainingProperties(list);
+            AddWeightProperty(list);
 
-            Mobile blessedFor = BlessedFor;
-
-            if (blessedFor != null && !blessedFor.Deleted)
-            {
-                AddBlessedForProperty(list, blessedFor);
-            }
-
-            if (DisplayLootType)
-            {
-                AddLootTypeProperty(list);
-            }
-
-            if (DisplayWeight)
-            {
-                AddWeightProperty(list);
-            }
+            AppendChildNameProperties(list);
 
             if (QuestItem)
             {
                 AddQuestItemProperty(list);
             }
+        }
 
-            AppendChildNameProperties(list);
+        /// <summary>
+        /// Overrideable, used to add crafted by, excpetional, etc properties to items
+        /// </summary>
+        /// <param name="list"></param>
+        public virtual void AddCraftedProperties(ObjectPropertyList list)
+        {
+        }
+
+        /// <summary>
+        /// Overrideable, used for IUsesRemaining UsesRemaining property
+        /// </summary>
+        /// <param name="list"></param>
+        public virtual void AddUsesRemainingProperties(ObjectPropertyList list)
+        {
+        }
+
+        /// <summary>
+        ///     Overridable. Displays cliloc 1072788-1072789.
+        /// </summary>
+        public virtual void AddWeightProperty(ObjectPropertyList list)
+        {
+            if (DisplayWeight && Weight > 0)
+            {
+                int weight = PileWeight + TotalWeight;
+
+                if (weight == 1)
+                {
+                    list.Add(1072788, weight.ToString()); //Weight: ~1_WEIGHT~ stone
+                }
+                else
+                {
+                    list.Add(1072789, weight.ToString()); //Weight: ~1_WEIGHT~ stones
+                }
+            }
         }
 
         /// <summary>
@@ -1446,18 +1442,19 @@ namespace Server
             list.Add(1062203, "{0}", m.Name); // Blessed for ~1_NAME~
         }
 
-        public virtual void AddHonestyProperty(ObjectPropertyList list)
+        public virtual void AddItemSocketProperties(ObjectPropertyList list)
         {
-            if (HonestyItem)
+            if (Sockets != null)
             {
-                if (m_HonestyPickup != DateTime.MinValue)
+                foreach (var socket in Sockets)
                 {
-                    int minutes = (int)(m_HonestyPickup + TimeSpan.FromHours(3) - DateTime.UtcNow).TotalMinutes;
-                    list.Add(1151914, minutes.ToString()); // Minutes remaining for credit: ~1_val~
+                    socket.GetProperties(list);
                 }
-
-                list.Add(1151520); // lost item (Return to gain Honesty)
             }
+        }
+
+        public virtual void AddItemPowerProperties(ObjectPropertyList list)
+        {
         }
 
         /// <summary>
@@ -1475,10 +1472,14 @@ namespace Server
         {
             AddNameProperties(list);
 
+            AddItemSocketProperties(list);
+
             if (Spawner != null)
             {
                 Spawner.GetSpawnProperties(this, list);
             }
+
+            AddItemPowerProperties(list);
         }
 
         /// <summary>
@@ -1860,13 +1861,13 @@ namespace Server
 
                     if (oldLocation.m_X != 0)
                     {
-                        var eable = m_Map.GetClientsInRange(oldLocation, Core.GlobalMaxUpdateRange);
+                        var eable = m_Map.GetClientsInRange(oldLocation, Core.GlobalRadarRange - 4);
 
                         foreach (NetState state in eable)
                         {
                             Mobile m = state.Mobile;
 
-                            if (m.InUpdateRange(oldLocation))
+                            if (Utility.InRange(oldLocation, m.Location, GetUpdateRange(m)))
                             {
                                 state.Send(RemovePacket);
                             }
@@ -1902,13 +1903,13 @@ namespace Server
 
                 if (m_Map != null)
                 {
-                    var eable = m_Map.GetClientsInRange(m_Location, Core.GlobalMaxUpdateRange);
+                    var eable = m_Map.GetClientsInRange(m_Location, Core.GlobalRadarRange);
 
                     foreach (NetState state in eable)
                     {
                         Mobile m = state.Mobile;
 
-                        if (m.CanSee(this) && m.InUpdateRange(m_Location))
+                        if (m.CanSee(this) && Utility.InRange(m_Location, m.Location, GetUpdateRange(m)))
                         {
                             SendInfoTo(state);
                         }
@@ -1978,63 +1979,7 @@ namespace Server
         }
 
         [CommandProperty(AccessLevel.GameMaster)]
-        public bool HonestyItem
-        {
-            get
-            {
-                return m_HonestyItem;
-            }
-            set
-            {
-                m_HonestyItem = value;
-                InvalidateProperties();
-            }
-        }
-
-        public void StartHonestyTimer()
-        {
-            m_HonestyTimerTicking = true;
-            m_HonestyTimer = Timer.DelayCall(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5), CheckHonestyExpiry);
-        }
-
-        public void CheckHonestyExpiry()
-        {
-            InvalidateProperties();
-
-            if ((m_HonestyPickup + TimeSpan.FromHours(3)) < DateTime.UtcNow)
-            {
-                HonestyItem = false;
-                m_HonestyTimer.Stop();
-
-				var parent = RootParent as Mobile;
-
-                if (parent != null && parent.NetState != null)
-                {
-                    parent.SendLocalizedMessage(1151519); // You claim the item as your own.  Finders keepers, losers weepers!
-                }
-            }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public DateTime HonestyPickup
-        {
-            get { return m_HonestyPickup; }
-            set { m_HonestyPickup = value; InvalidateProperties(); }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public Mobile HonestyOwner
-        {
-            get { return m_HonestyOwner; }
-            set { m_HonestyOwner = value; }
-        }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public string HonestyRegion
-        {
-            get { return m_HonestyRegion; }
-            set { m_HonestyRegion = value; }
-        }
+        public bool HonestyItem { get; set; }
 
         /// <summary>
         ///     Has the item been deleted?
@@ -2065,7 +2010,7 @@ namespace Server
         [CommandProperty(AccessLevel.GameMaster)]
         public virtual bool IsArtifact
         {
-            get { return false; }
+            get { return this is IArtifact && ((IArtifact)this).ArtifactRarity > 0; }
         }
 
         private static TimeSpan m_DDT = TimeSpan.FromMinutes(Config.Get("General.DefaultItemDecayTime", 60));
@@ -2087,7 +2032,7 @@ namespace Server
             get
             {
                 // TODO: Make item decay an option on the spawner
-                return DefaultDecaySetting && Movable && Visible && !m_HonestyItem/* && Spawner == null*/;
+                return DefaultDecaySetting && Movable && Visible && !HonestyItem/* && Spawner == null*/;
             }
         }
 
@@ -2164,7 +2109,7 @@ namespace Server
             }
 
             if (item.Nontransferable || Nontransferable)
-        {
+            {
                 return false;
             }
 
@@ -2186,6 +2131,23 @@ namespace Server
             if (item.Amount + Amount > 60000)
             {
                 return false;
+            }
+
+            if ((Sockets == null && item.Sockets != null) || (Sockets != null && item.Sockets == null))
+            {
+                return false;
+            }
+            else  if (Sockets != null && item.Sockets != null)
+            {
+                if (Sockets.Any(s => !item.HasSocket(s.GetType())))
+                {
+                    return false;
+                }
+
+                if (item.Sockets.Any(s => !HasSocket(s.GetType())))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -2653,7 +2615,18 @@ namespace Server
 
         public virtual void Serialize(GenericWriter writer)
         {
-            writer.Write(13); // version
+            writer.Write(14); // version
+
+            // 14
+            writer.Write(Sockets != null ? Sockets.Count : 0);
+			
+			if(Sockets != null)
+			{
+				foreach(var socket in Sockets)
+				{
+					ItemSocket.Save(socket, writer);
+				}
+			}
 
 			// 13: Merge sync
             // 12: Light no longer backed by Direction
@@ -2661,12 +2634,7 @@ namespace Server
             // 11
             writer.Write(m_GridLocation);
 
-            // 10
-            writer.Write(m_HonestyPickup);
-            writer.Write(m_HonestyTimerTicking);
-            writer.Write(m_HonestyOwner);
-            writer.Write(m_HonestyRegion);
-            writer.Write(m_HonestyItem);
+            // 10: Honesty moved to ItemSockets
 
             // 9
             SaveFlag flags = SaveFlag.None;
@@ -3154,6 +3122,15 @@ namespace Server
 
             switch (version)
             {
+                case 14:
+                    var socketCount = reader.ReadInt();
+
+                    for(int i = 0; i < socketCount; i++)
+                    {
+                        ItemSocket.Load(this, reader);
+                    }
+
+                    goto case 13;
 				case 13:
                 case 12:
                 case 11:
@@ -3161,14 +3138,16 @@ namespace Server
                     goto case 10;
                 case 10:
                     {
-                        m_HonestyPickup = reader.ReadDateTime();
-                        m_HonestyTimerTicking = reader.ReadBool();
-                        m_HonestyOwner = reader.ReadMobile();
-                        m_HonestyRegion = reader.ReadString();
-                        m_HonestyItem = reader.ReadBool();
+                        // Honesty removed to ItemSockets
+                        if (version < 14)
+                        {
+                            reader.ReadDateTime();
+                            reader.ReadBool();
+                            reader.ReadMobile();
+                            reader.ReadString();
 
-                        if (m_HonestyTimerTicking)
-                            m_HonestyTimer = Timer.DelayCall(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5), CheckHonestyExpiry);
+                            HonestyItem = reader.ReadBool();
+                        }
 
                         goto case 9;
                     }
@@ -3692,11 +3671,6 @@ namespace Server
             if (HeldBy != null)
             {
                 Timer.DelayCall(TimeSpan.Zero, FixHolding_Sandbox);
-            }
-
-            if (m_Parent is Container)
-            {
-                ((Container)m_Parent).SetPosition(m_GridLocation, this);
             }
 
             VerifyCompactInfo();
@@ -4399,8 +4373,12 @@ namespace Server
                 Spawner = null;
             }
 
-            if (m_HonestyTimer != null)
-                m_HonestyTimer.Stop();
+            var region = Region.Find(GetWorldLocation(), Map);
+
+            if (region != null)
+            {
+                region.OnDelete(this);
+            }
         }
 
         public virtual void OnParentDeleted(object parent)
@@ -4452,13 +4430,6 @@ namespace Server
             }
             else if (Parent is Item)
             {
-                #region Enhanced Client Support
-                if (Parent is Container)
-                {
-                    ((Container)Parent).FreePosition(GridLocation);
-                }
-                #endregion
-
                 ((Item)Parent).RemoveItem(this);
             }
 
@@ -4648,6 +4619,14 @@ namespace Server
                 module.Delete();
             }
 
+            if(Sockets != null)
+            {
+                Sockets.IterateReverse(socket =>
+                {
+                    socket.Remove();
+                });
+            }
+
             Timer.DelayCall(EventSink.InvokeItemDeleted, new ItemDeletedEventArgs(this));
         }
 
@@ -4655,18 +4634,9 @@ namespace Server
         {
             var items = LookupItems();
 
-            if (items != null && items.Contains(item))
+            if (items != null && items.Remove(item))
             {
-                #region Enhanced Client Support
-                if (item.Parent is Container && (!item.Stackable || item.Amount <= 0))
-				{
-					((Container)item.Parent).FreePosition(item.GridLocation);
-				}
-                #endregion
-
                 item.SendRemovePacket();
-
-                items.Remove(item);
 
                 if (!item.IsVirtualItem)
                 {
@@ -4683,7 +4653,15 @@ namespace Server
         }
 
         public virtual void OnAfterDuped(Item newItem)
-        { }
+        {
+            if (Sockets != null)
+            {
+                for (int i = 0; i < Sockets.Count; i++)
+                {
+                    Sockets[i].OnOwnerDuped(newItem);
+                }
+            }
+        }
 
         public virtual bool OnDragLift(Mobile from)
         {
@@ -5526,13 +5504,13 @@ namespace Server
             {
                 Point3D worldLoc = GetWorldLocation();
 
-                var eable = m_Map.GetClientsInRange(worldLoc, Core.GlobalMaxUpdateRange);
+                var eable = m_Map.GetClientsInRange(worldLoc, Core.GlobalRadarRange - 4);
 
                 foreach (NetState state in eable)
                 {
                     Mobile m = state.Mobile;
 
-                    if (m.InUpdateRange(worldLoc))
+                    if (Utility.InRange(worldLoc, m.Location, GetUpdateRange(m)))
                     {
                         state.Send(RemovePacket);
                     }
@@ -6272,5 +6250,247 @@ namespace Server
 
         public virtual void OnSectorDeactivate()
         { }
+
+        #region Item Sockets
+        public List<ItemSocket> Sockets { get; private set; }
+
+        public void AttachSocket(ItemSocket socket)
+		{
+			if(Sockets == null)
+			{
+				Sockets = new List<ItemSocket>();
+			}
+
+			Sockets.Add(socket);
+			socket.Owner = this;
+			
+			InvalidateProperties();
+		}
+
+        public bool RemoveSocket<T>()
+        {
+            var socket = GetSocket(typeof(T));
+
+            if (socket != null)
+            {
+                RemoveItemSocket(socket);
+                return true;
+            }
+
+            return false;
+        }
+
+        public void RemoveItemSocket(ItemSocket socket)
+        {
+            if (Sockets == null)
+            {
+                return;
+            }
+
+            Sockets.Remove(socket);
+            socket.OnRemoved();
+
+            if (Sockets.Count == 0)
+            {
+                Sockets = null;
+            }
+
+            InvalidateProperties();
+        }
+		
+		public T GetSocket<T>() where T : ItemSocket
+		{
+            if (Sockets == null)
+            {
+                return null;
+            }
+
+			return Sockets.FirstOrDefault(s => s.GetType() == typeof(T)) as T;
+		}
+		
+		public T GetSocket<T>(Func<T, bool> predicate) where T : ItemSocket
+		{
+            if (Sockets == null)
+            {
+                return null;
+            }
+
+			return Sockets.FirstOrDefault(s => s.GetType() == typeof(T) && (predicate == null || predicate(s as T))) as T;
+		}
+
+        public ItemSocket GetSocket(Type type)
+        {
+            if (Sockets == null)
+            {
+                return null;
+            }
+
+            return Sockets.FirstOrDefault(s => s.GetType() == type);
+        }
+
+        public bool HasSocket<T>()
+		{
+            if (Sockets == null)
+            {
+                return false;
+            }
+
+            return Sockets.Any(s => s.GetType() == typeof(T));
+		}
+
+        public bool HasSocket(Type t)
+        {
+            if (Sockets == null)
+            {
+                return false;
+            }
+
+            return Sockets.Any(s => s.GetType() == t);
+        }
+        #endregion
+    }
+
+    public class ItemSocket
+	{
+		[CommandProperty(AccessLevel.GameMaster)]
+		public Item Owner { get; set; }
+		
+		[CommandProperty(AccessLevel.GameMaster)]
+		public DateTime Expires { get; set; }
+		
+		public virtual TimeSpan TickDuration { get { return TimeSpan.FromMinutes(1); } }
+		
+		public Timer Timer { get; set; }
+
+        public ItemSocket()
+            : this(TimeSpan.Zero)
+        {
+        }
+		
+		public ItemSocket(TimeSpan duration)
+		{
+			if(duration != TimeSpan.Zero)
+			{
+				Expires = DateTime.UtcNow + duration;
+				
+				BeginTimer();
+			}
+		}
+		
+		protected void BeginTimer()
+		{
+			EndTimer();
+			
+			Timer = Timer.DelayCall(TickDuration, TickDuration, OnTick);
+            Timer.Start();
+		}
+		
+		protected void EndTimer()
+		{
+			if(Timer != null)
+			{
+				Timer.Stop();
+				Timer = null;
+			}
+		}
+		
+		protected virtual void OnTick()
+		{
+			if(Expires < DateTime.UtcNow || Owner.Deleted)
+			{
+				Remove();
+			}
+		}
+		
+		public virtual void Remove()
+		{
+			EndTimer();
+			
+			Owner.RemoveItemSocket(this);
+		}
+		
+		public virtual void OnRemoved()
+		{
+		}
+		
+		public virtual void GetProperties(ObjectPropertyList list)
+		{
+		}
+
+        public virtual void OnOwnerDuped(Item newItem)
+        {
+            ItemSocket newSocket = null;
+
+            try
+            {
+                newSocket = Activator.CreateInstance(GetType()) as ItemSocket;
+            }
+            catch
+            {
+                Console.WriteLine(
+                    "Warning: 0x{0:X}: Item socket must have a zero paramater constructor to be separated from a stack. '{1}'.",
+                    Owner.Serial.Value,
+                    GetType().Name);
+            }
+
+            if (newSocket != null)
+            {
+                newSocket.Expires = Expires;
+
+                if (newSocket.Expires != DateTime.MinValue)
+                {
+                    newSocket.BeginTimer();
+                }
+
+                newSocket.OnAfterDuped(this);
+                newItem.AttachSocket(newSocket);
+            }
+        }
+
+        public virtual void OnAfterDuped(ItemSocket oldSocket)
+        {
+        }
+
+		public virtual void Serialize(GenericWriter writer)
+		{
+			writer.Write(0);
+			
+			writer.Write(Expires);
+		}
+		
+		public virtual void Deserialize(Item owner, GenericReader reader)
+		{
+			reader.ReadInt(); // version
+			
+			Expires = reader.ReadDateTime();
+			
+			if(Expires != DateTime.MinValue)
+			{
+				if(Expires < DateTime.UtcNow)
+				{
+					return;
+				}
+				else
+				{
+					BeginTimer();
+				}
+			}
+			
+			owner.AttachSocket(this);
+		}
+		
+		public static void Save(ItemSocket socket, GenericWriter writer)
+		{
+			writer.Write(socket.GetType().Name);
+			socket.Serialize(writer);
+		}
+		
+		public static void Load(Item item, GenericReader reader)
+		{
+			var typeName = ScriptCompiler.FindTypeByName(reader.ReadString());
+            var socket = Activator.CreateInstance(typeName) as ItemSocket;
+
+            socket.Deserialize(item, reader);
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace Server.Misc
     {
         public static bool Enabled = false; // Is this system enabled?
 
-        public static string ServerName = "SIOP"; // Your server name here.
+        public static string ServerName = "UO Serpent Isle"; // Your server name here.
 
         public static string EmailServer = "smtp.gmail.com"; // Your mail server here
         public static string User = "highchloride@gmail.com"; // Your username here

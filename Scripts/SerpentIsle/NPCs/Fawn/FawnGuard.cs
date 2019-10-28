@@ -54,6 +54,7 @@ namespace Server.Mobiles
             }
 
             Utility.AssignRandomHair(this);
+
         }
 
         public FawnGuard(Serial serial) : base(serial)

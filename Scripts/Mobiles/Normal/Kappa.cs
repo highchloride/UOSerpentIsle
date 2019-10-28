@@ -57,7 +57,7 @@ namespace Server.Mobiles
             }
 
             if (Core.ML && Utility.RandomDouble() < .33)
-                PackItem(Engines.Plants.Seed.RandomPeculiarSeed(4));
+                PackItem(Engines.Plants.Seed.RandomPeculiarSeed(2));
 
             SetSpecialAbility(SpecialAbility.LifeLeech);
         }
@@ -65,6 +65,14 @@ namespace Server.Mobiles
         public Kappa(Serial serial)
             : base(serial)
         {
+        }
+		
+		public override int TreasureMapLevel
+        {
+            get
+            {
+                return 2;
+            }
         }
 
         public override void GenerateLoot()

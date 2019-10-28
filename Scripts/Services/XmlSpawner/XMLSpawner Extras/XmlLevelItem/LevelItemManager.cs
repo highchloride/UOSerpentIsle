@@ -59,7 +59,7 @@ namespace Server.Items
 			if ( bc == null )
 				return false;
 
-			return bc.HasBreath;
+            return bc.HasAbility(SpecialAbility.DragonBreath);
 		}
 
 		private static bool IsPoisonImmune( BaseCreature bc )

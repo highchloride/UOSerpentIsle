@@ -8,50 +8,7 @@ namespace Server.Mobiles
     [CorpseName("a demon knight corpse")]
     public class DemonKnight : BaseCreature
     {
-        private DateTime m_NextArea;
         private bool m_InHere;
-
-        public static Type[] DoomArtifact { get { return m_DoomArtifact; } }
-        private static Type[] m_DoomArtifact = new Type[]
-        {
-            typeof(LegacyOfTheDreadLord),       typeof(TheTaskmaster),              typeof(TheDragonSlayer),
-            typeof(ArmorOfFortune),             typeof(GauntletsOfNobility),        typeof(HelmOfInsight),
-            typeof(HolyKnightsBreastplate),     typeof(JackalsCollar),              typeof(LeggingsOfBane),
-            typeof(MidnightBracers),            typeof(OrnateCrownOfTheHarrower),   typeof(ShadowDancerLeggings),
-            typeof(TunicOfFire),                typeof(VoiceOfTheFallenKing),       typeof(BraceletOfHealth),
-            typeof(OrnamentOfTheMagician),      typeof(RingOfTheElements),          typeof(RingOfTheVile),
-            typeof(Aegis),                      typeof(ArcaneShield),               typeof(AxeOfTheHeavens),
-            typeof(BladeOfInsanity),            typeof(BoneCrusher),                typeof(BreathOfTheDead),
-            typeof(Frostbringer),               typeof(SerpentsFang),               typeof(StaffOfTheMagi),
-            typeof(TheBeserkersMaul),           typeof(TheDryadBow),                typeof(DivineCountenance),
-            typeof(HatOfTheMagi),               typeof(HuntersHeaddress),           typeof(SpiritOfTheTotem)
-        };
-
-        public static Type[][] RewardTable { get { return m_RewardTable; } }
-        private static Type[][] m_RewardTable = new Type[][]
-        {
-            new Type[] { typeof(HatOfTheMagi) },            new Type[] { typeof(StaffOfTheMagi) },      new Type[] { typeof(OrnamentOfTheMagician) },
-            new Type[] { typeof(ShadowDancerLeggings) },    new Type[] {typeof(RingOfTheElements) },    new Type[] { typeof(GauntletsOfNobility) },
-            new Type[] { typeof(LeggingsOfBane) },          new Type[] { typeof(MidnightBracers) },     new Type[] { typeof(Glenda) },
-            new Type[] { typeof(BowOfTheInfiniteSwarm) },   new Type[] { typeof(TheDeceiver) },         new Type[] { typeof(TheScholarsHalo) },
-            new Type[] { typeof(DoomRecipeScroll) },
-            new Type[] 
-            {
-                typeof(LegacyOfTheDreadLord),       typeof(TheTaskmaster),
-                typeof(ArmorOfFortune),             typeof(HelmOfInsight),
-                typeof(HolyKnightsBreastplate),     typeof(JackalsCollar),              
-                typeof(OrnateCrownOfTheHarrower),   typeof(TheDragonSlayer),
-                typeof(TunicOfFire),                typeof(VoiceOfTheFallenKing),
-                typeof(RingOfTheVile),              typeof(BraceletOfHealth),
-                typeof(Aegis),                      typeof(ArcaneShield),
-                typeof(BladeOfInsanity),            typeof(BoneCrusher),
-                typeof(Frostbringer),               typeof(SerpentsFang),
-                typeof(TheBeserkersMaul),           typeof(TheDryadBow),
-                typeof(HuntersHeaddress),           typeof(SpiritOfTheTotem),
-                typeof(AxeOfTheHeavens),            typeof(BreathOfTheDead),
-                typeof(DivineCountenance)
-            }
-        };
 
         [Constructable]
         public DemonKnight()
@@ -98,17 +55,20 @@ namespace Server.Mobiles
 
             VirtualArmor = 64;
 
-            m_NextArea = DateTime.UtcNow;
-
             SetWeaponAbility(WeaponAbility.CrushingBlow);
             SetWeaponAbility(WeaponAbility.WhirlwindAttack);
+
+            ForceActiveSpeed = 0.38;
+            ForcePassiveSpeed = 0.66;
         }
 
         public DemonKnight(Serial serial)
             : base(serial)
         {
         }
-       
+
+        public override bool CanFlee { get { return false; } }
+
         public override bool IgnoreYoungProtection
         {
             get
@@ -149,100 +109,6 @@ namespace Server.Mobiles
             get
             {
                 return 6;
-            }
-        }
-        private static bool CheckLocation(Mobile m)
-        {
-            Region r = m.Region;
-
-            if (r.IsPartOf<Server.Regions.HouseRegion>() || Server.Multis.BaseBoat.FindBoatAt(m, m.Map) != null)
-                return false;
-            //TODO: a CanReach of something check as opposed to above?
-
-            if (r.IsPartOf("GauntletRegion"))
-                return true;
-
-            return (m.Map == Map.Malas);
-        }
-
-        public static void HandleKill(Mobile victim, Mobile killer)
-        {
-            PlayerMobile pm = killer as PlayerMobile;
-            BaseCreature bc = victim as BaseCreature;
-
-            if (!Core.AOS)
-                return;
-
-            if ( pm == null || bc == null || bc.NoKillAwards || !pm.Alive/*|| !CheckLocation(bc) || !CheckLocation(pm)*/)
-                return;
-
-            //Make sure its a boss we killed!!
-            bool boss = bc is Impaler || bc is DemonKnight || bc is DarknightCreeper || bc is FleshRenderer  || bc is ShadowKnight || bc is AbysmalHorror;
-            if (!boss)
-                return;
-             
-            double gpoints = pm.GauntletPoints;
-            int luck = Math.Max(0, pm.RealLuck);
-
-            pm.GauntletPoints += (int)Math.Max(0, (bc.Fame * (1 + Math.Sqrt(luck) / 100)) / 2);
-
-            const double A = 0.000863316841;
-            const double B = 0.00000425531915;
-
-            double chance = A * Math.Pow(10, B * gpoints);
-            double roll = Utility.RandomDouble();
-
-            if (chance > roll)
-            {
-                Item i = null;
-
-                if (Core.TOL)
-                {
-                    int ran = Utility.Random(m_RewardTable.Length + 1);
-
-                    if (ran >= m_RewardTable.Length)
-                    {
-                        i = Loot.RandomArmorOrShieldOrWeaponOrJewelry(LootPackEntry.IsInTokuno(killer), LootPackEntry.IsMondain(killer), LootPackEntry.IsStygian(killer));
-                        RunicReforging.GenerateRandomArtifactItem(i, luck, Utility.RandomMinMax(800, 1200));
-                        NegativeAttributes attrs = RunicReforging.GetNegativeAttributes(i);
-
-                        if (attrs != null)
-                        {
-                            attrs.Prized = 1;
-                        }
-                    }
-                    else
-                    {
-                        Type[] list = m_RewardTable[ran];
-                        Type t = list.Length == 1 ? list[0] : list[Utility.Random(list.Length)];
-
-                        i = Activator.CreateInstance(t) as Item;
-                    }
-                }
-                else
-                {
-                    i = Activator.CreateInstance(m_DoomArtifact[Utility.Random(m_DoomArtifact.Length)]) as Item;
-                }
-
-                if (i != null)
-                {
-                    pm.SendLocalizedMessage(1062317); // For your valor in combating the fallen beast, a special artifact has been bestowed on you.
-
-                    pm.PlaySound(0x5B4);
-
-                    if (!pm.PlaceInBackpack(i))
-                    {
-                        if (pm.BankBox != null && pm.BankBox.TryDropItem(killer, i, false))
-                            pm.SendLocalizedMessage(1079730); // The item has been placed into your bank box.
-                        else
-                        {
-                            pm.SendLocalizedMessage(1072523); // You find an artifact, but your backpack and bank are too full to hold it.
-                            i.MoveToWorld(pm.Location, pm.Map);
-                        }
-                    }
-
-                    pm.GauntletPoints = 0;
-                }
             }
         }
 
@@ -291,48 +157,7 @@ namespace Server.Mobiles
             return null;
         }
 
-        public override void OnThink()
-        {
-            if (Core.TOL && DateTime.UtcNow > m_NextArea)
-                Teleport();
-        }
-
-        private void Teleport()
-        {
-            System.Collections.Generic.List<Mobile> toTele = new System.Collections.Generic.List<Mobile>();
-
-            IPooledEnumerable eable = GetMobilesInRange(12);
-            foreach (Mobile mob in eable)
-            {
-                if (mob is BaseCreature)
-                {
-                    BaseCreature bc = mob as BaseCreature;
-
-                    if (!bc.Controlled)
-                        continue;
-                }
-
-                if (mob != this && mob.Alive && mob.Player && CanBeHarmful(mob, false) && mob.AccessLevel == AccessLevel.Player)
-                    toTele.Add(mob);
-            }
-            eable.Free();
-
-            if (toTele.Count > 0)
-            {
-                Mobile from = toTele[Utility.Random(toTele.Count)];
-
-                if (from != null)
-                {
-                    Combatant = from;
-
-                    from.MoveToWorld(GetSpawnPosition(1), Map);
-                    from.FixedParticles(0x376A, 9, 32, 0x13AF, EffectLayer.Waist);
-                    from.PlaySound(0x1FE);
-                }
-            }
-
-            m_NextArea = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(20, 30)); // too much
-        }
+        public override bool TeleportsTo { get { return true; } }
 
         public override void GenerateLoot()
         {
@@ -401,8 +226,6 @@ namespace Server.Mobiles
         {
             base.Deserialize(reader);
             int version = reader.ReadInt();
-
-            m_NextArea = DateTime.UtcNow;
         }
     }
 }

@@ -256,6 +256,9 @@ namespace Server.Mobiles
                         double skill = Creature.Skills[(SkillName)req.Requirement].Base;
                         double toAdd = req.Cost == 100 ? 20 : 40;
 
+                        if ((SkillName)req.Requirement == SkillName.Hiding)
+                            toAdd = 100;
+
                         if (skill < toAdd)
                             Creature.Skills[(SkillName)req.Requirement].Base = toAdd;
                     }
@@ -573,13 +576,6 @@ namespace Server.Mobiles
                 yield break;
             }
 
-            var profile = PetTrainingHelper.GetAbilityProfile(Creature);
-
-            if (profile == null)
-            {
-                yield break;
-            }
-
             foreach (var ability in SpecialAbilities)
             {
                 yield return ability;
@@ -594,13 +590,6 @@ namespace Server.Mobiles
         public IEnumerable<AreaEffect> EnumerateAreaEffects()
         {
             if (AreaEffects == null)
-            {
-                yield break;
-            }
-
-            var profile = PetTrainingHelper.GetAbilityProfile(Creature);
-
-            if (profile == null)
             {
                 yield break;
             }

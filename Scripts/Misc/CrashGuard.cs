@@ -12,7 +12,7 @@ namespace Server.Misc
     {
         private static readonly bool Enabled = true;
         private static readonly bool SaveBackup = true;
-        private static readonly bool RestartServer = false;
+        private static readonly bool RestartServer = true;
         private static readonly bool GenerateReport = true;
         public static void Initialize()
         {

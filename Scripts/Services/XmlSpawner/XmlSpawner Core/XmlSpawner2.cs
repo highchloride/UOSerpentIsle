@@ -2052,6 +2052,8 @@ namespace Server.Mobiles
 		{
 			// automatically turn off duped spawners
 			((XmlSpawner)newItem).Running = false;
+
+            base.OnAfterDuped(newItem);
 		}
 
 		public override void OnMapChange()
@@ -10233,7 +10235,7 @@ public static void _TraceEnd(int index)
 			if (!Region.Find(new Point3D(x, y, z), this.Map).AllowSpawn())
 				return false;
 
-			return CanFit(x, y, z, 16, false, true, true, mob);
+			return Map.CanFit(x, y, z, 16, false, true, true, mob);
 		}
 
 		public bool HasRegionPoints(Region r)
@@ -11019,13 +11021,42 @@ public static void _TraceEnd(int index)
 		{
 			if (listi != null)
 			{
-				for(int i=listi.Count - 1; i>=0; --i)
-					listi[i].Delete();
+				var i = listi.Count;
+
+				while (--i >= 0)
+				{
+					if (i < listi.Count && listi[i] != null)
+					{
+						try
+						{
+							listi[i].Delete();
+						}
+						catch
+						{ }
+					}
+				}
+
+				listi.Clear();
 			}
+
 			if(listm != null)
 			{
-				for(int i=listm.Count - 1; i>=0; --i)
-					listm[i].Delete();
+				var i = listm.Count;
+
+				while (--i >= 0)
+				{
+					if (i < listm.Count && listm[i] != null)
+					{
+						try
+						{
+							listm[i].Delete();
+						}
+						catch
+						{ }
+					}
+				}
+
+				listm.Clear();
 			}
 		}
 

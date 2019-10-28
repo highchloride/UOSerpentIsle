@@ -51,9 +51,6 @@ namespace Server.Engines.CityLoyalty
         { 
             get 
             {
-                if (_Utilizing && TradeDealExpires < DateTime.UtcNow)
-                    UtilizingTradeDeal = false;
-
                 return _Utilizing;
             } 
             set 
@@ -64,10 +61,18 @@ namespace Server.Engines.CityLoyalty
                 if (!_Utilizing && value)
                     TradeDealExpires = DateTime.UtcNow + TimeSpan.FromHours(CityLoyaltySystem.TradeDealUtilizationPeriod);
 
-                if (_Utilizing && !value && Player.NetState != null)
+                if (_Utilizing && !value)
                 {
                     BuffInfo.RemoveBuff(Player, BuffIcon.CityTradeDeal);
-                    Player.SendLocalizedMessage(1154074); // The benefit from your City's Trade Deal has expired! Visit the City Stone to reclaim it.
+
+                    CityLoyaltySystem.RemoveTradeDeal(Player);
+
+                    if (Player.NetState != null)
+                    {
+                        Player.SendLocalizedMessage(1154074); // The benefit from your City's Trade Deal has expired! Visit the City Stone to reclaim it.
+                    }
+
+                    Player.Delta(MobileDelta.WeaponDamage);
                 }
 
                 _Utilizing = value;
@@ -85,7 +90,12 @@ namespace Server.Engines.CityLoyalty
             City = city;
             ShowGainMessage = true;
 		}
-		
+
+        public override string ToString()
+        {
+            return String.Format("{0} {1}", City.ToString(), IsCitizen ? "[Citizen]" : String.Empty);
+        }
+
 		public void DeclareCitizenship()
 		{
 			IsCitizen = true;
@@ -118,9 +128,12 @@ namespace Server.Engines.CityLoyalty
             }
 		}
 
-        public bool CheckTradeDeal()
+        public void CheckTradeDeal()
         {
-            return UtilizingTradeDeal;
+            if (TradeDealExpired)
+            {
+                UtilizingTradeDeal = false;
+            }
         }
 		
 		public override void Serialize(GenericWriter writer)

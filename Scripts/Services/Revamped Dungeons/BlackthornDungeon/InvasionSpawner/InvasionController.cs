@@ -25,7 +25,7 @@ namespace Server.Engines.Blackthorn
 
 	public class InvasionController : Item
 	{
-        public static bool Enabled = true;
+        public static bool Enabled = false; //UOSI
         public static int WaveCountMin = 8;
         public static int WaveCountMax = 10;
         public static int MaxWaves = 2;
@@ -525,7 +525,7 @@ namespace Server.Engines.Blackthorn
 
             Timer.DelayCall(TimeSpan.FromSeconds(10), () =>
             {
-                if (Beacon != null && Beacon.Destroyed)
+                if (Beacon == null || Beacon.Destroyed)
                 {
                     Timer.DelayCall(TimeSpan.FromMinutes(2), () =>
                     {
@@ -552,96 +552,96 @@ namespace Server.Engines.Blackthorn
 
             Defs = new Dictionary<City, InvasionDefinition>();
 
-            Defs[City.Moonglow] = new InvasionDefinition(
-                new Rectangle2D[]
-                { 
-                    new Rectangle2D(6314, 2571, 10, 5),
-                    new Rectangle2D(6288, 2535, 8, 15),
-                    new Rectangle2D(6322, 2527, 8, 8),
-                    new Rectangle2D(6302, 2524, 10, 5),
-                },
-                new Point3D(6317, 2555, 0));
+            //Defs[City.Moonglow] = new InvasionDefinition(
+            //    new Rectangle2D[]
+            //    { 
+            //        new Rectangle2D(6314, 2571, 10, 5),
+            //        new Rectangle2D(6288, 2535, 8, 15),
+            //        new Rectangle2D(6322, 2527, 8, 8),
+            //        new Rectangle2D(6302, 2524, 10, 5),
+            //    },
+            //    new Point3D(6317, 2555, 0));
 
-            Defs[City.Britain] = new InvasionDefinition(
-                new Rectangle2D[]
-                { 
-                    new Rectangle2D(6296, 2464, 7, 7),
-                    new Rectangle2D(6332, 2473, 8, 10),
-                    new Rectangle2D(6320, 2508, 3, 8),
-                    new Rectangle2D(6287, 2494, 8, 8),
-                }, 
-                new Point3D(6316, 2477, 11));
+            //Defs[City.Britain] = new InvasionDefinition(
+            //    new Rectangle2D[]
+            //    { 
+            //        new Rectangle2D(6296, 2464, 7, 7),
+            //        new Rectangle2D(6332, 2473, 8, 10),
+            //        new Rectangle2D(6320, 2508, 3, 8),
+            //        new Rectangle2D(6287, 2494, 8, 8),
+            //    }, 
+            //    new Point3D(6316, 2477, 11));
 
-            Defs[City.Jhelom] = new InvasionDefinition(
-                new Rectangle2D[] 
-                { 
-                    new Rectangle2D(6450, 2465, 10, 8),
-                    new Rectangle2D(6418, 2497, 15, 5),
-                    new Rectangle2D(6417, 2469, 5, 10),
-                    new Rectangle2D(6432, 2507, 10, 5),
-                }, 
-                new Point3D(6448, 2492, 5));
+            //Defs[City.Jhelom] = new InvasionDefinition(
+            //    new Rectangle2D[] 
+            //    { 
+            //        new Rectangle2D(6450, 2465, 10, 8),
+            //        new Rectangle2D(6418, 2497, 15, 5),
+            //        new Rectangle2D(6417, 2469, 5, 10),
+            //        new Rectangle2D(6432, 2507, 10, 5),
+            //    }, 
+            //    new Point3D(6448, 2492, 5));
 
-            Defs[City.Yew] = new InvasionDefinition(
-                new Rectangle2D[] 
-                {
-                    new Rectangle2D(6314, 2397, 12, 5),
-                    new Rectangle2D(6317, 2440, 10, 10),
-                    new Rectangle2D(6286, 2432, 8, 8),
-                    new Rectangle2D(6289, 2405, 5, 5),
-                },
-                new Point3D(6305, 2423, 0));
+            //Defs[City.Yew] = new InvasionDefinition(
+            //    new Rectangle2D[] 
+            //    {
+            //        new Rectangle2D(6314, 2397, 12, 5),
+            //        new Rectangle2D(6317, 2440, 10, 10),
+            //        new Rectangle2D(6286, 2432, 8, 8),
+            //        new Rectangle2D(6289, 2405, 5, 5),
+            //    },
+            //    new Point3D(6305, 2423, 0));
 
-            Defs[City.Minoc] = new InvasionDefinition(
-                new Rectangle2D[] 
-                {
-                    new Rectangle2D(6309, 2339, 10, 5),
-                    new Rectangle2D(6290, 2367, 5, 10),
-                    new Rectangle2D(6304, 2378, 10, 5),
-                    new Rectangle2D(6323, 2344, 5, 10)
-                }, 
-                new Point3D(6307, 2362, 15));
+            //Defs[City.Minoc] = new InvasionDefinition(
+            //    new Rectangle2D[] 
+            //    {
+            //        new Rectangle2D(6309, 2339, 10, 5),
+            //        new Rectangle2D(6290, 2367, 5, 10),
+            //        new Rectangle2D(6304, 2378, 10, 5),
+            //        new Rectangle2D(6323, 2344, 5, 10)
+            //    }, 
+            //    new Point3D(6307, 2362, 15));
 
-            Defs[City.Trinsic] = new InvasionDefinition(
-                new Rectangle2D[] 
-                {
-                    new Rectangle2D(6356, 2371, 10, 10),
-                    new Rectangle2D(6354, 2344, 5, 10),
-                    new Rectangle2D(6366, 2344, 5, 7),
-                    new Rectangle2D(6386, 2355, 8, 8),
-                }, 
-                new Point3D(6402, 2368, 25));
+            //Defs[City.Trinsic] = new InvasionDefinition(
+            //    new Rectangle2D[] 
+            //    {
+            //        new Rectangle2D(6356, 2371, 10, 10),
+            //        new Rectangle2D(6354, 2344, 5, 10),
+            //        new Rectangle2D(6366, 2344, 5, 7),
+            //        new Rectangle2D(6386, 2355, 8, 8),
+            //    }, 
+            //    new Point3D(6402, 2368, 25));
 
-            Defs[City.SkaraBrae] = new InvasionDefinition(
-                new Rectangle2D[] 
-                { 
-                    new Rectangle2D(6434, 2330, 10, 5),
-                    new Rectangle2D(6456, 2342, 5, 10),
-                    new Rectangle2D(6458, 2368, 15, 6),
-                    new Rectangle2D(6440, 2384, 10, 3),
-                    new Rectangle2D(6412, 2360, 12, 12),
-                }, 
-                new Point3D(6442, 2351, 0));
+            //Defs[City.SkaraBrae] = new InvasionDefinition(
+            //    new Rectangle2D[] 
+            //    { 
+            //        new Rectangle2D(6434, 2330, 10, 5),
+            //        new Rectangle2D(6456, 2342, 5, 10),
+            //        new Rectangle2D(6458, 2368, 15, 6),
+            //        new Rectangle2D(6440, 2384, 10, 3),
+            //        new Rectangle2D(6412, 2360, 12, 12),
+            //    }, 
+            //    new Point3D(6442, 2351, 0));
 
-            Defs[City.NewMagincia] = new InvasionDefinition(
-                new Rectangle2D[]
-                { 
-                    new Rectangle2D(6426, 2397, 10, 5),
-                    new Rectangle2D(6444, 2446, 10, 5),
-                    new Rectangle2D(6436, 2395, 5, 8),
-                    new Rectangle2D(6419, 2446, 10, 5),
-                },
-                new Point3D(6440, 2419, 26));
+            //Defs[City.NewMagincia] = new InvasionDefinition(
+            //    new Rectangle2D[]
+            //    { 
+            //        new Rectangle2D(6426, 2397, 10, 5),
+            //        new Rectangle2D(6444, 2446, 10, 5),
+            //        new Rectangle2D(6436, 2395, 5, 8),
+            //        new Rectangle2D(6419, 2446, 10, 5),
+            //    },
+            //    new Point3D(6440, 2419, 26));
 
-            Defs[City.Vesper] = new InvasionDefinition(
-                new Rectangle2D[] 
-                {
-                    new Rectangle2D(6428, 2534, 10, 5),
-                    new Rectangle2D(6458, 2534, 5, 10),
-                    new Rectangle2D(6460, 2551, 5, 10),
-                    new Rectangle2D(6433, 2561, 6, 6),
-                },
-                new Point3D(6444, 2553, 0));
+            //Defs[City.Vesper] = new InvasionDefinition(
+            //    new Rectangle2D[] 
+            //    {
+            //        new Rectangle2D(6428, 2534, 10, 5),
+            //        new Rectangle2D(6458, 2534, 5, 10),
+            //        new Rectangle2D(6460, 2551, 5, 10),
+            //        new Rectangle2D(6433, 2561, 6, 6),
+            //    },
+            //    new Point3D(6444, 2553, 0));
         }
 	}
 }

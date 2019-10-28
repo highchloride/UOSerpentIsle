@@ -8,6 +8,31 @@ namespace Server.Items
     {
         public override BaseAddonDeed Deed { get { return new SerpentTeleporterTileDeed(); } }
 
+        private Point3D m_Destination;
+        private SerpentTooth m_RequiredTooth;
+
+        [CommandProperty(AccessLevel.Seer)]
+        public Point3D Destination
+        {
+            get { return m_Destination; }
+            set
+            {
+                m_Destination = value;
+                InvalidateProperties();
+            }
+        }
+
+        [CommandProperty(AccessLevel.Seer)]
+        public SerpentTooth RequiredTooth
+        {
+            get { return m_RequiredTooth; }
+            set
+            {
+                m_RequiredTooth = value;
+                InvalidateProperties();
+            }
+        }
+
         [Constructable]
         public SerpentTeleporterTileAddon()
         {
@@ -17,7 +42,7 @@ namespace Server.Items
             AddComponent(new AddonComponent(16112), 1, 1, 0);
             foreach(AddonComponent component in Components)
             {
-                component.Name = "Serpent Gate";
+                component.Name = "Serpent Gate";                
             }
         }
 
@@ -30,7 +55,16 @@ namespace Server.Items
         {
             base.Serialize(writer);
 
-            writer.Write((int)0); // version
+            writer.Write((int)1); // version
+
+            //Version 1
+            writer.Write(m_Destination);
+
+            //Version 0
+            if (m_RequiredTooth != null)
+                writer.WriteType(m_RequiredTooth.GetType());
+            else
+                writer.WriteType(null);
         }
 
         public override void Deserialize(GenericReader reader)
@@ -38,6 +72,21 @@ namespace Server.Items
             base.Deserialize(reader);
 
             int version = reader.ReadInt();
+
+            switch(version)
+            {
+                case 1:
+                    m_Destination = reader.ReadPoint3D();
+                    goto case 0;
+                case 0:
+                    Type type = reader.ReadType();
+                    if (type != null)
+                    {
+                        if (type == typeof(SerpentToothMonitor))
+                            m_RequiredTooth = new SerpentToothMonitor();
+                    }
+                    break;
+            }                
         }
     }
 

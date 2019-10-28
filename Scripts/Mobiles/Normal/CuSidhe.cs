@@ -58,14 +58,7 @@ namespace Server.Mobiles
             ControlSlots = 4;
             MinTameSkill = 101.1;
 
-            if (Utility.RandomDouble() < 0.2)
-                PackItem(new TreasureMap(5, Map.Trammel));
-
-            //if ( Utility.RandomDouble() < 0.1 )
-            //PackItem( new ParrotItem() );
-
             PackGold(500, 800);
-            // TODO 0-2 spellweaving scroll
 
             SetWeaponAbility(WeaponAbility.BleedAttack);
         }
@@ -75,13 +68,11 @@ namespace Server.Mobiles
         {
         }
 
-        public override bool CanHealOwner
+        public override int TreasureMapLevel
         {
-            get
-            {
-                return true;
-            }
+            get { return 5; }
         }
+
         public override FoodType FavoriteFood
         {
             get
@@ -124,16 +115,19 @@ namespace Server.Mobiles
 
         public override void OnAfterTame(Mobile tamer)
         {
-            if (PetTrainingHelper.Enabled)
+            if (Owners.Count == 0 && PetTrainingHelper.Enabled)
             {
-                RawStr = (int)Math.Max(1, RawStr * 0.5);
-                RawDex = (int)Math.Max(1, RawDex * 0.5);
+                if (RawStr > 0)
+                    RawStr = (int)Math.Max(1, RawStr * 0.5);
 
-                HitsMaxSeed = RawStr;
-                Hits = RawStr;
+                if (RawDex > 0)
+                    RawDex = (int)Math.Max(1, RawDex * 0.5);
 
-                StamMaxSeed = RawDex;
-                Stam = RawDex;
+                if (HitsMaxSeed > 0)
+                    HitsMaxSeed = (int)Math.Max(1, HitsMaxSeed * 0.5);
+
+                Hits = Math.Min(HitsMaxSeed, Hits);
+                Stam = Math.Min(RawDex, Stam);
             }
             else
             {

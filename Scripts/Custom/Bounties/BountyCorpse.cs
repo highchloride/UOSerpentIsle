@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Server.Misc;
 using Server.Mobiles;
+using Server.SerpentIsle.Systems.MoreLogging;
 
 namespace Server.Items
 {
@@ -28,6 +29,9 @@ namespace Server.Items
                 return Corpse.Mobile_CreateCorpseHandler(owner, hair, facialhair, initialContent, equipItems);
 
             Corpse c = new BountyCorpse(owner, hair, facialhair, equipItems);
+
+            //UOSI Logging
+            MoreLogging.WriteLine(owner, "A BountyCorpse has been created!");
 
             owner.Corpse = c;
 

@@ -28,16 +28,16 @@ namespace Server.Misc
 		public static readonly TimeSpan WarningInterval = TimeSpan.FromMinutes(3);
 		
 		// Default state: this can be overridden in the [Schedules interface
-		public static readonly bool Enabled = false;
+		public static readonly bool Enabled = true;
 
 		public static bool Restarting { get { return _Timer != null; } }
 
 		public static void Configure()
 		{
-			// 12:00:00 noon
-			var times = new ScheduleTimes(new TimeSpan(12, 00, 00));
+			// 03:00:00 AM
+			var times = new ScheduleTimes(new TimeSpan(3, 00, 00));
 
-			// Every month, every day (at 12 noon)
+			// Every month, every day (at 3 am)
 			_Schedule = new Schedule("Auto Restart", Enabled, ScheduleMonths.All, ScheduleDays.All, times, DoRestart);
 
 			// Register the Schedule to appear in [Schedules interface.

@@ -185,7 +185,7 @@ namespace Server
                 }
 
                 if (m != null)
-                    BaseFishPie.ScaleDamage(m, ref totalDamage, phys, fire, cold, pois, nrgy, direct);
+                    BaseFishPie.ScaleDamage(from, m, ref totalDamage, phys, fire, cold, pois, nrgy, direct);
 
                 if (Core.HS && ArmorPierce.IsUnderEffects(m))
                 {
@@ -273,33 +273,6 @@ namespace Server
             }
             #endregion
 
-            #region Dragon Barding
-            if ((from == null || !from.Player) && m.Player && m.Mount is SwampDragon)
-            {
-                SwampDragon pet = m.Mount as SwampDragon;
-
-                if (pet != null && pet.HasBarding)
-                {
-                    int percent = (pet.BardingExceptional ? 20 : 10);
-                    int absorbed = Scale(totalDamage, percent);
-
-                    totalDamage -= absorbed;
-					
-                    // Mondain's Legacy mod
-                    if (!(pet is ParoxysmusSwampDragon))
-                        pet.BardingHP -= absorbed;
-
-                    if (pet.BardingHP < 0)
-                    {
-                        pet.HasBarding = false;
-                        pet.BardingHP = 0;
-
-                        m.SendLocalizedMessage(1053031); // Your dragon's barding has been destroyed!
-                    }
-                }
-            }
-            #endregion
-
             #region Stygian Abyss
             //SHould this go in after or before dragon barding absorb?
             if (ignoreArmor)
@@ -315,6 +288,10 @@ namespace Server
 
             #region Berserk
             BestialSetHelper.OnDamage(m, from, ref totalDamage);
+            #endregion
+
+            #region Epiphany Set
+            EpiphanyHelper.OnHit(m, totalDamage);
             #endregion
 
             if (type == DamageType.Spell && m != null && Feint.Registry.ContainsKey(m) && Feint.Registry[m].Enemy == from)
@@ -367,8 +344,15 @@ namespace Server
             }
             #endregion
 
+            if (type <= DamageType.Ranged)
+            {
+                AttuneWeaponSpell.TryAbsorb(m, ref totalDamage);
+            }
+
             if (keepAlive && totalDamage > m.Hits)
+            {
                 totalDamage = m.Hits;
+            }
 
             if (from is BaseCreature && type <= DamageType.Ranged)
             {
@@ -396,6 +380,12 @@ namespace Server
             }
 
             totalDamage = m.Damage(totalDamage, from, true, false);
+
+            if (Core.SA && type == DamageType.Melee && from is BaseCreature &&
+                (m is PlayerMobile || (m is BaseCreature && !((BaseCreature)m).IsMonster)))
+            {
+                from.RegisterDamage(totalDamage / 4, m);
+            }
 
             SpiritSpeak.CheckDisrupt(m);
 
@@ -438,7 +428,7 @@ namespace Server
             {
                 if (context.Type == typeof(WraithFormSpell))
                 {
-                    int manaLeech = AOS.Scale(damageGiven, Math.Min(target.Mana, (5 + (int)((15 * from.Skills.SpiritSpeak.Value) / 100)))); // Wraith form gives 5-20% mana leech
+                    int manaLeech = AOS.Scale(damageGiven, Math.Min(target.Mana, (int)from.Skills.SpiritSpeak.Value / 5)); // Wraith form gives 5-20% mana leech
 
                     if (manaLeech != 0)
                     {
@@ -487,9 +477,9 @@ namespace Server
                 case 13: return Math.Min(4, AosAttributes.GetValue(from, AosAttribute.CastSpeed));
                 case 14: return Math.Min(40, AosAttributes.GetValue(from, AosAttribute.LowerManaCost)) + BaseArmor.GetInherentLowerManaCost(from);
                 
-                case 15: return RegenRates.HitPointRegen(from); // HP   REGEN
-                case 16: return RegenRates.StamRegen(from); // Stam REGEN
-                case 17: return RegenRates.ManaRegen(from); // MANA REGEN
+                case 15: return (int)RegenRates.HitPointRegen(from); // HP   REGEN
+                case 16: return (int)RegenRates.StamRegen(from); // Stam REGEN
+                case 17: return (int)RegenRates.ManaRegen(from); // MANA REGEN
                 case 18: return Math.Min(105, AosAttributes.GetValue(from, AosAttribute.ReflectPhysical)); // reflect phys
                 case 19: return Math.Min(50, AosAttributes.GetValue(from, AosAttribute.EnhancePotions)); // enhance pots
 
@@ -628,7 +618,7 @@ namespace Server
 
             if (attribute == AosAttribute.WeaponDamage)
             {
-                if (BaseMagicalFood.IsUnderInfluence(m, MagicalFood.WrathGrapes))
+                if (BaseMagicalFood.IsUnderInfluence(m, MagicalFood.GrapesOfWrath))
                     value += 35;
 
                 // attacker gets 10% bonus when they're under divine fury
@@ -667,7 +657,7 @@ namespace Server
             }
             else if (attribute == AosAttribute.SpellDamage)
             {
-                if (BaseMagicalFood.IsUnderInfluence(m, MagicalFood.WrathGrapes))
+                if (BaseMagicalFood.IsUnderInfluence(m, MagicalFood.GrapesOfWrath))
                     value += 15;
 
                 if (PsychicAttack.Registry.ContainsKey(m))
@@ -891,23 +881,19 @@ namespace Server
                 //Virtue Artifacts
                 value += AnkhPendant.GetManaRegenModifier(m);
             }
-            else if (attribute == AosAttribute.BonusDex)
-            {
-                #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.OrderOfEngineers))
-                    value += 3;
-                #endregion
-            }
-            else if (attribute == AosAttribute.BonusStr)
-            {
-                #region City Loyalty
-                if (CityLoyaltySystem.HasTradeDeal(m, TradeDeal.MiningCooperative))
-                    value += 3;
-                #endregion
-            }
             #endregion
 
             return value;
+        }
+
+        public override void SetValue(int bitmask, int value)
+        {
+            if (Core.SA && bitmask == (int)AosAttribute.WeaponSpeed && Owner is BaseWeapon)
+            {
+                ((BaseWeapon)Owner).WeaponAttributes.ScaleLeech(value);
+            }
+
+            base.SetValue(bitmask, value);
         }
 
         public AosAttributes(Item owner)
@@ -930,19 +916,19 @@ namespace Server
         {
             get
             {
-                return this.ExtendedGetValue((int)attribute);
+                return ExtendedGetValue((int)attribute);
             }
             set
             {
-                this.SetValue((int)attribute, value);
+                SetValue((int)attribute, value);
             }
         }
 
         public int ExtendedGetValue(int bitmask)
         {
-            int value = this.GetValue(bitmask);
+            int value = GetValue(bitmask);
 
-            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(this.Owner, typeof(XmlAosAttributes));
+            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(Owner, typeof(XmlAosAttributes));
 
             if (xaos != null)
             {
@@ -959,13 +945,13 @@ namespace Server
 
         public void AddStatBonuses(Mobile to)
         {
-            int strBonus = this.BonusStr;
-            int dexBonus = this.BonusDex;
-            int intBonus = this.BonusInt;
+            int strBonus = BonusStr;
+            int dexBonus = BonusDex;
+            int intBonus = BonusInt;
 
             if (strBonus != 0 || dexBonus != 0 || intBonus != 0)
             {
-                string modName = this.Owner.Serial.ToString();
+                string modName = Owner.Serial.ToString();
 
                 if (strBonus != 0)
                     to.AddStatMod(new StatMod(StatType.Str, modName + "Str", strBonus, TimeSpan.Zero));
@@ -982,7 +968,7 @@ namespace Server
 
         public void RemoveStatBonuses(Mobile from)
         {
-            string modName = this.Owner.Serial.ToString();
+            string modName = Owner.Serial.ToString();
 
             from.RemoveStatMod(modName + "Str");
             from.RemoveStatMod(modName + "Dex");
@@ -1437,6 +1423,21 @@ namespace Server
             return value;
         }
 
+        public override void SetValue(int bitmask, int value)
+        {
+            if (bitmask == (int)AosWeaponAttribute.DurabilityBonus && Owner is BaseWeapon)
+            {
+                ((BaseWeapon)Owner).UnscaleDurability();
+            }
+
+            base.SetValue(bitmask, value);
+
+            if (bitmask == (int)AosWeaponAttribute.DurabilityBonus && Owner is BaseWeapon)
+            {
+                ((BaseWeapon)Owner).ScaleDurability();
+            }
+        }
+
         public AosWeaponAttributes(Item owner)
             : base(owner)
         {
@@ -1456,19 +1457,19 @@ namespace Server
         {
             get
             {
-                return this.ExtendedGetValue((int)attribute);
+                return ExtendedGetValue((int)attribute);
             }
             set
             {
-                this.SetValue((int)attribute, value);
+                SetValue((int)attribute, value);
             }
         }
 
         public int ExtendedGetValue(int bitmask)
         {
-            int value = this.GetValue(bitmask);
+            int value = GetValue(bitmask);
 
-            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(this.Owner, typeof(XmlAosAttributes));
+            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(Owner, typeof(XmlAosAttributes));
 
             if (xaos != null)
             {
@@ -1478,14 +1479,16 @@ namespace Server
             return (value);
         }
 
-        public void ScaleLeech(BaseWeapon wep, int weaponSpeed)
+        public void ScaleLeech(int weaponSpeed)
         {
-            if (wep.IsArtifact)
+            BaseWeapon wep = Owner as BaseWeapon;
+
+            if (wep == null || wep.IsArtifact)
                 return;
 
             if (HitLeechHits > 0)
             {
-                double postcap = (double)HitLeechHits / (double)Imbuing.GetPropRange(wep, AosWeaponAttribute.HitLeechHits)[1];
+                double postcap = (double)HitLeechHits / (double)ItemPropertyInfo.GetMaxIntensity(wep, AosWeaponAttribute.HitLeechHits);
                 if (postcap < 1.0) postcap = 1.0;
 
                 int newhits = (int)((wep.MlSpeed * 2500 / (100 + weaponSpeed)) * postcap);
@@ -1499,7 +1502,7 @@ namespace Server
 
             if (HitLeechMana > 0)
             {
-                double postcap = (double)HitLeechMana / (double)Imbuing.GetPropRange(wep, AosWeaponAttribute.HitLeechMana)[1];
+                double postcap = (double)HitLeechMana / (double)ItemPropertyInfo.GetMaxIntensity(wep, AosWeaponAttribute.HitLeechMana);
                 if (postcap < 1.0) postcap = 1.0;
 
                 int newmana = (int)((wep.MlSpeed * 2500 / (100 + weaponSpeed)) * postcap);
@@ -1944,7 +1947,9 @@ namespace Server
         HitSparks       = 0x00000004,
         Bane            = 0x00000008,
         MysticWeapon    = 0x00000010,
-        AssassinHoned   = 0x00000020
+        AssassinHoned   = 0x00000020,
+        Focus           = 0x00000040,
+        HitExplosion    = 0x00000080
     }
 
     public sealed class ExtendedWeaponAttributes : BaseAttributes
@@ -1964,7 +1969,7 @@ namespace Server
         {
         }
 
-        public static int GetValue(Mobile m, AosWeaponAttribute attribute)
+        public static int GetValue(Mobile m, ExtendedWeaponAttribute attribute)
         {
             if (!Core.AOS)
                 return 0;
@@ -1982,7 +1987,7 @@ namespace Server
 
                 if (obj is BaseWeapon)
                 {
-                    AosWeaponAttributes attrs = ((BaseWeapon)obj).WeaponAttributes;
+                    ExtendedWeaponAttributes attrs = ((BaseWeapon)obj).ExtendedWeaponAttributes;
 
                     if (attrs != null)
                         value += attrs[attribute];
@@ -1996,11 +2001,11 @@ namespace Server
         {
             get
             {
-                return this.GetValue((int)attribute);
+                return GetValue((int)attribute);
             }
             set
             {
-                this.SetValue((int)attribute, value);
+                SetValue((int)attribute, value);
             }
         }
 
@@ -2086,6 +2091,32 @@ namespace Server
                 this[ExtendedWeaponAttribute.AssassinHoned] = value;
             }
         }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public int Focus
+        {
+            get
+            {
+                return this[ExtendedWeaponAttribute.Focus];
+            }
+            set
+            {
+                this[ExtendedWeaponAttribute.Focus] = value;
+            }
+        }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public int HitExplosion
+        {
+            get
+            {
+                return this[ExtendedWeaponAttribute.HitExplosion];
+            }
+            set
+            {
+                this[ExtendedWeaponAttribute.HitExplosion] = value;
+            }
+        }
     }
 
     [Flags]
@@ -2154,6 +2185,35 @@ namespace Server
             return value;
         }
 
+        public override void SetValue(int bitmask, int value)
+        {
+            if (bitmask == (int)AosArmorAttribute.DurabilityBonus)
+            {
+                if (Owner is BaseArmor)
+                {
+                    ((BaseArmor)Owner).UnscaleDurability();
+                }
+                else if (Owner is BaseClothing)
+                {
+                    ((BaseClothing)Owner).UnscaleDurability();
+                }
+            }
+
+            base.SetValue(bitmask, value);
+
+            if (bitmask == (int)AosArmorAttribute.DurabilityBonus)
+            {
+                if (Owner is BaseArmor)
+                {
+                    ((BaseArmor)Owner).ScaleDurability();
+                }
+                else if (Owner is BaseClothing)
+                {
+                    ((BaseClothing)Owner).ScaleDurability();
+                }
+            }
+        }
+
         public AosArmorAttributes(Item owner)
             : base(owner)
         {
@@ -2173,19 +2233,19 @@ namespace Server
         {
             get
             {
-                return this.ExtendedGetValue((int)attribute);
+                return ExtendedGetValue((int)attribute);
             }
             set
             {
-                this.SetValue((int)attribute, value);
+                SetValue((int)attribute, value);
             }
         }
 
         public int ExtendedGetValue(int bitmask)
         {
-            int value = this.GetValue(bitmask);
+            int value = GetValue(bitmask);
 
-            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(this.Owner, typeof(XmlAosAttributes));
+            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(Owner, typeof(XmlAosAttributes));
 
             if (xaos != null)
             {
@@ -2305,7 +2365,7 @@ namespace Server
                 SkillName skill;
                 double bonus;
 
-                if (!this.GetValues(i, out skill, out bonus))
+                if (!GetValues(i, out skill, out bonus))
                     continue;
 
                 list.Add(1060451 + i, "#{0}\t{1}", GetLabel(skill), bonus);
@@ -2329,45 +2389,61 @@ namespace Server
 
         public void AddTo(Mobile m)
         {
-            this.Remove();
+            if (Discordance.UnderPVPEffects(m))
+            {
+                return;
+            }
+
+            Remove();
 
             for (int i = 0; i < 5; ++i)
             {
                 SkillName skill;
                 double bonus;
 
-                if (!this.GetValues(i, out skill, out bonus))
+                if (!GetValues(i, out skill, out bonus))
                     continue;
 
-                if (this.m_Mods == null)
-                    this.m_Mods = new List<SkillMod>();
+                if (m_Mods == null)
+                    m_Mods = new List<SkillMod>();
 
                 SkillMod sk = new DefaultSkillMod(skill, true, bonus);
                 sk.ObeyCap = true;
                 m.AddSkillMod(sk);
-                this.m_Mods.Add(sk);
+                m_Mods.Add(sk);
             }
         }
 
         public void Remove()
         {
-            if (this.m_Mods == null)
+            if (m_Mods == null)
                 return;
 
-            for (int i = 0; i < this.m_Mods.Count; ++i)
+            for (int i = 0; i < m_Mods.Count; ++i)
             {
-                Mobile m = this.m_Mods[i].Owner;
-                this.m_Mods[i].Remove();
+                Mobile m = m_Mods[i].Owner;
+                m_Mods[i].Remove();
 
                 if (Core.ML)
-                    this.CheckCancelMorph(m);
+                    CheckCancelMorph(m);
             }
-            this.m_Mods = null;
+            m_Mods = null;
+        }
+
+        public override void SetValue(int bitmask, int value)
+        {
+            base.SetValue(bitmask, value);
+
+            if (Owner != null && Owner.Parent is Mobile)
+            {
+                Remove();
+                AddTo((Mobile)Owner.Parent);
+            }
         }
 
         public bool GetValues(int index, out SkillName skill, out double bonus)
         {
-            int v = this.GetValue(1 << index);
+            int v = GetValue(1 << index);
             int vSkill = 0;
             int vBonus = 0;
 
@@ -2405,7 +2481,7 @@ namespace Server
                 vSkill >>= 1;
             }
 
-            this.SetValue(1 << index, v);
+            SetValue(1 << index, v);
         }
 
         public SkillName GetSkill(int index)
@@ -2413,14 +2489,14 @@ namespace Server
             SkillName skill;
             double bonus;
 
-            this.GetValues(index, out skill, out bonus);
+            GetValues(index, out skill, out bonus);
 
             return skill;
         }
 
         public void SetSkill(int index, SkillName skill)
         {
-            this.SetValues(index, skill, this.GetBonus(index));
+            SetValues(index, skill, GetBonus(index));
         }
 
         public double GetBonus(int index)
@@ -2428,14 +2504,14 @@ namespace Server
             SkillName skill;
             double bonus;
 
-            this.GetValues(index, out skill, out bonus);
+            GetValues(index, out skill, out bonus);
 
             return bonus;
         }
 
         public void SetBonus(int index, double bonus)
         {
-            this.SetValues(index, this.GetSkill(index), bonus);
+            SetValues(index, GetSkill(index), bonus);
         }
 
         public override string ToString()
@@ -2457,11 +2533,13 @@ namespace Server
             {
                 Spell spell = context.Spell as Spell;
                 spell.GetCastSkills(out minSkill, out maxSkill);
+
                 if (m.Skills[spell.CastSkill].Value < minSkill)
                 {
                     TransformationSpellHelper.RemoveContext(m, context, true);
                 }
             }
+
             if (acontext != null)
             {
                 if (acontext.Type == typeof(WildWhiteTiger) && m.Skills[SkillName.Ninjitsu].Value < 90)
@@ -2513,11 +2591,11 @@ namespace Server
         {
             get
             {
-                return this.GetBonus(0);
+                return GetBonus(0);
             }
             set
             {
-                this.SetBonus(0, value);
+                SetBonus(0, value);
             }
         }
 
@@ -2526,11 +2604,11 @@ namespace Server
         {
             get
             {
-                return this.GetSkill(0);
+                return GetSkill(0);
             }
             set
             {
-                this.SetSkill(0, value);
+                SetSkill(0, value);
             }
         }
 
@@ -2539,11 +2617,11 @@ namespace Server
         {
             get
             {
-                return this.GetBonus(1);
+                return GetBonus(1);
             }
             set
             {
-                this.SetBonus(1, value);
+                SetBonus(1, value);
             }
         }
 
@@ -2552,11 +2630,11 @@ namespace Server
         {
             get
             {
-                return this.GetSkill(1);
+                return GetSkill(1);
             }
             set
             {
-                this.SetSkill(1, value);
+                SetSkill(1, value);
             }
         }
 
@@ -2565,11 +2643,11 @@ namespace Server
         {
             get
             {
-                return this.GetBonus(2);
+                return GetBonus(2);
             }
             set
             {
-                this.SetBonus(2, value);
+                SetBonus(2, value);
             }
         }
 
@@ -2578,11 +2656,11 @@ namespace Server
         {
             get
             {
-                return this.GetSkill(2);
+                return GetSkill(2);
             }
             set
             {
-                this.SetSkill(2, value);
+                SetSkill(2, value);
             }
         }
 
@@ -2591,11 +2669,11 @@ namespace Server
         {
             get
             {
-                return this.GetBonus(3);
+                return GetBonus(3);
             }
             set
             {
-                this.SetBonus(3, value);
+                SetBonus(3, value);
             }
         }
 
@@ -2604,11 +2682,11 @@ namespace Server
         {
             get
             {
-                return this.GetSkill(3);
+                return GetSkill(3);
             }
             set
             {
-                this.SetSkill(3, value);
+                SetSkill(3, value);
             }
         }
 
@@ -2617,11 +2695,11 @@ namespace Server
         {
             get
             {
-                return this.GetBonus(4);
+                return GetBonus(4);
             }
             set
             {
-                this.SetBonus(4, value);
+                SetBonus(4, value);
             }
         }
 
@@ -2630,11 +2708,11 @@ namespace Server
         {
             get
             {
-                return this.GetSkill(4);
+                return GetSkill(4);
             }
             set
             {
-                this.SetSkill(4, value);
+                SetSkill(4, value);
             }
         }
     }
@@ -2739,11 +2817,11 @@ namespace Server
         {
             get
             {
-                return this.GetValue((int)attribute);
+                return GetValue((int)attribute);
             }
             set
             {
-                this.SetValue((int)attribute, value);
+                SetValue((int)attribute, value);
             }
         }
 
@@ -3008,19 +3086,19 @@ namespace Server
         {
             get
             {
-                return this.ExtendedGetValue((int)attribute);
+                return ExtendedGetValue((int)attribute);
             }
             set
             {
-                this.SetValue((int)attribute, value);
+                SetValue((int)attribute, value);
             }
         }
 
         public int ExtendedGetValue(int bitmask)
         {
-            int value = this.GetValue(bitmask);
+            int value = GetValue(bitmask);
 
-            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(this.Owner, typeof(XmlAosAttributes));
+            XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(Owner, typeof(XmlAosAttributes));
 
             if (xaos != null)
             {
@@ -3279,34 +3357,34 @@ namespace Server
         {
             get
             {
-                return (this.m_Names == 0);
+                return (m_Names == 0);
             }
         }
         public Item Owner
         {
             get
             {
-                return this.m_Owner;
+                return m_Owner;
             }
         }
 
         public BaseAttributes(Item owner)
         {
-            this.m_Owner = owner;
-            this.m_Values = m_Empty;
+            m_Owner = owner;
+            m_Values = m_Empty;
         }
 
         public BaseAttributes(Item owner, BaseAttributes other)
         {
-            this.m_Owner = owner;
-            this.m_Values = new int[other.m_Values.Length];
-            other.m_Values.CopyTo(this.m_Values, 0);
-            this.m_Names = other.m_Names;
+            m_Owner = owner;
+            m_Values = new int[other.m_Values.Length];
+            other.m_Values.CopyTo(m_Values, 0);
+            m_Names = other.m_Names;
         }
 
         public BaseAttributes(Item owner, GenericReader reader)
         {
-            this.m_Owner = owner;
+            m_Owner = owner;
 
             int version = reader.ReadByte();
 
@@ -3314,21 +3392,21 @@ namespace Server
             {
                 case 1:
                     {
-                        this.m_Names = reader.ReadUInt();
-                        this.m_Values = new int[reader.ReadEncodedInt()];
+                        m_Names = reader.ReadUInt();
+                        m_Values = new int[reader.ReadEncodedInt()];
 
-                        for (int i = 0; i < this.m_Values.Length; ++i)
-                            this.m_Values[i] = reader.ReadEncodedInt();
+                        for (int i = 0; i < m_Values.Length; ++i)
+                            m_Values[i] = reader.ReadEncodedInt();
 
                         break;
                     }
                 case 0:
                     {
-                        this.m_Names = reader.ReadUInt();
-                        this.m_Values = new int[reader.ReadInt()];
+                        m_Names = reader.ReadUInt();
+                        m_Values = new int[reader.ReadInt()];
 
-                        for (int i = 0; i < this.m_Values.Length; ++i)
-                            this.m_Values[i] = reader.ReadInt();
+                        for (int i = 0; i < m_Values.Length; ++i)
+                            m_Values[i] = reader.ReadInt();
 
                         break;
                     }
@@ -3339,11 +3417,11 @@ namespace Server
         {
             writer.Write((byte)1); // version;
 
-            writer.Write((uint)this.m_Names);
-            writer.WriteEncodedInt((int)this.m_Values.Length);
+            writer.Write((uint)m_Names);
+            writer.WriteEncodedInt((int)m_Values.Length);
 
-            for (int i = 0; i < this.m_Values.Length; ++i)
-                writer.WriteEncodedInt((int)this.m_Values[i]);
+            for (int i = 0; i < m_Values.Length; ++i)
+                writer.WriteEncodedInt((int)m_Values[i]);
         }
 
         public int GetValue(int bitmask)
@@ -3353,130 +3431,94 @@ namespace Server
 
             uint mask = (uint)bitmask;
 
-            if ((this.m_Names & mask) == 0)
+            if ((m_Names & mask) == 0)
                 return 0;
 
-            int index = this.GetIndex(mask);
+            int index = GetIndex(mask);
 
-            if (index >= 0 && index < this.m_Values.Length)
-                return this.m_Values[index];
+            if (index >= 0 && index < m_Values.Length)
+                return m_Values[index];
 
             return 0;
         }
 
-        public void SetValue(int bitmask, int value)
+        public virtual void SetValue(int bitmask, int value)
         {
-            if ((bitmask == (int)AosWeaponAttribute.DurabilityBonus) && (this is AosWeaponAttributes))
-            {
-                if (this.m_Owner is BaseWeapon)
-                    ((BaseWeapon)this.m_Owner).UnscaleDurability();
-            }
-            else if ((bitmask == (int)AosArmorAttribute.DurabilityBonus) && (this is AosArmorAttributes))
-            {
-                if (this.m_Owner is BaseArmor)
-                    ((BaseArmor)this.m_Owner).UnscaleDurability();
-                else if (this.m_Owner is BaseClothing)
-                    ((BaseClothing)this.m_Owner).UnscaleDurability();
-            }
-            else if (Core.SA && bitmask == (int)AosAttribute.WeaponSpeed && m_Owner is BaseWeapon)
-            {
-                ((BaseWeapon)m_Owner).WeaponAttributes.ScaleLeech((BaseWeapon)m_Owner, value);
-            }
-
             uint mask = (uint)bitmask;
 
             if (value != 0)
             {
-                if ((this.m_Names & mask) != 0)
+                if ((m_Names & mask) != 0)
                 {
-                    int index = this.GetIndex(mask);
+                    int index = GetIndex(mask);
 
-                    if (index >= 0 && index < this.m_Values.Length)
-                        this.m_Values[index] = value;
+                    if (index >= 0 && index < m_Values.Length)
+                        m_Values[index] = value;
                 }
                 else
                 {
-                    int index = this.GetIndex(mask);
+                    int index = GetIndex(mask);
 
-                    if (index >= 0 && index <= this.m_Values.Length)
+                    if (index >= 0 && index <= m_Values.Length)
                     {
-                        int[] old = this.m_Values;
-                        this.m_Values = new int[old.Length + 1];
+                        int[] old = m_Values;
+                        m_Values = new int[old.Length + 1];
 
                         for (int i = 0; i < index; ++i)
-                            this.m_Values[i] = old[i];
+                            m_Values[i] = old[i];
 
-                        this.m_Values[index] = value;
+                        m_Values[index] = value;
 
                         for (int i = index; i < old.Length; ++i)
-                            this.m_Values[i + 1] = old[i];
+                            m_Values[i + 1] = old[i];
 
-                        this.m_Names |= mask;
+                        m_Names |= mask;
                     }
                 }
             }
-            else if ((this.m_Names & mask) != 0)
+            else if ((m_Names & mask) != 0)
             {
-                int index = this.GetIndex(mask);
+                int index = GetIndex(mask);
 
-                if (index >= 0 && index < this.m_Values.Length)
+                if (index >= 0 && index < m_Values.Length)
                 {
-                    this.m_Names &= ~mask;
+                    m_Names &= ~mask;
 
-                    if (this.m_Values.Length == 1)
+                    if (m_Values.Length == 1)
                     {
-                        this.m_Values = m_Empty;
+                        m_Values = m_Empty;
                     }
                     else
                     {
-                        int[] old = this.m_Values;
-                        this.m_Values = new int[old.Length - 1];
+                        int[] old = m_Values;
+                        m_Values = new int[old.Length - 1];
 
                         for (int i = 0; i < index; ++i)
-                            this.m_Values[i] = old[i];
+                            m_Values[i] = old[i];
 
                         for (int i = index + 1; i < old.Length; ++i)
-                            this.m_Values[i - 1] = old[i];
+                            m_Values[i - 1] = old[i];
                     }
                 }
             }
 
-            if ((bitmask == (int)AosWeaponAttribute.DurabilityBonus) && (this is AosWeaponAttributes))
+            if (m_Owner != null && m_Owner.Parent is Mobile)
             {
-                if (this.m_Owner is BaseWeapon)
-                    ((BaseWeapon)this.m_Owner).ScaleDurability();
-            }
-            else if ((bitmask == (int)AosArmorAttribute.DurabilityBonus) && (this is AosArmorAttributes))
-            {
-                if (this.m_Owner is BaseArmor)
-                    ((BaseArmor)this.m_Owner).ScaleDurability();
-                else if (this.m_Owner is BaseClothing)
-                    ((BaseClothing)this.m_Owner).ScaleDurability();
-            }
-
-            if (this.m_Owner != null && this.m_Owner.Parent is Mobile)
-            {
-                Mobile m = (Mobile)this.m_Owner.Parent;
+                Mobile m = (Mobile)m_Owner.Parent;
 
                 m.CheckStatTimers();
                 m.UpdateResistances();
                 m.Delta(MobileDelta.Stat | MobileDelta.WeaponDamage | MobileDelta.Hits | MobileDelta.Stam | MobileDelta.Mana);
-
-                if (this is AosSkillBonuses)
-                {
-                    ((AosSkillBonuses)this).Remove();
-                    ((AosSkillBonuses)this).AddTo(m);
-                }
             }
 
-            if (this.m_Owner != null)
-                this.m_Owner.InvalidateProperties();
+            if (m_Owner != null)
+                m_Owner.InvalidateProperties();
         }
 
         private int GetIndex(uint mask)
         {
             int index = 0;
-            uint ourNames = this.m_Names;
+            uint ourNames = m_Names;
             uint currentBit = 1;
 
             while (currentBit != mask)

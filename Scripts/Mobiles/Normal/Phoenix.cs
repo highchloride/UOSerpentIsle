@@ -3,15 +3,14 @@ using System;
 namespace Server.Mobiles
 {
     [CorpseName("a phoenix corpse")]
-    public class Phoenix : BaseCreature
+    public class Phoenix : BaseCreature, IAuraCreature
     {
         [Constructable]
         public Phoenix()
             : base(AIType.AI_Mage, FightMode.Aggressor, 10, 1, 0.2, 0.4)
         {
             Name = "a phoenix";
-            Body = 5;
-            Hue = 0x674;
+            Body = 0x340;
             BaseSoundID = 0x8F;
 
             SetStr(504, 700);
@@ -20,7 +19,7 @@ namespace Server.Mobiles
 
             SetHits(340, 383);
 
-            SetDamage(25);
+            SetDamage(20, 25);
 
             SetDamageType(ResistanceType.Physical, 50);
             SetDamageType(ResistanceType.Fire, 50);
@@ -46,6 +45,8 @@ namespace Server.Mobiles
             Tamable = true;
             ControlSlots = 4;
             MinTameSkill = 102.0;
+
+            SetAreaEffect(AreaEffect.AuraDamage);
         }
 
         public Phoenix(Serial serial)
@@ -58,12 +59,22 @@ namespace Server.Mobiles
         public override MeatType MeatType { get { return MeatType.Bird; } }
         public override int Feathers { get { return 36; } }
         public override bool CanFly { get { return true; } }
-        public override bool HasAura { get { return !Controlled; } }
-        public override int AuraRange { get { return 2; } }
 
-        public override void AuraEffect(Mobile m)
+        public void AuraEffect(Mobile m)
         {
-            m.SendMessage("The radiating heat scorches your skin!");
+            m.SendLocalizedMessage(1008112); // The intense heat is damaging you!
+        }
+
+        public override void OnAfterTame(Mobile tamer)
+        {
+            base.OnAfterTame(tamer);
+
+            var profile = PetTrainingHelper.GetAbilityProfile(this);
+
+            if (profile != null)
+            {
+                profile.RemoveAbility(AreaEffect.AuraDamage);
+            }
         }
 
         public override void GenerateLoot()

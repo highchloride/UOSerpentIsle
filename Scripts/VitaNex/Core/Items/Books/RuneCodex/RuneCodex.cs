@@ -1,4 +1,4 @@
-﻿#region Header
+#region Header
 //   Vorspire    _,-'/-'/  RuneCodex.cs
 //   .      __,-; ,'( '/
 //    \.    `-.__`-._`:_,-._       _ , . ``
@@ -600,7 +600,7 @@ namespace VitaNex.Items
 						entry.Location,
 						entry.Location,
 						entry.Name,
-						BaseHouse.FindHouseAt(entry.Location, entry.Location, 16)));
+						BaseHouse.FindHouseAt(entry.Location, entry.Location, 16), RecallRuneType.Normal));
 
 				if (book.Entries.Count < 16 && entries.Count > 0)
 				{

@@ -32,7 +32,8 @@ namespace Server.Multis
             this.AddMobile(new Healer(), -4, 3, 7, 0);
             this.AddMobile(new Healer(), 4, -2, 0, 0);
 
-            SetDecayTime();
+            //SetDecayTime();
+            RefreshDecay(true);
         }
 
         public override void Serialize(GenericWriter writer)

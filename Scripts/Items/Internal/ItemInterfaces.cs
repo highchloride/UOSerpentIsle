@@ -4,6 +4,12 @@ using Server.Engines.Craft;
 
 namespace Server.Items
 {
+    public interface IUsesRemaining
+    {
+        int UsesRemaining { get; set; }
+        bool ShowUsesRemaining { get; set; }
+    }
+
     public interface IAccountRestricted
     {
         string Account { get; set; }
@@ -22,7 +28,7 @@ namespace Server.Items
 
     public interface IFlipable
     {
-        void OnFlip();
+        void OnFlip(Mobile m);
     }
 
     public interface IQuality : ICraftable
@@ -31,7 +37,7 @@ namespace Server.Items
         bool PlayerConstructed { get; }
     }
 
-    public interface IResource : IQuality
+    public interface IResource
     {
         CraftResource Resource { get; set; }
     }
@@ -39,5 +45,38 @@ namespace Server.Items
     public interface IConditionalVisibility
     {
         bool CanBeSeenBy(PlayerMobile m);
+    }
+
+    public interface IImbuableEquipement
+    {
+        int TimesImbued { get; set; }
+        bool IsImbued { get; set; }
+
+        int[] BaseResists { get; }
+        void OnAfterImbued(Mobile m, int mod, int value);
+    }
+
+    public interface ICombatEquipment : IImbuableEquipement
+    {
+        ItemPower ItemPower { get; set; }
+        ReforgedPrefix ReforgedPrefix { get; set; }
+        ReforgedSuffix ReforgedSuffix { get; set; }
+        bool PlayerConstructed { get; set; }
+    }
+
+    public enum ItemQuality
+    {
+        Low,
+        Normal,
+        Exceptional,
+    }
+
+    public enum DirectionType
+    {
+        None = 0,
+        South = 1,
+        East = 2,
+        North = 3,
+        West = 4
     }
 }

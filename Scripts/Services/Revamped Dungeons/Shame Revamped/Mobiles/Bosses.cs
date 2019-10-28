@@ -147,6 +147,14 @@ namespace Server.Mobiles
             : base(serial)
         {
         }
+		
+		public override int TreasureMapLevel
+        {
+            get
+            {
+                return 1;
+            }
+        }
 
         public override void Serialize(GenericWriter writer)
         {
@@ -162,7 +170,7 @@ namespace Server.Mobiles
     }
 
     [CorpseName("a flame elemental corpse")]
-    public class FlameElemental : ShameGuardian
+    public class FlameElemental : ShameGuardian, IAuraCreature
     {
         [Constructable]
         public FlameElemental()
@@ -203,14 +211,15 @@ namespace Server.Mobiles
             Karma = -4500;
 
             PackItem(new SulfurousAsh(5));
+
+            SetSpecialAbility(SpecialAbility.DragonBreath);
+            SetAreaEffect(AreaEffect.AuraDamage);
         }
 
-        public override bool HasBreath { get { return true; } } // fire breath enabled
-        public override bool HasAura { get { return true; } }
-        public override int AuraRange { get { return 5; } }
-        public override int AuraBaseDamage { get { return 7; } }
-        public override int AuraFireDamage { get { return 100; } }
-        public override int AuraEnergyDamage { get { return 100; } }
+        public void AuraEffect(Mobile m)
+        {
+            m.SendLocalizedMessage(1008112); // The intense heat is damaging you!
+        }
 
         public override void GenerateLoot()
         {

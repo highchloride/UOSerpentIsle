@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Server.Items;
+using Server.Mobiles;
 using Server.Spells.Sixth;
 using Server.Targeting;
 
@@ -65,6 +66,17 @@ namespace Server.Regions
             }
 
             return false;
+        }
+
+        //UOSI
+        public override void OnEnter(Mobile m)
+        {
+            base.OnEnter(m);
+
+            if (!(m is PlayerMobile))
+                return;
+
+            m.SendMessage("You have entered the " + Name);
         }
     }
 }

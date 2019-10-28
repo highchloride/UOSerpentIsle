@@ -278,15 +278,19 @@ namespace Server.Items
         [Constructable]
         public TreasureMap(int level, Map map)
         {
+            //map = Map.SerpentIsle;
+
             m_Level = level;
 
             if (level == 7 || map == Map.Internal)
                 map = GetRandomMap();
 
-            if (map == Map.SerpentIsle)
-                map = Map.Ilshenar;
-            else
-                Facet = map;
+            //if (map == Map.SerpentIsle)
+            //{
+            //    map = Map.Ilshenar;
+            //}
+
+            Facet = map;            
 
             if (level == 0)
             {
@@ -330,18 +334,20 @@ namespace Server.Items
 
         public Map GetRandomMap()
         {
-            switch (Utility.Random(8))
-            {
-                default: return Map.SerpentIsle; //UOSI
-                case 0: return Map.Trammel;
-                case 1: return Map.Felucca;
-                case 2:
-                case 3: return Map.Ilshenar;
-                case 4:
-                case 5: return Map.Malas;
-                case 6:
-                case 7: return Map.Tokuno;
-            }
+            //switch (Utility.Random(8))
+            //{
+            //    default: return Map.SerpentIsle; //UOSI
+            //    case 0: return Map.Trammel;
+            //    case 1: return Map.Felucca;
+            //    case 2:
+            //    case 3: return Map.Ilshenar;
+            //    case 4:
+            //    case 5: return Map.Malas;
+            //    case 6:
+            //    case 7: return Map.Tokuno;
+            //}
+
+            return Map.SerpentIsle;
         }
 
         public static Point2D GetRandomLocation(Map map)
@@ -693,7 +699,7 @@ namespace Server.Items
 
             foreach (BaseHarvestTool tool in items)
             {
-                if (tool.HarvestSystem == Mining.System)
+                if (tool.HarvestSystem == Mining.System || tool.HarvestSystem == DynamicMining.GetSystem(tool))
                 {
                     return true;
                 }
@@ -871,14 +877,15 @@ namespace Server.Items
             else if (Facet == Map.Trammel)
                 list.Add(1041503);
             else if (Facet == Map.Ilshenar)
-                list.Add("for Serpent Isle");
-            //list.Add(1060850);
+                list.Add(1060850);
             else if (Facet == Map.Tokuno)
                 list.Add(1115645);
             else if (Facet == Map.Malas)
                 list.Add(1060851);
             else if (Facet == Map.TerMur)
                 list.Add(1115646);
+            else if (Facet == Map.SerpentIsle)
+                list.Add("for Serpent Isle");
             // for somewhere in Felucca : for somewhere in Trammel
 
             if (m_Completed)

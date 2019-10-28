@@ -19,9 +19,14 @@ namespace Server.SerpentIsle
         }
         public override void InitSBInfo()
         {
-            m_SBInfos.Add(new SBHealer());
-            m_SBInfos.Add(new SBHerbalist());
-            m_SBInfos.Add(new SBCobbler());
+            if (Map != Map.SerpentIsle)
+            {
+                m_SBInfos.Add(new SBHealer());
+                m_SBInfos.Add(new SBHerbalist());
+                m_SBInfos.Add(new SBCobbler());
+            }
+            else
+                m_SBInfos.Add(new SBProvisioner());
         }
         private static bool m_Talked;
 
@@ -32,6 +37,15 @@ namespace Server.SerpentIsle
             "I am well-versed in the Mystic Arts.",
             "Do not feel bad if your powers are lesser than mine.",
             "As a Mystic Sage, it is my duty to guide others.",
+        };
+
+        string[] sicsay = new string[]
+        {
+            "I appear to have misplaced my spellbook.",
+            "The journey was harrowing. Where did we go between Britannia and here?",
+            "Certainly my abilities will protect us here.",
+            "How did I get talked into this?",
+            "The look on Rond's face is making me nervous.",
         };
 
         [Constructable]
@@ -46,6 +60,7 @@ namespace Server.SerpentIsle
 
         public override void InitBody()
         {
+            Name = "Triplicate";
             Title = "the Sage";
             
             SpeechHue = Utility.RandomDyedHue();
@@ -109,7 +124,10 @@ namespace Server.SerpentIsle
                 if(m.InRange(this, 5))
                 {
                     m_Talked = true;
-                    SayRandom(kfcsay, this);
+                    if (Map == Map.SerpentIsle)
+                        SayRandom(sicsay, this);
+                    else
+                        SayRandom(kfcsay, this);
                     this.Move(GetDirectionTo(m.Location));
                     SpamTimer t = new SpamTimer();
                     t.Start();

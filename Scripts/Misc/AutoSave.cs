@@ -6,7 +6,7 @@ namespace Server.Misc
 {
     public class AutoSave : Timer
     {
-		private static readonly TimeSpan m_Delay = Config.Get("AutoSave.Frequency", TimeSpan.FromMinutes(5.0d));
+		private static readonly TimeSpan m_Delay = Config.Get("AutoSave.Frequency", TimeSpan.FromMinutes(15.0d));
         private static readonly TimeSpan m_Warning = Config.Get("AutoSave.WarningTime", TimeSpan.Zero);
 		
 		private static readonly string[] m_Backups = new string[]
@@ -83,7 +83,7 @@ namespace Server.Misc
 
         protected override void OnTick()
         {
-            if (!m_SavesEnabled || AutoRestart.Restarting)
+            if (!m_SavesEnabled || AutoRestart.Restarting || Commands.CreateWorld.WorldCreating)
                 return;
 
             if (m_Warning == TimeSpan.Zero)
@@ -156,7 +156,16 @@ namespace Server.Misc
             string saves = Path.Combine(Core.BaseDirectory, "Saves");
 
             if (Directory.Exists(saves))
-                Directory.Move(saves, FormatDirectory(root, m_Backups[m_Backups.Length - 1], GetTimeStamp()));
+            {
+                var saveDir = FormatDirectory(root, m_Backups[m_Backups.Length - 1], GetTimeStamp());
+
+                Directory.Move(saves, saveDir);
+
+                if (ArchivedSaves.Enabled)
+                {
+                    ArchivedSaves.RunArchive(saveDir);
+                }
+            }
         }
 
         private static DirectoryInfo Match(string[] paths, string match)
@@ -192,9 +201,9 @@ namespace Server.Misc
             return null;
         }
 
-        private static string GetTimeStamp()
+        public static string GetTimeStamp()
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTime.Now;
 
             return String.Format("{0}-{1}-{2} {3}-{4:D2}-{5:D2}",
                 now.Day,

@@ -37,7 +37,7 @@ namespace Server.Mobiles
 
                 Add(new GenericBuyInfo("1041072", typeof(MagicWizardsHat), 11, 10, 0x1718, Utility.RandomDyedHue()));
 
-                Add(new GenericBuyInfo(typeof(RecallRune), 15, 10, 0x1f14, 0));
+                //Add(new GenericBuyInfo(typeof(RecallRune), 15, 10, 0x1f14, 0));
 
                 Add(new GenericBuyInfo(typeof(RefreshPotion), 15, 20, 0xF0B, 0, true));
                 Add(new GenericBuyInfo(typeof(AgilityPotion), 15, 20, 0xF08, 0, true));

@@ -40,7 +40,7 @@ namespace Server.Mobiles
                 Add(new GenericBuyInfo(typeof(MysticBook), 18, 10, 0x2D9D, 0, true));
                 Add(new GenericBuyInfo(typeof(ScribesPen), 8, 10, 0xFBF, 0, true));
                 Add(new GenericBuyInfo(typeof(BlankScroll), 5, 20, 0x0E34, 0, true));
-                Add(new GenericBuyInfo(typeof(RecallRune), 15, 10, 0x1F14, 0, true));
+                //Add(new GenericBuyInfo(typeof(RecallRune), 15, 10, 0x1F14, 0, true));
 
                 Add(new GenericBuyInfo(typeof(RefreshPotion), 15, 10, 0xF0B, 0, true));
                 Add(new GenericBuyInfo(typeof(AgilityPotion), 15, 10, 0xF08, 0, true));

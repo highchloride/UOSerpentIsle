@@ -121,9 +121,6 @@ namespace Server.Mobiles
                     break;
             }
 
-            if (Utility.RandomDouble() < 0.10)
-                c.DropItem(new HumanFeyLeggings());
-
             if (Utility.RandomDouble() < 0.6)
                 c.DropItem(new ParrotItem());
 
@@ -137,25 +134,8 @@ namespace Server.Mobiles
                 c.DropItem(new MarkOfTravesty());
 
             if (Utility.RandomDouble() < 0.025)
-                c.DropItem(new CrimsonCincture());
-
-            if (Utility.RandomDouble() < 0.025)
             {
-                switch (Utility.Random(4))
-                {
-                    case 0:
-                        c.DropItem(new AssassinLegs());
-                        break;
-                    case 1:
-                        c.DropItem(new AssassinArms());
-                        break;
-                    case 2:
-                        c.DropItem(new AssassinGloves());
-                        break;
-                    case 3:
-                        c.DropItem(new MalekisHonor());
-                        break;
-                }
+                c.DropItem(new MalekisHonor());
             }
         }
 
@@ -360,8 +340,7 @@ namespace Server.Mobiles
 
         public override bool OnBeforeDeath()
         {
-            if (m_Timer != null)
-                m_Timer.Stop();
+            RestoreBody();
 
             return base.OnBeforeDeath();
         }
@@ -394,21 +373,33 @@ namespace Server.Mobiles
             SpawnNinjaGroup(new Point3D(80, 1949, 0));
             SpawnNinjaGroup(new Point3D(92, 1948, 0));
             SpawnNinjaGroup(new Point3D(92, 1962, 0));
+
+            if (Map != null && Map != Map.Internal && Region.IsPartOf("TheCitadel"))
+            {
+                var loc = _WarpLocs[Utility.Random(_WarpLocs.Length)];
+                MoveToWorld(loc, Map);
+            }
         }
 
-        public static void SpawnNinjaGroup(Point3D _location)
+        public void SpawnNinjaGroup(Point3D _location)
         {
-            BaseCreature ninja = new DragonsFlameMage();
-            ninja.MoveToWorld(_location, Map.Malas);
-
-            ninja = new SerpentsFangAssassin();
-            ninja.MoveToWorld(_location, Map.Malas);
-
-            ninja = new TigersClawThief();
-            ninja.MoveToWorld(_location, Map.Malas);
+            SpawnHelper(new DragonsFlameMage(), _location);
+            SpawnHelper(new SerpentsFangAssassin(), _location);
+            SpawnHelper(new TigersClawThief(), _location);
         }
 
         #endregion
+
+        private Point3D[] _WarpLocs =
+        {
+            new Point3D(71, 1939, 0),
+            new Point3D(71, 1955, 0),
+            new Point3D(69, 1972, 0),
+            new Point3D(86, 1971, 0),
+            new Point3D(103, 1972, 0),
+            new Point3D(86, 1939, 0),
+            new Point3D(102, 1938, 0),
+        };
 
         private class ClonedItem : Item
         {

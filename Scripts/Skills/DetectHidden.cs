@@ -1,13 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Server.Factions;
 using Server.Mobiles;
 using Server.Multis;
 using Server.Targeting;
 using Server.Engines.VvV;
 using Server.Items;
-using System.Collections.Generic;
-using System.Linq;
 using Server.Spells;
+using Server.Network;
 
 namespace Server.Items
 {
@@ -16,6 +18,8 @@ namespace Server.Items
         bool CheckReveal(Mobile m);
         bool CheckPassiveDetect(Mobile m);
         void OnRevealed(Mobile m);
+
+        bool CheckWhenHidden { get; }
     }
 }
 
@@ -58,7 +62,7 @@ namespace Server.SkillHandlers
                     p = src.Location;
 
                 double srcSkill = src.Skills[SkillName.DetectHidden].Value;
-                int range = (int)(srcSkill / 10.0);
+                int range = Math.Max(2, (int)(srcSkill / 10.0));
 
                 if (!src.CheckSkill(SkillName.DetectHidden, 0.0, 100.0))
                     range /= 2;
@@ -91,6 +95,7 @@ namespace Server.SkillHandlers
 
                                 trg.RevealingAction();
                                 trg.SendLocalizedMessage(500814); // You have been revealed!
+                                trg.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 500814, trg.NetState);
                                 foundAnyone = true;
                             }
                         }
@@ -102,16 +107,23 @@ namespace Server.SkillHandlers
 
                     foreach (Item item in itemsInRange)
                     {
-                        if (item.Visible)
-                            continue;
-
-                        IRevealableItem dItem = item as IRevealableItem;
-
-                        if (dItem != null && dItem.CheckReveal(src))
+                        if (item is LibraryBookcase && Server.Engines.Khaldun.GoingGumshoeQuest3.CheckBookcase(src, item))
                         {
-                            dItem.OnRevealed(src);
-
                             foundAnyone = true;
+                        }
+                        else
+                        {
+                            IRevealableItem dItem = item as IRevealableItem;
+
+                            if (dItem == null || (item.Visible && dItem.CheckWhenHidden))
+                                continue;
+
+                            if (dItem.CheckReveal(src))
+                            {
+                                dItem.OnRevealed(src);
+
+                                foundAnyone = true;
+                            }
                         }
                     }
 
@@ -172,7 +184,7 @@ namespace Server.SkillHandlers
             eable.Free();
         }
 
-        private static bool CanDetect(Mobile src, Mobile target)
+        public static bool CanDetect(Mobile src, Mobile target)
         {
             if (src.Map == null || target.Map == null || !src.CanBeHarmful(target, false))
                 return false;
@@ -184,12 +196,16 @@ namespace Server.SkillHandlers
             if (target.Blessed || (target is BaseCreature && ((BaseCreature)target).IsInvulnerable))
                 return false;
 
+            // pet owner, guild/alliance, party
+            if (!Server.Spells.SpellHelper.ValidIndirectTarget(target, src))
+                return false;
+
             // Checked aggressed/aggressors
             if (src.Aggressed.Any(x => x.Defender == target) || src.Aggressors.Any(x => x.Attacker == target))
                 return true;
 
-            // Follow the same rules as indirect spells such as wither
-            return /*src.Map.Rules == MapRules.FeluccaRules ||*/Server.Spells.SpellHelper.ValidIndirectTarget(target, src);
+            // In Fel or Follow the same rules as indirect spells such as wither
+            return src.Map.Rules == MapRules.FeluccaRules;
         }
     }
 }

@@ -40,6 +40,8 @@ namespace Server.ACC.CSS.Systems.Ranger
 			ControlSlots = 1;
 
 			AddItem( new LightSource() );
+
+            SetSpecialAbility(SpecialAbility.DragonBreath);
 		}
 
 		private DateTime m_NextFlare;
@@ -96,9 +98,13 @@ namespace Server.ACC.CSS.Systems.Ranger
 			}
 		}
 
-		public override bool HasBreath{ get{ return true; } } // fire breath enabled
-		public override int BreathFireDamage{ get{ return 100; } }
-		public override int BreathEffectItemID{ get{ return 0x3709; } }
+        //UOSI - Breath removed as of Oct 2019 merge
+		//public override bool HasBreath{ get{ return true; } } // fire breath enabled
+		//public override int BreathFireDamage{ get{ return 100; } }
+		//public override int BreathEffectItemID{ get{ return 0x3709; } }
+
+        
+
 		public override bool AutoDispel{ get{ return true; } }
 
 		public HellHoundFamiliar( Serial serial ) : base( serial )

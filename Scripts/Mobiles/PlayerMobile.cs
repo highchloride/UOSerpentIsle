@@ -47,6 +47,7 @@ using Server.Engines.VendorSearching;
 using Server.Targeting;
 
 using RankDefinition = Server.Guilds.RankDefinition;
+using Server.SerpentIsle.Systems.MoreLogging;
 #endregion
 
 namespace Server.Mobiles
@@ -132,8 +133,8 @@ namespace Server.Mobiles
 			Instances = new List<PlayerMobile>(0x1000);
 		}
 
-		#region Mount Blocking
-		public void SetMountBlock(BlockMountType type, TimeSpan duration, bool dismount)
+        #region Mount Blocking
+        public void SetMountBlock(BlockMountType type, TimeSpan duration, bool dismount)
 		{
 			if (dismount)
 			{
@@ -271,10 +272,6 @@ namespace Server.Mobiles
                 if (_BODProps == null)
                 {
                     _BODProps = new BODProps(this);
-                }
-                else
-                {
-                    _BODProps.CheckChanges();
                 }
 
                 return _BODProps;
@@ -650,8 +647,11 @@ namespace Server.Mobiles
 		[CommandProperty(AccessLevel.GameMaster)]
 		public DateTime AnkhNextUse { get { return m_AnkhNextUse; } set { m_AnkhNextUse = value; } }
 
-		#region Mondain's Legacy
-		[CommandProperty(AccessLevel.GameMaster)]
+        [CommandProperty(AccessLevel.GameMaster)]
+        public DateTime NextGemOfSalvationUse { get; set; }
+
+        #region Mondain's Legacy
+        [CommandProperty(AccessLevel.GameMaster)]
 		public bool Bedlam { get { return GetFlag(PlayerFlag.Bedlam); } set { SetFlag(PlayerFlag.Bedlam, value); } }
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -1263,7 +1263,12 @@ namespace Server.Mobiles
                 ((PlayerMobile)from).ValidateEquipment();
 
                 ReportMurdererGump.CheckMurderer(from);
-			}
+
+                //UOSI
+                gumpfaim hungerGump = new gumpfaim(from);
+                from.CloseGump(typeof(gumpfaim));
+                from.SendGump(hungerGump);
+            }
             else if (Siege.SiegeShard && from.Map == Map.Trammel && from.AccessLevel == AccessLevel.Player)
             {
                 from.Map = Map.Felucca;
@@ -1622,7 +1627,7 @@ namespace Server.Mobiles
 			if (((PlayerMobile)e.Mobile).AcceleratedStart > DateTime.UtcNow)
 			{
 				((PlayerMobile)e.Mobile).AcceleratedStart = DateTime.UtcNow;
-				ScrollofAlacrity.AlacrityEnd(e.Mobile);
+				ScrollOfAlacrity.AlacrityEnd(e.Mobile);
 			}
 			#endregion
 
@@ -1750,17 +1755,16 @@ namespace Server.Mobiles
 
 		public override void OnSubItemAdded(Item item)
 		{
-			if (AccessLevel < AccessLevel.GameMaster && item.IsChildOf(Backpack))
-			{
-				int maxWeight = WeightOverloading.GetMaxWeight(this);
-				int curWeight = BodyWeight + TotalWeight;
+            if (AccessLevel < AccessLevel.GameMaster && item.IsChildOf(Backpack))
+            {
+                int curWeight = BodyWeight + TotalWeight;
 
-				if (curWeight > maxWeight)
-				{
-					SendLocalizedMessage(1019035, true, String.Format(" : {0} / {1}", curWeight, maxWeight));
-				}
-			}
-		}
+                if (curWeight > MaxWeight)
+                {
+                    SendLocalizedMessage(1019035, true, String.Format(" : {0} / {1}", curWeight, MaxWeight));
+                }
+            }
+        }
 
         public override void OnSubItemRemoved(Item item)
         {
@@ -2593,9 +2597,10 @@ namespace Server.Mobiles
             }
         }
 
+        //UOSI - This entire function is either renamed or does not exist in the Oct 2019 version of ServUO.
         public static int GetInsuranceCost(Item item)
         {
-            var imbueWeight = Imbuing.GetTotalWeight(item);
+            var imbueWeight = Imbuing.GetTotalWeight(item, item.ItemID, true, true); //UOSI - I honestly I have no idea
             int cost = 600; // this handles old items, set items, etc
 
             if (item.GetType().IsAssignableFrom(typeof(Factions.FactionItem)))
@@ -3506,70 +3511,68 @@ namespace Server.Mobiles
             return base.IsBeneficialCriminal(target);
         }
 
-		public override void OnDamage(int amount, Mobile from, bool willKill)
-		{
-			int disruptThreshold;
+        public override void OnDamage(int amount, Mobile from, bool willKill)
+        {
+            int disruptThreshold;
 
-			if (!Core.AOS)
-			{
-				disruptThreshold = 0;
-			}
-			else if (from != null && from.Player)
-			{
-				disruptThreshold = 19;
-			}
-			else
-			{
-				disruptThreshold = 26;
-			}
+            if (!Core.AOS)
+            {
+                disruptThreshold = 0;
+            }
+            else if (from != null && from.Player)
+            {
+                disruptThreshold = 19;
+            }
+            else
+            {
+                disruptThreshold = 26;
+            }
 
             if (Core.SA)
             {
                 disruptThreshold += Dex / 12;
             }
 
-			if (amount > disruptThreshold)
-			{
-				BandageContext c = BandageContext.GetContext(this);
+            if (amount > disruptThreshold)
+            {
+                BandageContext c = BandageContext.GetContext(this);
 
-				if (c != null)
-				{
-					c.Slip();
-				}
-			}
+                if (c != null)
+                {
+                    c.Slip();
+                }
+            }
 
-			if (Confidence.IsRegenerating(this))
-			{
-				Confidence.StopRegenerating(this);
-			}
+            if (Confidence.IsRegenerating(this))
+            {
+                Confidence.StopRegenerating(this);
+            }
 
-			WeightOverloading.FatigueOnDamage(this, amount);
+            if (m_ReceivedHonorContext != null)
+            {
+                m_ReceivedHonorContext.OnTargetDamaged(from, amount);
+            }
+            if (m_SentHonorContext != null)
+            {
+                m_SentHonorContext.OnSourceDamaged(from, amount);
+            }
 
-			if (m_ReceivedHonorContext != null)
-			{
-				m_ReceivedHonorContext.OnTargetDamaged(from, amount);
-			}
-			if (m_SentHonorContext != null)
-			{
-				m_SentHonorContext.OnSourceDamaged(from, amount);
-			}
+            if (willKill && from is PlayerMobile)
+            {
+                Timer.DelayCall(TimeSpan.FromSeconds(10), ((PlayerMobile)@from).RecoverAmmo);
+            }
 
-			if (willKill && from is PlayerMobile)
-			{
-				Timer.DelayCall(TimeSpan.FromSeconds(10), ((PlayerMobile)@from).RecoverAmmo);
-			}
-
-			#region Mondain's Legacy
-			if (InvisibilityPotion.HasTimer(this))
-			{
-				InvisibilityPotion.Iterrupt(this);
-			}
-			#endregion
+            #region Mondain's Legacy
+            if (InvisibilityPotion.HasTimer(this))
+            {
+                InvisibilityPotion.Iterrupt(this);
+            }
+            #endregion
 
             UndertakersStaff.TryRemoveTimer(this);
 
-			base.OnDamage(amount, from, willKill);
-		}
+            base.OnDamage(amount, from, willKill);
+        }
 
 		public override void Resurrect()
 		{
@@ -3579,7 +3582,10 @@ namespace Server.Mobiles
 
 			if (Alive && !wasAlive)
 			{
-				Item deathRobe = new DeathRobe();
+                if (this.AccessLevel < AccessLevel.GameMaster)
+                    new RKProtect(this, 60.0).Start();
+
+                Item deathRobe = new DeathRobe();
 
 				if (!EquipItem(deathRobe))
 				{
@@ -3635,8 +3641,61 @@ namespace Server.Mobiles
 			if (!Warmode)
 			{
 				Timer.DelayCall(TimeSpan.FromSeconds(10), RecoverAmmo);
-			}
-		}
+
+                //UOSI - Causes Stones to be played if you're in the wilderness instead of whatever the last theme you heard was
+                if ((Region.Name != null) && (Region.Music != MusicName.Invalid))
+                    Send(PlayMusic.GetInstance(Region.Music));
+                else if (Region.Name != "the Serpent Isle")
+                    Send(PlayMusic.GetInstance(GetRandomTownMusic()));
+                else
+                    Send(PlayMusic.GetInstance(GetRandomWildernessMusic()));
+            }
+            else
+            {
+                if(Blessed == true)
+                {
+                    
+                }
+            }
+
+            //Felladrin.Automations.AutoSheatheWeapon.From(this); UOSI this enables and disables the AutoSheathe functionality. 
+        }
+
+        //UOSI
+        private MusicName GetRandomTownMusic()
+        {
+            int rand = Utility.Random(0, 4);
+            switch (rand)
+            {
+                case 0:
+                    return MusicName.Castle;
+                case 1:
+                    return MusicName.OldUlt03;
+                case 2:
+                    return MusicName.Trinsic;
+                case 3:
+                    return MusicName.Skarabra;
+                default:
+                    return MusicName.OldUlt03;
+            }
+        }
+
+        //UOSI
+        public MusicName GetRandomWildernessMusic()
+        {
+            int rand = Utility.Random(0, 3);
+            switch (rand)
+            {
+                case 0:
+                    return MusicName.Stones2;
+                case 1:
+                    return MusicName.ElfCity;
+                case 2:
+                    return MusicName.Docktown;
+                default:
+                    return MusicName.Stones2;
+            }
+        }
 
 		private Mobile m_InsuranceAward;
 		private int m_InsuranceCost;
@@ -3864,7 +3923,7 @@ namespace Server.Mobiles
 
 			m_EquipSnapshot = null;
 
-			HueMod = -1;
+            HueMod = -1;
 			NameMod = null;
 			SavagePaintExpiration = TimeSpan.Zero;
 
@@ -5682,35 +5741,36 @@ namespace Server.Mobiles
 			}
 		}
 
-		protected override void AlterName(ref string prefix, ref string name, ref string suffix)
-		{
-			base.AlterName(ref prefix, ref name, ref suffix);
+        //UOSI - Commented out as part of the October 2019 Merge
+		//protected override void AlterName(ref string prefix, ref string name, ref string suffix)
+		//{
+		//	base.AlterName(ref prefix, ref name, ref suffix);
 
-			if (!CityLoyaltySystem.ApplyCityTitle(this, ref prefix, ref name, ref suffix))
-			{
-				if (!String.IsNullOrWhiteSpace(m_OverheadTitle))
-				{
-					if (String.IsNullOrWhiteSpace(suffix))
-					{
-						suffix = m_OverheadTitle;
-					}
-					else
-					{
-						suffix = String.Format("{0} {1}", m_OverheadTitle, suffix);
-					}
-				}
-			}
+		//	if (!CityLoyaltySystem.ApplyCityTitle(this, ref prefix, ref name, ref suffix))
+		//	{
+		//		if (!String.IsNullOrWhiteSpace(m_OverheadTitle))
+		//		{
+		//			if (String.IsNullOrWhiteSpace(suffix))
+		//			{
+		//				suffix = m_OverheadTitle;
+		//			}
+		//			else
+		//			{
+		//				suffix = String.Format("{0} {1}", m_OverheadTitle, suffix);
+		//			}
+		//		}
+		//	}
 
-			if (Map == Faction.Facet && ViceVsVirtueSystem.IsVvV(this, false, true))
-			{
-				if (!String.IsNullOrWhiteSpace(suffix) && !suffix.EndsWith("]") && !suffix.EndsWith(" "))
-				{
-					suffix += " ";
-				}
+		//	if (Map == Faction.Facet && ViceVsVirtueSystem.IsVvV(this, false, true))
+		//	{
+		//		if (!String.IsNullOrWhiteSpace(suffix) && !suffix.EndsWith("]") && !suffix.EndsWith(" "))
+		//		{
+		//			suffix += " ";
+		//		}
 				
-				suffix += "[VvV]";
-			}
-		}
+		//		suffix += "[VvV]";
+		//	}
+		//}
         #endregion
 
 		#region MyRunUO Invalidation
@@ -6238,25 +6298,50 @@ namespace Server.Mobiles
 
 		#region Speech log
 		private SpeechLog m_SpeechLog;
+        private bool m_TempSquelched;
 
-		public SpeechLog SpeechLog { get { return m_SpeechLog; } }
+        public SpeechLog SpeechLog { get { return m_SpeechLog; } }
 
-		public override void OnSpeech(SpeechEventArgs e)
-		{
-			if (SpeechLog.Enabled && NetState != null)
-			{
-				if (m_SpeechLog == null)
-				{
-					m_SpeechLog = new SpeechLog();
-				}
+        [CommandProperty(AccessLevel.Administrator)]
+        public bool TempSquelched { get { return m_TempSquelched; } set { m_TempSquelched = value; } }
 
-				m_SpeechLog.Add(e.Mobile, e.Speech);
-			}
-		}
-		#endregion
+        public override void OnSpeech(SpeechEventArgs e)
+        {
+            if (SpeechLog.Enabled && NetState != null)
+            {
+                if (m_SpeechLog == null)
+                {
+                    m_SpeechLog = new SpeechLog();
+                }
 
-		#region Champion Titles
-		[CommandProperty(AccessLevel.GameMaster)]
+                m_SpeechLog.Add(e.Mobile, e.Speech);
+            }
+        }
+
+        public override void OnSaid(SpeechEventArgs e)
+        {
+            if (m_TempSquelched)
+            {
+                if (Core.ML)
+                {
+                    SendLocalizedMessage(500168); // You can not say anything, you have been muted.
+                }
+                else
+                {
+                    SendMessage("You can not say anything, you have been squelched."); //Cliloc ITSELF changed during ML.
+                }
+
+                e.Blocked = true;
+            }
+            else
+            {
+                base.OnSaid(e);
+            }
+        }
+        #endregion
+
+        #region Champion Titles
+        [CommandProperty(AccessLevel.GameMaster)]
 		public bool DisplayChampionTitle { get { return GetFlag(PlayerFlag.DisplayChampionTitle); } set { SetFlag(PlayerFlag.DisplayChampionTitle, value); } }
 
 		private ChampionTitleInfo m_ChampionTitles;

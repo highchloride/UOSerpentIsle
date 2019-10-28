@@ -1,5 +1,6 @@
 using Server.Engines.VvV;
 using Server.Mobiles;
+using Server.Network;
 using System;
 using System.Xml;
 
@@ -10,6 +11,17 @@ namespace Server.Regions
         public TownRegion(XmlElement xml, Map map, Region parent)
             : base(xml, map, parent)
         {
+        }
+
+        public override void OnEnter(Mobile m)
+        {
+            base.OnEnter(m);
+
+            //UOSI
+            if (!(m is PlayerMobile))
+                return;
+
+            m.SendMessage("Thou hast entered the town of " + Name);
         }
 
         public override void OnExit(Mobile m)

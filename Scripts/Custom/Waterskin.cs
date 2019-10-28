@@ -6,16 +6,70 @@ using Server.Targeting;
 
 namespace Server.Items
 {
-	public class Waterskin : Item
+	public class Waterskin : Item, IHasQuantity
 	{
-		[Constructable]
+        private int m_Quantity;
+
+        public int Quantity
+        {
+            get
+            {
+                return m_Quantity;
+            }
+            set
+            {
+                m_Quantity = value;
+            }
+        }
+
+        public int MaxQuantity
+        {
+            get
+            {
+                return 5;
+            }
+        }
+
+        
+
+        [Constructable]
 		public Waterskin() : base( 0xA21 )
 		{
-			Name = "empty waterskin";
+			Name = "waterskin";
 			Weight = 1.0;
+            Quantity = 0;
+            LootType = LootType.Blessed;
 		}
 
-		public override void OnDoubleClick( Mobile from )
+        public override void OnSingleClick(Mobile from)
+        {
+            base.OnSingleClick(from);
+
+            LabelTo(from, GetQuantityDescription());
+        }
+
+        public virtual int GetQuantityDescription()
+        {
+            int perc = (m_Quantity * 100) / MaxQuantity;
+
+            if (perc <= 0)
+                return 1042975; // It's empty.
+            else if (perc <= 33)
+                return 1042974; // It's nearly empty.
+            else if (perc <= 66)
+                return 1042973; // It's half full.
+            else
+                return 1042972; // It's full.
+        }
+
+        public override void GetProperties(ObjectPropertyList list)
+        {
+            base.GetProperties(list);
+
+            list.Add(GetQuantityDescription());
+        }
+
+        public override void OnDoubleClick( Mobile from )
 		{
 			if ( this.ItemID == 0xA21 ) // EMPTY
 			{
@@ -32,10 +86,12 @@ namespace Server.Items
 					from.PlaySound( 0x240 );
 					this.ItemID = 0x98F;
 					this.Name = "waterskin";
-				}
+                    this.Quantity = this.MaxQuantity;
+                    InvalidateProperties();
+                }
 				else
 				{
-					from.SendMessage( "You can only fill this at a water trough, tub, or barrel!" ); 
+					from.SendMessage( "You can only fill this at a water trough, tub, fountain, or barrel!" ); 
 				}
 			}
 			else
@@ -47,10 +103,14 @@ namespace Server.Items
 				}
 				else
 				{
-					// increase characters thirst value based on type of drink
+                    //If thirsty
 					if ( from.Thirst < 20 )
 					{
+                        //Add to thirst and normalize to 20
 						from.Thirst += 5;
+                        if (from.Thirst > 20)
+                            from.Thirst = 20;
+
 						// Send message to character about their current thirst value
 						int iThirst = from.Thirst;
 						if ( iThirst < 5 )
@@ -62,13 +122,22 @@ namespace Server.Items
 						else
 							from.SendMessage( "You drink the water and are no longer thirsty" );
 
-						if ( from.Body.IsHuman && !from.Mounted )
+                        //Drinking anim
+                        if ( from.Body.IsHuman && !from.Mounted )
 							from.Animate( 34, 5, 1, true, false, 0 );
 
 						from.PlaySound( Utility.RandomList( 0x30, 0x2D6 ) );
 
-						this.ItemID = 0xA21;
-						this.Name = "empty waterskin";
+                        
+                        this.Quantity -= 1;
+                        InvalidateProperties();
+
+                        if (this.Quantity == 0)
+                        {
+                            this.ItemID = 0xA21;
+                            this.Name = "waterskin";
+                            from.SendMessage("Thou hast emptied thine waterskin.");
+                        }					
 
 						int iHeal = (int)from.Skills[SkillName.TasteID].Value;
 						int iHurt = from.StamMax - from.Stam;
@@ -94,8 +163,8 @@ namespace Server.Items
 					}
 					else
 					{
-						from.SendMessage( "You are simply too quenched to drink any more!" );
-						from.Thirst = 20;
+						from.SendMessage( "Thou art simply too quenched to drink any more!" );
+						//from.Thirst = 20;
 					}
 				}
 			}
@@ -108,13 +177,24 @@ namespace Server.Items
 		public override void Serialize( GenericWriter writer )
 		{
 			base.Serialize( writer );
-			writer.Write( (int) 0 ); // version
+			writer.Write( (int) 1 ); // version
+            writer.Write((int)m_Quantity);
 		}
 
 		public override void Deserialize( GenericReader reader )
 		{
 			base.Deserialize( reader );
 			int version = reader.ReadInt();
+
+            switch(version)
+            {
+                case 1:
+                    m_Quantity = reader.ReadInt();
+                    goto case 0;
+                case 0:
+                    break;
+            }
+            
 		}
 
 		public static void CheckWater( Mobile from, int range, out bool soaked )

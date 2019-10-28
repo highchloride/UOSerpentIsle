@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Server;
 using Server.Items;
+using Server.Misc;
 using Server.Mobiles;
 using Server.Targeting;
 
@@ -83,11 +84,11 @@ namespace Server.Engines.Harvest
 			grave.EffectCounts = (Core.AOS ? new int[]{ 1 } : new int[]{ 1, 2, 2, 2, 3 });
 			grave.EffectDelay = TimeSpan.FromSeconds( 1.6 );
 			grave.EffectSoundDelay = TimeSpan.FromSeconds( 0.9 );
-			grave.NoResourcesMessage = "You see nothing worth taking."; // Nothing worth taking..
-			grave.FailMessage = "You dig for a wile but find nothing."; // Nothing visible happens..
+			grave.NoResourcesMessage = "Thou dost see nothing worth taking."; // Nothing worth taking..
+			grave.FailMessage = "Thou hast dug for a wile but found nothing."; // Nothing visible happens..
 			grave.OutOfRangeMessage = 500446; // That is too far away.
 			grave.PackFullMessage = 500720; // You don't have enough room in your backpack!
-			grave.ToolBrokeMessage = "You broke your shovel."; // You broke your axe.
+			grave.ToolBrokeMessage = "Thou hast broken thy shovel."; // You broke your axe.
 
 			res = new HarvestResource[]
 			{
@@ -163,13 +164,15 @@ namespace Server.Engines.Harvest
 
 		public override void OnBadHarvestTarget( Mobile from, Item tool, object toHarvest )
 		{
-			from.SendMessage( "you cant dig there" );
+			from.SendMessage( "Thou canst not dig there." );
 		}
 
 		public override void OnHarvestStarted( Mobile from, Item tool, HarvestDefinition def, object toHarvest )
 		{
 			base.OnHarvestStarted( from, tool, def, toHarvest );
-		}
+            //ServUO - Take some Karma from grave robbers.
+            Titles.AwardKarma(from, -Utility.Random(11, 8), true);
+        }
 
 		public override void OnHarvestFinished( Mobile from, Item tool, HarvestDefinition def, HarvestVein vein, HarvestBank bank, HarvestResource resource, object harvested)
 		{
@@ -221,7 +224,7 @@ namespace Server.Engines.Harvest
 								if ( goodies != null )
 								{
 									goodies.MoveToWorld( loc, map );
-									from.SendMessage( "you dig up something interesting" );
+									from.SendMessage( "Thou hast dug up something interesting!" );
 								}
 							}
 						}

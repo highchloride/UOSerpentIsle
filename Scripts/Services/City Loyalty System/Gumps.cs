@@ -691,6 +691,8 @@ namespace Server.Engines.CityLoyalty
                 }
                 else
                 {
+                    City.Treasury -= CityLoyaltySystem.TradeDealCost;
+
                     City.OnNewTradeDeal(_Deals[id]);
                     City.HeraldMessage(1154058, String.Format("{0}\t#{1}", City.Definition.Name, (int)_Deals[id] - 12));
                 }
@@ -707,7 +709,7 @@ namespace Server.Engines.CityLoyalty
             TradeDeal.MaritimeGuild,
             TradeDeal.MerchantsAssociation,
             TradeDeal.MiningCooperative,
-            TradeDeal.LeageOfRangers,
+            TradeDeal.LeagueOfRangers,
             TradeDeal.GuildOfAssassins,
             TradeDeal.WarriorsGuild,
         };
@@ -856,7 +858,7 @@ namespace Server.Engines.CityLoyalty
             AddBackground(0, 0, 400, 400, 5054);
             AddHtml(0, 15, 400, 20, "<center>Election Start Times</center>", false, false);
 
-            if (CityLoyaltySystem.Britain.Election != null && CityLoyaltySystem.Britain.Election.Ongoing)
+            if (CityLoyaltySystem.Monitor.Election != null && CityLoyaltySystem.Monitor.Election.Ongoing)
             {
                 AddHtml(15, 35, 370, 40, "You will have to wait until the current election is over before you can start another one.", false, true);
             }
@@ -874,8 +876,8 @@ namespace Server.Engines.CityLoyalty
                 {
                     string start = "";
 
-                    if (CityLoyaltySystem.Britain.Election != null && CityLoyaltySystem.Britain.Election.StartTimes.Length >= i && CityLoyaltySystem.Britain.Election.StartTimes[i] != DateTime.MinValue)
-                        start = CityLoyaltySystem.Britain.Election.StartTimes[i].Month.ToString();
+                    if (CityLoyaltySystem.Monitor.Election != null && CityLoyaltySystem.Monitor.Election.StartTimes.Length >= i && CityLoyaltySystem.Monitor.Election.StartTimes[i] != DateTime.MinValue)
+                        start = CityLoyaltySystem.Monitor.Election.StartTimes[i].Month.ToString();
 
                     AddLabel(15, 180 + (i * 25), 0, (i + 1).ToString() + ".");
                     AddImageTiled(150, 180 + (i * 25), 50, 20, 5058);
@@ -893,7 +895,7 @@ namespace Server.Engines.CityLoyalty
 
         public override void OnResponse(RelayInfo info)
         {
-            if (info.ButtonID < 1 || (CityLoyaltySystem.Britain.Election != null && CityLoyaltySystem.Britain.Election.Ongoing))
+            if (info.ButtonID < 1 || (CityLoyaltySystem.Monitor.Election != null && CityLoyaltySystem.Monitor.Election.Ongoing))
                 return;
 
             if (info.ButtonID == 2)

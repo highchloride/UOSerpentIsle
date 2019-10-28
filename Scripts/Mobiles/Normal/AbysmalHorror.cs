@@ -59,6 +59,8 @@ namespace Server.Mobiles
         {
         }
 
+        public override bool CanFlee { get { return false; } }
+
         public override bool IgnoreYoungProtection
         {
             get
@@ -119,9 +121,6 @@ namespace Server.Mobiles
         {
             base.Deserialize(reader);
             int version = reader.ReadInt();
-
-            if (BaseSoundID == 357)
-                BaseSoundID = 0x451;
         }
     }
 }

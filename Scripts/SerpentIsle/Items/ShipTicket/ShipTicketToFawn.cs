@@ -1,3 +1,4 @@
+using Server.Mobiles;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -62,6 +63,11 @@ namespace Server.Items
                         //shipTicketTele.OnMoveOver(from);
                         from.SendMessage("Thy ticket is taken as thou board the vessel.");
                         from.MoveToWorld(shipTicketTele.DestFawn, Map.SerpentIsle);
+                        foreach(Mobile mobile in ((PlayerMobile)from).AllFollowers)
+                        {
+                            mobile.MoveToWorld(from.Location, Map.SerpentIsle);
+                        }
+                            
                         from.PlaySound(0x013);
                     }
                 }

@@ -1,4 +1,3 @@
-/* Based on AbysmalHorror, still no infos on Abyssal Abomination... Including correct body ID */
 using System;
 using Server.Items;
 
@@ -11,8 +10,8 @@ namespace Server.Mobiles
         public AbyssalAbomination()
             : base(AIType.AI_NecroMage, FightMode.Closest, 10, 1, 0.2, 0.4)
         {
-            Name = "an Abyssal abomination";
-            Body = 742;
+            Name = "an Abyssal Abomination";
+            Body = 312;
             Hue = 769;
             BaseSoundID = 0x451;
 
@@ -107,9 +106,6 @@ namespace Server.Mobiles
         {
             base.Deserialize(reader);
             int version = reader.ReadInt();
-
-            if (BaseSoundID == 357)
-                BaseSoundID = 0x451;
         }
     }
 }

@@ -1,4 +1,7 @@
-F:\Ultima Online\SERVERS\ServUO-master\Ultima\obj\Release\Ultima.csproj.CoreCompileInputs.cache
+\\servuo\c$\ULTIMA ONLINE\DEVELOPMENT\ServUO-master\Ultima\obj\Release\Ultima.csprojAssemblyReference.cache
+\\servuo\c$\ULTIMA ONLINE\DEVELOPMENT\ServUO-master\Ultima\obj\Release\Ultima.csproj.CoreCompileInputs.cache
+\\servuo\c$\ULTIMA ONLINE\DEVELOPMENT\ServUO-master\Ultima\obj\Release\Ultima.dll
+\\servuo\c$\ULTIMA ONLINE\DEVELOPMENT\ServUO-master\Ultima.dll
+F:\Ultima Online\SERVERS\ServUO-master\Ultima\obj\Release\Ultima.csprojAssemblyReference.cache
 F:\Ultima Online\SERVERS\ServUO-master\Ultima\obj\Release\Ultima.dll
 F:\Ultima Online\SERVERS\ServUO-master\Ultima.dll
-F:\Ultima Online\SERVERS\ServUO-master\Ultima\obj\Release\Ultima.csprojAssemblyReference.cache

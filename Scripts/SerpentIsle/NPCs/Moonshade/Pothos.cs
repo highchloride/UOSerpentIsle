@@ -6,14 +6,16 @@ using Server.Items;
 
 namespace Server.Mobiles
 {
-    class Pothos : TalkingBaseCreature
+    class Pothos : TalkingBaseVendor
     {
+        private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
+
         [Constructable]
-        public Pothos() : base(AIType.AI_Mage, FightMode.None, 5, 1, 0.1, 0.2)
+        public Pothos() : base("the Alchemist")
         {
             Name = "Pothos";
             Female = false;
-            InitBody();
+            //InitBody();
             SetHits(HitsMax);
         }
 
@@ -21,16 +23,16 @@ namespace Server.Mobiles
         {
         }
 
-        public void InitBody()
+        public override void InitBody()
         {
             Body = 0x190;
             Hue = 33770;
             SpeechHue = Utility.RandomDyedHue();
 
-            InitOutfit();
+            //InitOutfit();
         }
 
-        public void InitOutfit()
+        public override void InitOutfit()
         {
             Item hair = new Item(8261)
             {
@@ -76,6 +78,18 @@ namespace Server.Mobiles
             AddItem(shoes);
 
             PackGold(50, 200);
+        }
+
+        protected override List<SBInfo> SBInfos
+        {
+            get
+            {
+                return this.m_SBInfos;
+            }
+        }
+        public override void InitSBInfo()
+        {
+            this.m_SBInfos.Add(new SBAlchemist(this));
         }
 
         public override void Serialize(GenericWriter writer)

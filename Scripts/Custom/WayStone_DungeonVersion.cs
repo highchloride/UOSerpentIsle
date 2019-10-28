@@ -44,14 +44,14 @@ namespace Server.Items
                         }
                         else
                         {
-                            m.SendMessage("You open a request to join you at your location for each of your party members.");
+                            m.SendMessage("Thy party has been called to action!");
                         }
                     }
                     //this.Delete();
                 }
                 else
                 {
-                    from.SendMessage("You can not use this while not in a party.");
+                    from.SendMessage("Thou canst not use this without a party.");
                 }
             }
             else

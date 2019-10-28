@@ -40,7 +40,8 @@ namespace Server.ACC.CSS.Systems.Ranger
 			ControlSlots = 1;
 
 			AddItem( new LightSource() );
-		}
+            SetSpecialAbility(SpecialAbility.DragonBreath);
+        }
 
 		private DateTime m_NextFlare;
 
@@ -96,12 +97,13 @@ namespace Server.ACC.CSS.Systems.Ranger
 			}
 		}
 
-		public override bool HasBreath{ get{ return true; } } // fire breath enabled
-		public override int BreathFireDamage{ get{ return 0; } }
-		public override int BreathPoisonDamage{ get{ return 100; } }
-		public override int BreathEffectHue{ get{ return 0x48; } }
-		public override bool AutoDispel{ get{ return true; } }
-		public override Poison HitPoison{ get{ return Poison.Greater; } }
+        //UOSI - removed as of the OCt 2019 merge.
+		//public override bool HasBreath{ get{ return true; } } // fire breath enabled
+		//public override int BreathFireDamage{ get{ return 0; } }
+		//public override int BreathPoisonDamage{ get{ return 100; } }
+		//public override int BreathEffectHue{ get{ return 0x48; } }
+		//public override bool AutoDispel{ get{ return true; } }
+		//public override Poison HitPoison{ get{ return Poison.Greater; } }
 
 		public VampireWolfFamiliar( Serial serial ) : base( serial )
 		{

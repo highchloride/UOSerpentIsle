@@ -16,7 +16,7 @@ using Server.Multis;
  * This is used for modifying, removing, adding existing spawners, etc for existing shards,
  * used for modifying, removing, adding existing spawners, etc for existing shards.
  * As this is a collaborative effort for ServUO, it's important that any modifications to 
- * existing shards be handled for new shareds.  For example, if your swapping out some spawners,
+ * existing shards be handled for new shards.  For example, if your swapping out some spawners,
  * common practice will be to edit the spawner files for fresh-loaded servers. Please refer to
  * ServUO.com community with any questions or concerns.
  */
@@ -34,6 +34,11 @@ namespace Server
             IceHoundRemoval = 0x00000004,
             PaladinAndKrakin= 0x00000008,
             TrinsicPaladins = 0x00000010,
+            HonestyItems    = 0x00000020,
+            TramKhaldun     = 0x00000040,
+            FixAddonDeco    = 0x00000080,
+            LifeStealers    = 0x00000100,
+            LootNerf2       = 0x00000200
         }
 
         public static string FilePath = Path.Combine("Saves/Misc", "SpawnerPresistence.bin");
@@ -159,6 +164,36 @@ namespace Server
             {
                 case 12:
                 case 11:
+                    if ((VersionFlag & SpawnerVersion.LootNerf2) == 0)
+                    {
+                        LootNerf2();
+                        VersionFlag |= SpawnerVersion.LootNerf2;
+                    }
+
+                    if ((VersionFlag & SpawnerVersion.LifeStealers) == 0)
+                    {
+                        SpawnLifeStealers();
+                        VersionFlag |= SpawnerVersion.LifeStealers;
+                    }
+
+                    if ((VersionFlag & SpawnerVersion.FixAddonDeco) == 0)
+                    {
+                        FixAddonDeco();
+                        VersionFlag |= SpawnerVersion.FixAddonDeco;
+                    }
+
+                    if ((VersionFlag & SpawnerVersion.TramKhaldun) == 0)
+                    {
+                        GenerateTramKhaldun();
+                        VersionFlag |= SpawnerVersion.TramKhaldun;
+                    }
+
+                    if ((VersionFlag & SpawnerVersion.HonestyItems) == 0)
+                    {
+                        ConvertHonestyItems();
+                        VersionFlag |= SpawnerVersion.HonestyItems;
+                    }
+
                     if ((VersionFlag & SpawnerVersion.TrinsicPaladins) == 0)
                     {
                         SpawnTrinsicPaladins();
@@ -229,6 +264,106 @@ namespace Server
             Console.WriteLine("[Spawner Persistence v{0}] {1}", _Version.ToString(), str);
             Utility.PopColor();
         }
+
+        #region Loot Nerf 2
+        public static void LootNerf2()
+        {
+            RunicReforging.LootNerf2();
+        }
+        #endregion
+
+        #region Spawn Lifestealers
+        public static void SpawnLifeStealers()
+        {
+            LoadFromXmlSpawner("Spawns/termur.xml", Map.TerMur, "LifeStealer");
+        }
+        #endregion
+
+        #region Addon Decoraction Fix
+        public static void FixAddonDeco()
+        {
+            var t = typeof(AddonComponent);
+
+            Decorate.GenerateRestricted("deco", "Data/Decoration/Britannia", t, true, Map.Trammel, Map.Felucca);
+            Decorate.GenerateRestricted("deco", "Data/Decoration/Trammel", t, true, Map.Trammel);
+            Decorate.GenerateRestricted("deco", "Data/Decoration/Felucca", t, true, Map.Felucca);
+            Decorate.GenerateRestricted("deco", "Data/Decoration/Ilshenar", t, true, Map.Ilshenar);
+            Decorate.GenerateRestricted("deco", "Data/Decoration/Malas", t, true, Map.Malas);
+            Decorate.GenerateRestricted("deco", "Data/Decoration/Tokuno", t, true, Map.Tokuno);
+        }
+        #endregion
+
+        #region Tram Khaldun Generation
+        public static void GenerateTramKhaldun()
+        {
+            var region = Region.Regions.FirstOrDefault(r => r.Map == Map.Felucca && r.Name == "Khaldun");
+
+            if (region != null)
+            {
+                int spawners = 0;
+                int teleporters = 0;
+
+                foreach (var spawner in region.GetEnumeratedItems().OfType<XmlSpawner>())
+                {
+                    CopyAndPlaceItem(spawner, spawner.Location, Map.Trammel);
+                    spawners++;
+                }
+
+                foreach (var teleporter in region.GetEnumeratedItems().OfType<Teleporter>())
+                {
+                    CopyAndPlaceItem(teleporter, teleporter.Location, Map.Trammel);
+                    teleporters++;
+                }
+
+                ToConsole(String.Format("Copied {0} khaldun spawners, {1} teleporters and placed in trammel!", spawners, teleporters));
+            }
+            else
+            {
+                ToConsole("No region -Khaldun- Found!", ConsoleColor.Red);
+            }
+
+            Decorate.GenerateFromFile("deco", Path.Combine("Data/Decoration/Trammel", "khaldun.cfg"), Map.Trammel);
+
+            var entAddon = new KhaldunEntranceAddon();
+            entAddon.MoveToWorld(new Point3D(6013, 3785, 18), Map.Trammel);
+
+            var campAddon = new KhaldunCampAddon();
+            campAddon.MoveToWorld(new Point3D(6003, 3772, 24), Map.Trammel);
+
+            var workshop = new KhaldunWorkshop();
+            workshop.MoveToWorld(new Point3D(6020, 3747, 18), Map.Trammel);
+
+            var tele = new Teleporter(new Point3D(5571, 1299, 0), Map.Trammel);
+            tele.MoveToWorld(new Point3D(6011, 3787, 23), Map.Trammel);
+
+            tele = new Teleporter(new Point3D(5571, 1299, 0), Map.Trammel);
+            tele.MoveToWorld(new Point3D(6012, 3787, 23), Map.Trammel);
+
+            tele = new Teleporter(new Point3D(5572, 1299, 0), Map.Trammel);
+            tele.MoveToWorld(new Point3D(6013, 3787, 23), Map.Trammel);
+
+            tele = new Teleporter(new Point3D(5572, 1299, 0), Map.Trammel);
+            tele.MoveToWorld(new Point3D(6014, 3787, 23), Map.Trammel);
+        }
+        #endregion
+
+        #region Honesty Item Conversion
+        public static void ConvertHonestyItems()
+        {
+            int convert = 0;
+
+            foreach (var item in World.Items.Values.Where(i => i.HonestyItem))
+            {
+                if (!item.HasSocket<HonestyItemSocket>())
+                {
+                    item.AttachSocket(new HonestyItemSocket());
+                    convert++;
+                }
+            }
+
+            ToConsole(String.Format("Converted {0} honesty items and attached Honesty Item Socket!", convert));
+        }
+        #endregion
 
         #region Trinny Paladins
         public static void SpawnTrinsicPaladins()
@@ -666,6 +801,26 @@ namespace Server
 
             ColUtility.Free(remove);
             return count;
+        }
+
+        public static void CopyAndPlaceItem(Item oldItem, Point3D p, Map map)
+        {
+            Item newItem = Activator.CreateInstance(oldItem.GetType()) as Item;
+
+            Dupe.CopyProperties(oldItem, newItem);
+
+            oldItem.OnAfterDuped(newItem);
+
+            newItem.MoveToWorld(p, map);
+
+            if (newItem is XmlSpawner)
+            {
+                ((XmlSpawner)newItem).DoRespawn = true;
+            }
+            else if (newItem is Teleporter)
+            {
+                ((Teleporter)newItem).MapDest = map;
+            }
         }
 
         /// <summary>

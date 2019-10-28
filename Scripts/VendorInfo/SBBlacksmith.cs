@@ -127,7 +127,7 @@ namespace Server.Mobiles
                     this.Add(new GenericBuyInfo(typeof(BladedStaff), 40, 20, 0x26BD, 0));
                 }
 
-                Add(new GenericBuyInfo("1154005", typeof(MalleableAlloy), 50, 500, 7139, 2949, true));
+                Add(new GenericBuyInfo(typeof(MalleableAlloy), 50, 500, 7139, 2949, true)); //UOSI bad cliloc "1154005",
             }
         }
 

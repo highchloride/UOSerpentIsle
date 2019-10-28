@@ -1,4 +1,4 @@
-﻿#region References
+#region References
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +19,13 @@ namespace Server.Services.Virtues
 {
 	public static class HonestyVirtue
 	{
+        /// <summary>
+        /// Set this to false if you are having memory shortages. True means points are validated at compile time and reduces run time processing
+        /// to randomly choose a point. Making it false will dramatically decrease program memory usage and compile time, however will choose
+        /// each random point at runtime.
+        /// </summary>
+        public static readonly bool UseSpawnArea = false;
+
 		public static bool Enabled { get; set; }
 		public static int MaxGeneration { get; set; }
 		public static bool TrammelGeneration { get; set; }
@@ -72,21 +79,21 @@ namespace Server.Services.Virtues
 
 				GenerateHonestyItems();
 
-				Task.Factory.StartNew(GenerateImages);
+                if (UseSpawnArea)
+                {
+                    Task.Factory.StartNew(GenerateImages);
+                }
 			}
 		}
 
-		private static void OnItemCreated(ItemCreatedEventArgs e)
-		{
-			if (e.Item.HonestyItem)
-			{
-				_Items.Add(e.Item);
-			}
-		}
+        public static bool IsHonestyItem(Item item)
+        {
+            return item.HasSocket<HonestyItemSocket>();
+        }
 
 		private static void OnItemDeleted(ItemDeletedEventArgs e)
 		{
-			if (e.Item.HonestyItem)
+            if (IsHonestyItem(e.Item))
 			{
 				_Items.Remove(e.Item);
 			}
@@ -117,18 +124,39 @@ namespace Server.Services.Virtues
 			_Items.RemoveAll(ItemFlags.GetTaken);
 		}
 
-		/*
+        /*
 		private static bool ValidateSpawnPoint(Map map, int x, int y, int z)
 		{
 			return TreasureMap.ValidateLocation(x, y, map);
 		}
 		*/
+        private static Point3D GetRandom(Map map)
+        {
+            if (map == null)
+                return Point3D.Zero;
+
+            var fw = map.MapID <= 1 ? 5119 : map.Width;
+            var fh = map.MapID <= 1 ? 4095 : map.Height;
+
+            int x, y, z = 0;
+
+            do
+            {
+                x = Utility.RandomMinMax(0, fw);
+                y = Utility.RandomMinMax(0, fh);
+                z = map.Tiles.GetLandTile(x, y).Z;
+            }
+            while (!ValidateSpawnPoint(map, x, y, z));
+
+            return new Point3D(x, y, z);
+        }
+
 		private static bool ValidateSpawnPoint(Map map, int x, int y, int z)
 		{
 			var lt = map.Tiles.GetLandTile(x, y);
 			var ld = TileData.LandTable[lt.ID];
 
-			if (lt.Ignored || (ld.Flags & TileFlag.Impassable) > 0)
+			if (lt.Ignored || (ld.Flags & TileFlag.Impassable) > 0 || (ld.Flags & TileFlag.Wet) > 0 || (ld.Flags & TileFlag.Roof) > 0)
 			{
 				return false;
 			}
@@ -178,51 +206,53 @@ namespace Server.Services.Virtues
 			Console.WriteLine("[Honesty]: Generating...");
 			Utility.PopColor();
 
-			var sw = new Stopwatch();
+            var sw = new Stopwatch();
+            var s = 0.0;
 
-			var s = 0.0;
+            if (UseSpawnArea)
+            {
+                if (_FeluccaArea == null)
+                {
+                    Utility.PushColor(ConsoleColor.Yellow);
+                    Console.Write("[Honesty]: Felucca - Reticulating splines...");
+                    Utility.PopColor();
 
-			if (_FeluccaArea == null)
-			{
-				Utility.PushColor(ConsoleColor.Yellow);
-				Console.Write("[Honesty]: Felucca - Reticulating splines...");
-				Utility.PopColor();
+                    sw.Restart();
 
-				sw.Restart();
+                    _FeluccaArea = SpawnArea.Instantiate(Map.Felucca.DefaultRegion, _Filter, ValidateSpawnPoint, true);
 
-				_FeluccaArea = SpawnArea.Instantiate(Map.Felucca.DefaultRegion, _Filter, ValidateSpawnPoint, true);
+                    sw.Stop();
 
-				sw.Stop();
+                    s += sw.Elapsed.TotalSeconds;
 
-				s += sw.Elapsed.TotalSeconds;
+                    Utility.PushColor(ConsoleColor.Green);
+                    Console.WriteLine("done ({0:F2} seconds)", sw.Elapsed.TotalSeconds);
+                    Utility.PopColor();
+                }
 
-				Utility.PushColor(ConsoleColor.Green);
-				Console.WriteLine("done ({0:F2} seconds)", sw.Elapsed.TotalSeconds);
-				Utility.PopColor();
-			}
+                if (_TrammelArea == null && TrammelGeneration)
+                {
+                    Utility.PushColor(ConsoleColor.Yellow);
+                    Console.Write("[Honesty]: Trammel - Reticulating splines...");
+                    Utility.PopColor();
 
-			if (_TrammelArea == null && TrammelGeneration)
-			{
-				Utility.PushColor(ConsoleColor.Yellow);
-				Console.Write("[Honesty]: Trammel - Reticulating splines...");
-				Utility.PopColor();
+                    sw.Restart();
 
-				sw.Restart();
+                    _TrammelArea = SpawnArea.Instantiate(Map.Trammel.DefaultRegion, _Filter, ValidateSpawnPoint, true);
 
-				_TrammelArea = SpawnArea.Instantiate(Map.Trammel.DefaultRegion, _Filter, ValidateSpawnPoint, true);
+                    sw.Stop();
 
-				sw.Stop();
+                    s += sw.Elapsed.TotalSeconds;
 
-				s += sw.Elapsed.TotalSeconds;
-
-				Utility.PushColor(ConsoleColor.Green);
-				Console.WriteLine("done ({0:F2} seconds)", sw.Elapsed.TotalSeconds);
-				Utility.PopColor();
-			}
+                    Utility.PushColor(ConsoleColor.Green);
+                    Console.WriteLine("done ({0:F2} seconds)", sw.Elapsed.TotalSeconds);
+                    Utility.PopColor();
+                }
+            }
 
 			try
 			{
-				SpawnArea area;
+				Map facet;
 				Point3D loc;
 				Item item;
 
@@ -234,7 +264,7 @@ namespace Server.Services.Virtues
 					Console.Write("[Honesty]: Creating {0:#,0} lost items...", count);
 					Utility.PopColor();
 
-					sw.Restart();
+                    sw.Restart();
 
 					var spawned = new Item[count];
 
@@ -264,9 +294,18 @@ namespace Server.Services.Virtues
 
 						try
 						{
-							area = _TrammelArea != null && Utility.RandomBool() ? _TrammelArea : _FeluccaArea;
+                            if (UseSpawnArea)
+                            {
+                                var area = _TrammelArea != null && Utility.RandomBool() ? _TrammelArea : _FeluccaArea;
+                                facet = area.Facet;
 
-							loc = area.GetRandom();
+                                loc = area.GetRandom();
+                            }
+                            else
+                            {
+                                facet = TrammelGeneration && Utility.RandomBool() ? Map.Trammel : Map.Felucca;
+                                loc = GetRandom(facet);
+                            }
 
 							if (loc == Point3D.Zero)
 							{
@@ -275,14 +314,15 @@ namespace Server.Services.Virtues
 
 							RunicReforging.GenerateRandomItem(item, 0, 100, 1000);
 
-							item.HonestyItem = true;
+                            item.AttachSocket(new HonestyItemSocket());
+                            item.HonestyItem = true;
 
 							_Items.Add(item);
 
 							ItemFlags.SetTaken(item, false);
 
-							item.OnBeforeSpawn(loc, area.Facet);
-							item.MoveToWorld(loc, area.Facet);
+							item.OnBeforeSpawn(loc, facet);
+							item.MoveToWorld(loc, facet);
 							item.OnAfterSpawn();
 						}
 						catch
@@ -319,24 +359,27 @@ namespace Server.Services.Virtues
 			Utility.PopColor();
 		}
 
-		public static void AssignOwner(Item item)
+		public static void AssignOwner(HonestyItemSocket socket)
 		{
-			item.HonestyRegion = _Regions[Utility.Random(_Regions.Length)];
+            if (socket != null)
+            {
+                socket.HonestyRegion = _Regions[Utility.Random(_Regions.Length)];
 
-			if (!String.IsNullOrWhiteSpace(item.HonestyRegion) && BaseVendor.AllVendors.Count >= 10)
-			{
-				var attempts = BaseVendor.AllVendors.Count / 10;
+                if (!String.IsNullOrWhiteSpace(socket.HonestyRegion) && BaseVendor.AllVendors.Count >= 10)
+                {
+                    var attempts = BaseVendor.AllVendors.Count / 10;
 
-				BaseVendor m;
+                    BaseVendor m;
 
-				do
-				{
-					m = BaseVendor.AllVendors[Utility.Random(BaseVendor.AllVendors.Count)];
-				}
-				while ((m == null || m.Map != item.Map || !m.Region.IsPartOf(item.HonestyRegion)) && --attempts >= 0);
+                    do
+                    {
+                        m = BaseVendor.AllVendors[Utility.Random(BaseVendor.AllVendors.Count)];
+                    }
+                    while ((m == null || m.Map != socket.Owner.Map || !m.Region.IsPartOf(socket.HonestyRegion)) && --attempts >= 0);
 
-				item.HonestyOwner = m;
-			}
+                    socket.HonestyOwner = m;
+                }
+            }
 		}
 
 		private static void CheckChests()
@@ -419,8 +462,9 @@ namespace Server.Services.Virtues
 			var reg = Region.Find(Location, Map);
 
 			var gainedPath = false;
+            var honestySocket = item.GetSocket<HonestyItemSocket>();
 
-			if (item.HonestyRegion == reg.Name)
+            if (honestySocket != null && honestySocket.HonestyRegion == reg.Name)
 			{
 				VirtueHelper.Award(from, VirtueName.Honesty, 60, ref gainedPath);
 			}

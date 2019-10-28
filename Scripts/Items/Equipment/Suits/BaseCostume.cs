@@ -1,18 +1,17 @@
 using System;
 using Server;
-using Server.Items;
-using Server.Mobiles;
-using System.Collections;
 
 namespace Server.Items
 {
     [FlipableAttribute(0x19BC, 0x19BD)]
-    public partial class BaseCostume : BaseShield, IDyable
+    public partial class BaseCostume : BaseShield
     {
         public bool m_Transformed;
         private int m_Body = 0;
         private int m_Hue = -1;
         private int m_SaveHueMod = -1;
+
+        public virtual string CreatureName { get; private set; }
 
         [CommandProperty(AccessLevel.GameMaster)]
         public bool Transformed
@@ -41,7 +40,8 @@ namespace Server.Items
             Resource = CraftResource.None;
             Attributes.SpellChanneling = 1;
             Layer = Layer.FirstValid;
-            Weight = 3.0;
+            Weight = 4.0;
+            StrRequirement = 10;
         }
 
         public BaseCostume(Serial serial)

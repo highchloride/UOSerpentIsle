@@ -408,7 +408,7 @@ namespace Server.Mobiles
                     // boat stuffs
                     if (i is Static && i.Name != null && (i.Name.ToLower() == "weapon pad" || i.Name.ToLower() == "deck"))
                         return true;
-                    if (i is GalleonHold || i is MooringLine || i is HoldItem || i is BaseDockedBoat || i is Rudder || i is RudderHandle || i is ShipWheel || i is BaseBoat || i is Plank || i is TillerMan || i is Hold || i is BaseCannon)
+                    if (i is GalleonHold || i is MooringLine || i is HoldItem || i is BaseDockedBoat || i is Rudder || i is RudderHandle || i is ShipWheel || i is BaseBoat || i is Plank || i is TillerMan || i is Hold || i is IShipCannon)
                         return true;
 
                     // Ignores shadowguard addons that are internalized while not in use
@@ -1343,11 +1343,11 @@ namespace Server.Mobiles
 					// add the Props button for each entry
 					AddButton(175, 22 * (i % MaxEntriesPerPage) + 30, 0xFAB, 0xFAD, 3000 + i, GumpButtonType.Reply, 0);
 
-					string namestr = null;
-					string typestr = null;
-					string locstr = null;
-					string mapstr = null;
-					string ownstr = null;
+					string namestr = string.Empty;
+                    string typestr = string.Empty;
+                    string locstr = string.Empty;
+                    string mapstr = string.Empty;
+                    string ownstr = string.Empty;
 					int texthue = 0;
 
 					if (o is Item)
@@ -1505,7 +1505,7 @@ namespace Server.Mobiles
 					if (i == Selected) texthue = 68;
 
 					// display the name
-					AddLabelCropped(248, 22 * (i % MaxEntriesPerPage) + 31, 110, 21, texthue, namestr);
+					AddLabelCropped(248, 22 * (i % MaxEntriesPerPage) + 31, 110, 21, texthue, namestr ?? string.Empty);
 
 					// display the attachment button if it has attachments
 					if (XmlAttach.HasAttachments(o))

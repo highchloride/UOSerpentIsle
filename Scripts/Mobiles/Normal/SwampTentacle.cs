@@ -48,6 +48,96 @@ namespace Server.Mobiles
         {
         }
 
+        //public override void OnMovement(Mobile m, Point3D oldLocation)
+        //{
+        //    LandTile lt = m.Map.Tiles.GetLandTile(this.X, this.Y);
+
+        //    if (IsLightLandSwamp(lt.ID))
+        //    {
+        //        base.OnMovement(m, oldLocation);
+        //    }
+        //    else if (IsDeepLandSwamp(lt.ID))
+        //    {
+        //        base.OnMovement(m, oldLocation);
+        //    }
+        //}
+
+        //UOSI - This checks if we're trying to leave a swamp, and prevents it.
+        public override bool CheckMovement(Direction d, out int newZ)
+        {
+            LandTile lt;
+
+            switch(d)
+            {
+                case Direction.Up:
+                    lt = Map.Tiles.GetLandTile(this.X - 1, this.Y);
+                    break;
+                case Direction.North:
+                    lt = Map.Tiles.GetLandTile(this.X, this.Y - 1);
+                    break;
+                case Direction.Right:
+                    lt = Map.Tiles.GetLandTile(this.X + 1, this.Y - 1);
+                    break;
+                case Direction.East:
+                    lt = Map.Tiles.GetLandTile(this.X + 1, this.Y);
+                    break;
+                case Direction.Down:
+                    lt = Map.Tiles.GetLandTile(this.X + 1, this.Y + 1);
+                    break;
+                case Direction.South:
+                    lt = Map.Tiles.GetLandTile(this.X, this.Y + 1);
+                    break;
+                case Direction.Left:
+                    lt = Map.Tiles.GetLandTile(this.X - 1, this.Y + 1);
+                    break;
+                case Direction.West:
+                    lt = Map.Tiles.GetLandTile(this.X - 1, this.Y);
+                    break;
+                default:
+                    lt = Map.Tiles.GetLandTile(this.X, this.Y);
+                    break;
+            }            
+
+            if (IsLightLandSwamp(lt.ID))
+            {
+                return base.CheckMovement(d, out newZ);
+            }
+            else if (IsDeepLandSwamp(lt.ID))
+            {
+                return base.CheckMovement(d, out newZ);
+            }
+            else
+            {
+                newZ = this.Z;
+                return false;
+            }
+        }
+
+        private static bool IsLightLandSwamp(int itemID)
+        {
+            if (itemID >= 15808 && itemID <= 15833)
+                return true;
+
+            if (itemID >= 15835 && itemID <= 15836)
+                return true;
+
+            if (itemID >= 15838 && itemID <= 15848)
+                return true;
+
+            if (itemID >= 15853 && itemID <= 15857)
+                return true;
+
+            return false;
+        }
+
+        private static bool IsDeepLandSwamp(int itemID)
+        {
+            if (itemID >= 15849 && itemID <= 15852)
+                return true;
+
+            return false;
+        }
+
         public override Poison PoisonImmune
         {
             get

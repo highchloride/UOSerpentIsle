@@ -190,36 +190,6 @@ namespace Server.Items
             }
         }
 
-        public static int GetMaxStabled(Mobile from)
-        {
-            double taming = from.Skills[SkillName.AnimalTaming].Value;
-            double anlore = from.Skills[SkillName.AnimalLore].Value;
-            double vetern = from.Skills[SkillName.Veterinary].Value;
-            double sklsum = taming + anlore + vetern;
-
-            int max;
-
-            if (sklsum >= 240.0)
-                max = 5;
-            else if (sklsum >= 200.0)
-                max = 4;
-            else if (sklsum >= 160.0)
-                max = 3;
-            else
-                max = 2;
-
-            if (taming >= 100.0)
-                max += (int)((taming - 90.0) / 10);
-
-            if (anlore >= 100.0)
-                max += (int)((anlore - 90.0) / 10);
-
-            if (vetern >= 100.0)
-                max += (int)((vetern - 90.0) / 10);
-
-            return max;
-        }
-
         private class StableTarget : Target
         {
             private readonly HitchingPost m_Post;
@@ -329,7 +299,7 @@ namespace Server.Items
                     from.SendLocalizedMessage(1071157); //This hitching post is damaged. You can't use it any longer.
                 }
             }
-            else if (from.Stabled.Count >= GetMaxStabled(from))
+            else if (from.Stabled.Count >= AnimalTrainer.GetMaxStabled(from))
             {
                 from.SendLocalizedMessage(1042565); // You have too many pets in the stables!
             }
@@ -379,7 +349,7 @@ namespace Server.Items
             {
                 from.SendLocalizedMessage(1042564); // I'm sorry.  Your pet seems to be busy.
             }
-            else if (from.Stabled.Count >= GetMaxStabled(from))
+            else if (from.Stabled.Count >= AnimalTrainer.GetMaxStabled(from))
             {
                 from.SendLocalizedMessage(1042565); // You have too many pets in the stables!
             }
@@ -403,7 +373,10 @@ namespace Server.Items
 
                     from.Stabled.Add(pet);
 
-                    UsesRemaining -= 1;
+                    if (m_Replica)
+                    {
+                        UsesRemaining -= 1;
+                    }
 
                     from.SendLocalizedMessage(502679); // Very well, thy pet is stabled. Thou mayst recover it by saying 'claim' to me. In one real world week, I shall sell it off if it is not claimed!
                 }

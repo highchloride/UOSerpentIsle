@@ -20,6 +20,8 @@ namespace Server.Mobiles
 				pack.Movable = false;
 
 				AddItem( pack );
+
+            GuardImmune = true; //UOSI - Makes these things untargetable by guards, I think
 		}
 
 		public override bool IsEnemy( Mobile m )

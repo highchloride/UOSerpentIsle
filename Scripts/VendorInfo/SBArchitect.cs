@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Server.ACC.YS;
 using Server.Items;
 
 namespace Server.Mobiles
@@ -32,8 +33,9 @@ namespace Server.Mobiles
             public InternalBuyInfo()
             {
                 Add(new GenericBuyInfo("1041280", typeof(InteriorDecorator), 10001, 20, 0xFC1, 0));
+                Add(new GenericBuyInfo(typeof(YardShovel), 10002, 20, 3897, 0));
                 if (Core.AOS)
-                    Add(new GenericBuyInfo("1060651", typeof(HousePlacementTool), 627, 20, 0x14F6, 0));
+                    Add(new GenericBuyInfo("1060651", typeof(HousePlacementTool), 1254, 20, 0x14F6, 0));
             }
         }
 

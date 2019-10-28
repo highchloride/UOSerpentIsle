@@ -11,7 +11,7 @@ namespace Server.Mobiles
 	public interface IMount
 	{
 		Mobile Rider { get; set; }
-		void OnRiderDamaged(int amount, Mobile from, bool willKill);
+		void OnRiderDamaged(Mobile from, ref int amount, bool willKill);
 	}
 
 	public interface IMountItem
@@ -136,5 +136,10 @@ namespace Server
         void FixedParticles(int itemID, int speed, int duration, int effect, EffectLayer layer, int unknown);
         void FixedParticles(int itemID, int speed, int duration, int effect, EffectLayer layer);
         void BoltEffect(int hue);
+    }
+
+    public interface IArtifact
+    {
+        int ArtifactRarity { get; }
     }
 }

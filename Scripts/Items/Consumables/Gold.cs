@@ -116,9 +116,9 @@ namespace Server.Items
 				}
 			}
 
-			owner.SendLocalizedMessage(1042763, Amount.ToString("#,0")); //~1_AMOUNT~ gold was deposited in your account.
+			owner.SendLocalizedMessage(1042763, Amount.ToString("#,0"));
 
-            Delete();
+			Delete();
 
 			((Container)parent).UpdateTotals();
 		}

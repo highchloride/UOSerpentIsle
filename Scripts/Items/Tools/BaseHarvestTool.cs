@@ -8,12 +8,6 @@ using Server.Network;
 
 namespace Server.Items
 {
-    public interface IUsesRemaining
-    {
-        int UsesRemaining { get; set; }
-        bool ShowUsesRemaining { get; set; }
-    }
-
     public enum MiningType
     {
         OreOnly,
@@ -118,13 +112,14 @@ namespace Server.Items
             m_Quality = ItemQuality.Normal;
         }
 
-        public override void GetProperties(ObjectPropertyList list)
+        public override void AddCraftedProperties(ObjectPropertyList list)
         {
-            base.GetProperties(list);
-
             if (m_Quality == ItemQuality.Exceptional)
                 list.Add(1060636); // exceptional
+        }
 
+        public override void AddUsesRemainingProperties(ObjectPropertyList list)
+        {
             list.Add(1060584, m_UsesRemaining.ToString()); // uses remaining: ~1_val~
         }
 
@@ -147,7 +142,11 @@ namespace Server.Items
 
         public override void OnDoubleClick(Mobile from)
         {
-            if (IsChildOf(from.Backpack) || Parent == from)
+            //UOSI this should fix the dynamic mining problem.
+            if (HarvestSystem == null || Deleted)
+                return;
+
+            if (IsChildOf(from.Backpack) || Parent == from) 
                 HarvestSystem.BeginHarvesting(from, this);
             else
                 from.SendLocalizedMessage(1042001); // That must be in your pack for you to use it.

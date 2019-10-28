@@ -6,14 +6,16 @@ using Server.Items;
 
 namespace Server.Mobiles
 {
-    class Stefano : TalkingBaseCreature
+    class Stefano : TalkingBaseVendor
     {
+        private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
+
         [Constructable]
-        public Stefano() : base(AIType.AI_Mage, FightMode.None, 5, 1, 0.1, 0.2)
+        public Stefano() : base("the Sellsword Master")
         {
             Name = "Stefano";
             Female = false;
-            InitBody();
+            //InitBody();
             SetHits(HitsMax);
         }
 
@@ -21,7 +23,21 @@ namespace Server.Mobiles
         {
         }
 
-        public void InitBody()
+        protected override List<SBInfo> SBInfos
+        {
+            get
+            {
+                return m_SBInfos;
+            }
+        }
+
+
+        public override void InitSBInfo()
+        {
+            this.m_SBInfos.Add(new SBMercenary());
+        }
+
+        public override void InitBody()
         {
             Body = 0x190;
             Hue = 33770;
@@ -30,7 +46,7 @@ namespace Server.Mobiles
             InitOutfit();
         }
 
-        public void InitOutfit()
+        public override void InitOutfit()
         {
             Item hair = new Item(8263)
             {

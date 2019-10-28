@@ -274,16 +274,21 @@ namespace Server.Engines.Craft
                 index = AddCraft(typeof(BlackPowder), 1116351, 1095826, 65.0, 115.0, typeof(SulfurousAsh), 1023980, 1, 1044253);
                 AddRes(index, typeof(Saltpeter), 1116302, 6, 1044253);
                 AddRes(index, typeof(Charcoal), 1116303, 1, 1044253);
+                if (Core.EJ) SetUseAllRes(index, true);
 
-                index = AddCraft(typeof(Matchcord), 1116351, 1095184, 25.0, 80.0, typeof(DarkYarn), 1023615, 1, 1044253);
-                AddRes(index, typeof(BaseBeverage), 1024088, 1, 1044253);
-                AddRes(index, typeof(Saltpeter), 1116302, 1, 1044253);
-                AddRes(index, typeof(Potash), 1116319, 1, 1044253);
+                // Removed for Dark Tides Cannon Changes
+                if (!Core.EJ)
+                {
+                    index = AddCraft(typeof(Matchcord), 1116351, 1095184, 25.0, 80.0, typeof(DarkYarn), 1023615, 1, 1044253);
+                    AddRes(index, typeof(BaseBeverage), 1024088, 1, 1044253);
+                    AddRes(index, typeof(Saltpeter), 1116302, 1, 1044253);
+                    AddRes(index, typeof(Potash), 1116319, 1, 1044253);
+                }
 
-                index = AddCraft(typeof(Fusecord), 1116351, 1116305, 55.0, 105.0, typeof(DarkYarn), 1023615, 1, 1044253);
-                AddRes(index, typeof(BaseBeverage), 1024088, 1, 1044253);
+                index = AddCraft(typeof(FuseCord), 1116351, 1116305, 55.0, 105.0, typeof(DarkYarn), 1023615, 1, 1044253);
                 AddRes(index, typeof(BlackPowder), 1095826, 1, 1044253);
                 AddRes(index, typeof(Potash), 1116319, 1, 1044253);
+                SetNeedWater(index, true);
             }
 
             // Strange Brew
@@ -295,8 +300,10 @@ namespace Server.Engines.Craft
 
             if (Core.ML)
             {
-                index = AddCraft(typeof(HoveringWisp), 1116353, 1072881, 65.0, 115.0, typeof(CapturedEssence), 1032686, 4, 1044253);
-                AddRecipe(index, (int)TinkerRecipes.HoveringWisp);
+                index = AddCraft(typeof(HoveringWisp), 1116353, 1072881, 75.0, 125.0, typeof(CapturedEssence), 1032686, 4, 1044253);
+
+                if (!Core.TOL) // Removed at OSI Publish 103
+                    AddRecipe(index, (int)TinkerRecipes.HoveringWisp);
             }
 
             if (Core.SA)
@@ -349,7 +356,16 @@ namespace Server.Engines.Craft
             if (Core.HS)
             {
                 index = AddCraft(typeof(Potash), 1044495, 1116319, 0.0, 50.0, typeof(Board), 1044041, 1, 1044253);
-                AddRes(index, typeof(BaseBeverage), 1024088, 1, 1044253);
+
+                if (Core.EJ)
+                {
+                    SetNeedWater(index, true);
+                    SetUseAllRes(index, true);
+                }
+                else
+                {
+                    AddRes(index, typeof(BaseBeverage), 1024088, 1, 1044253);
+                }
             }
 
             if (Core.SA)

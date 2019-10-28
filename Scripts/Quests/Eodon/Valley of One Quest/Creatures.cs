@@ -58,6 +58,7 @@ namespace Server.Mobiles
         public override bool UseSmartAI { get { return true; } }
         public override bool ReacquireOnMovement { get { return true; } }
         public override bool AttacksFocus { get { return true; } }
+        public override bool CanFlee { get { return false; } }
 
         // Missing Tail Swipe Ability
 
@@ -592,6 +593,9 @@ namespace Server.Mobiles
 
             Fame = 0;
             Karma = 500;
+
+            ControlSlots = 1;
+            MinTameSkill = 0;
         }
 
         public override void OnThink()
@@ -614,10 +618,7 @@ namespace Server.Mobiles
 
         public override int Damage(int amount, Mobile from, bool informMount, bool checkfizzle)
         {
-            if(from is BaseCreature)
-                from = ((BaseCreature)from).GetMaster();
-
-            if (from is PlayerMobile)
+            if (from == Protector)
             {
                 PrivateOverheadMessage(Server.Network.MessageType.Regular, 0x35, 1156500, from.NetState); // *The cub looks at you playfully. Your attack fails as you are overwhelmed by its cuteness*
                 return 0;
@@ -639,7 +640,7 @@ namespace Server.Mobiles
         {
             base.Serialize(writer);
 
-            writer.Write((int)0);
+            writer.Write((int)1);
             writer.Write(Protector);
         }
 
@@ -649,6 +650,12 @@ namespace Server.Mobiles
 
             int version = reader.ReadInt();
             Protector = reader.ReadMobile();
+
+            if(version == 0)
+            {
+                ControlSlots = 1;
+                MinTameSkill = 0;
+            }
         }
     }
 
@@ -791,6 +798,8 @@ namespace Server.Mobiles
 
             Fame = 12500;
             Karma = -12500;
+
+            SetSpecialAbility(SpecialAbility.DragonBreath);
         }
 
         public override void GenerateLoot()
@@ -803,14 +812,6 @@ namespace Server.Mobiles
         public VolcanoElemental(Serial serial)
             : base(serial)
         {
-        }
-
-        public override bool HasBreath
-        {
-            get
-            {
-                return true;
-            }
         }
 
         public override int GetIdleSound()

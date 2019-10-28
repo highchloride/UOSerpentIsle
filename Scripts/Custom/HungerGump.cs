@@ -12,6 +12,7 @@ using Server.Mobiles;
 using Server.Network;
 using Server.Gumps;
 using Server.Commands;
+using VitaNex.SuperGumps;
 
 namespace Server.Commands
 {
@@ -37,30 +38,62 @@ namespace Server.Commands
 
 namespace Server.Gumps
 {
-	public class gumpfaim : Gump
+	public class gumpfaim : SuperGump
 	{
-		
-		public gumpfaim(Mobile caller) : base(0,0)
+
+        GumpLabel hungerLabel;
+        GumpLabel thirstLabel;
+
+        public gumpfaim(Mobile caller, int x = 0, int y = 0) : base(caller, null, 0, 0)
 		{
-			PlayerMobile from = (PlayerMobile)caller;
+            User = caller;
+
+            this.X = x;
+            this.Y = y;
+
+            AutoRefresh = true;
+            AutoRefreshRate = new TimeSpan(0, 0, 5);
 
 			Closable = true;
 			Dragable = true;
-			
+
 			AddPage(0);
-			
-			AddBackground( 0, 0, /*295*/ 215, 144, 5054);
-			AddBackground( 7, 7, /*261*/ 203, 134, 3500);
-            AddLabel(80, 25, 0, "Status");
-			AddLabel( 60, 42, from.Hunger < 6 ? 33 : 0, string.Format( "Hunger: {0} / 20", from.Hunger));
-			AddLabel( 60, 61, from.Thirst < 6 ? 33 : 0, string.Format( "Thirst: {0} / 20", from.Thirst));
-			AddItem( 8, 58, 8093);
-			AddItem( 19, 40, 4155);
-            AddLabel(60, 90, 0, "Refresh");
-            AddButton(115, 90, 2130, 2129, 1, GumpButtonType.Reply, 1); // Okay button
+
+            CreateGump();
+            //AddLabel(60, 90, 0, "Refresh");
+           // AddButton(115, 90, 2130, 2129, 1, GumpButtonType.Reply, 1); // Okay button
         }
-		
-		public override void OnResponse( Server.Network.NetState sender, RelayInfo info )
+
+        private void CreateGump()
+        {
+            AddBackground(0, 0, /*295*/ 215, 114, 5054);
+            AddBackground(7, 7, /*261*/ 203, 104, 3500);
+            AddLabel(80, 25, 0, "Status");
+            hungerLabel = new GumpLabel(60, 42, User.Hunger < 6 ? 33 : 0, string.Format("Hunger: {0} / 20", User.Hunger));
+            thirstLabel = new GumpLabel(60, 61, User.Thirst < 6 ? 33 : 0, string.Format("Thirst: {0} / 20", User.Thirst));
+            Add(hungerLabel);
+            Add(thirstLabel);
+            AddItem(8, 58, 8093);
+            AddItem(19, 40, 4155);
+        }
+
+        private void WriteText()
+        {
+            hungerLabel.Hue = User.Hunger < 6 ? 33 : 0;
+            hungerLabel.Text = string.Format("Hunger: {0} / 20", User.Hunger);
+            
+            thirstLabel.Hue = User.Thirst < 6 ? 33 : 0;
+            thirstLabel.Text = string.Format("Thirst: {0} / 20", User.Thirst);
+        }
+
+        protected override void OnAutoRefresh()
+        {
+            User.CloseGump(typeof(gumpfaim));
+            User.SendGump(new gumpfaim(User, this.X, this.Y));
+            //base.OnAutoRefresh();
+        }
+
+        public override void OnResponse( Server.Network.NetState sender, RelayInfo info )
 		{
             if (info == null || sender == null || sender.Mobile == null) return;
 
@@ -72,9 +105,11 @@ namespace Server.Gumps
                 {
                     from = (PlayerMobile)sender.Mobile;
                     from.CloseGump(typeof(gumpfaim));
-                    from.SendGump(new gumpfaim(from));
+                    from.SendGump(new gumpfaim(from, this.X, this.Y));
                 }
             }
         }
+
+        
 	}
 }

@@ -22,21 +22,26 @@ namespace Server.Gumps
 			this.AddImage(76, 174, 10440);
 			this.AddImage(627, 174, 10441);
 			this.AddImageTiled(280, 242, 226, 31, 87);
-			this.AddHtml( 172, 302, 444, 249, @"higHChloride's Announcement Of The Day!
-'EAT YOUR VEGET'
+			this.AddHtml( 172, 302, 444, 249, @"Welcome to UO:SI!
+The current client package version is v0.1
+If you are not using this version, please update!
 
-Recent Updates:
+
+News:
+++++++++++++++++
+Aug 19, 2019
+++++++++++++++++
+-PVP has been ENABLED.
+
 
 ++++++++++++++++
-Jan 20, 2019
+Aug 13, 2019
 ++++++++++++++++
--This gump is now a thing.
--Players now start with a Compendium reference and a Homestone.
-
+-Server is now public.
 
 -------------------------------------------------------------------------------------------
 
-Be sure to read your Compendium for the basics and visit www.uoserpentisle.com for more info!", true, true); // this can be edited also
+Visit www.uoserpentisle.com for the latest info!", true, true); // this can be edited also
 			this.AddImage(268, 228, 83);
 			this.AddImageTiled(283, 226, 222, 20, 84);
 			this.AddLabel(318, 236, 54, @"Ultima Online: Serpent Isle!"); /// change this it is the welcome gump header //hue was 1577

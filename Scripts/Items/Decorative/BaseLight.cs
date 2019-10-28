@@ -6,7 +6,7 @@ using Server.ContextMenus;
 
 namespace Server.Items
 {
-    public abstract class BaseLight : Item, ICraftable, IResource, ISecurable
+    public abstract class BaseLight : Item, ICraftable, IResource, IQuality, ISecurable
     {
         public static readonly bool Burnout = false;
         private Timer m_Timer;
@@ -86,17 +86,14 @@ namespace Server.Items
         [CommandProperty(AccessLevel.GameMaster)]
         public bool Burning
         {
-            get
-            {
-                return this.m_Burning;
-            }
+            get { return m_Burning; }
             set
             {
-                if (this.m_Burning != value)
-                {
-                    this.m_Burning = true;
-                    this.DoTimer(this.m_Duration);
-                }
+                if (m_Burning == value) return;
+                if (value)
+                    Ignite();
+                else
+                    Douse();
             }
         }
         [CommandProperty(AccessLevel.GameMaster)]
@@ -224,10 +221,8 @@ namespace Server.Items
             }
         }
 
-        public override void GetProperties(ObjectPropertyList list)
+        public override void AddCraftedProperties(ObjectPropertyList list)
         {
-            base.GetProperties(list);
-
             if (_PlayerConstructed && _Crafter != null)
             {
                 list.Add(1050043, _Crafter.TitleName); // crafted by ~1_NAME~

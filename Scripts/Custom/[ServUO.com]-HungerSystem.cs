@@ -12,17 +12,18 @@ using Server.Engines.Quests.Hag;
 using System.Collections.Generic;
 using Server.Commands.Generic;
 using Server.Gumps;
+using Server.Regions;
 
 namespace Server.Items
 {
 	public class FoodDecayTimer : Timer
 	{
         static bool active = false;
-
-
+        
         public static void Initialize()
 		{
             //If these changes work, the hunger system will only be activated based on a value in server.cfg
+            //I don't think this worked
             active = Config.Get("Server.UseHunger", false);
 
             new FoodDecayTimer().Start();
@@ -43,8 +44,8 @@ namespace Server.Items
 		{
 			foreach ( NetState state in NetState.Instances )
 			{
-				if ( state.Mobile != null && state.Mobile.AccessLevel == AccessLevel.Player && !state.Mobile.IsYoung() && state.ConnectedFor > new TimeSpan(5000) ) // Check if player and not young and actually connected
-				{
+				if ( state.Mobile != null && state.Mobile.AccessLevel == AccessLevel.Player && !state.Mobile.IsYoung() && state.ConnectedFor > new TimeSpan(5000)) // Check if player and not young and actually connected
+                {
 					HungerDecay( state.Mobile );
 					ThirstDecay( state.Mobile );
                 }
@@ -53,44 +54,48 @@ namespace Server.Items
 
 		public static void HungerDecay( Mobile m )
 		{
-			if ( m != null )
+			if ( m != null && m.Region.GetType() != typeof(DreamRegion) && m.Region.GetType() != typeof(TavernRegion))
 			{
 				if ( m.Hunger >= 1 )
 				{
 					m.Hunger -= 1;
-					// added to give hunger value a real meaning.
-					if ( m.Hunger < 5 )
-						m.SendMessage( "Thou art extremely hungry." );
-					else if ( m.Hunger < 10 )
-						m.SendMessage( "Thou art getting very hungry." );
+                    // added to give hunger value a real meaning.
+                    if (m.Hunger < 5)
+                        m.SendMessage("Thou art extremely hungry.");
+                    else if (m.Hunger < 10)
+                        m.SendMessage("Thou art hungry.");
+                    else if (m.Hunger < 14)
+                        m.SendMessage("Thou couldst use some food.");
 				}	
 				else
 				{
-					if ( m.Hits > 5 )
-						m.Hits -= 5;
-					m.SendMessage( "Thou art starving to death!" );
+                    //if ( m.Hits > (m.HitsMax * 0.75 ) )
+                    //m.Hits -= 5;
+					m.SendMessage( "Thou art starving!" );
 				}
 			}
 		}
 
 		public static void ThirstDecay( Mobile m )
 		{
-			if ( m != null )
+			if ( m != null && m.Region.GetType() != typeof(DreamRegion) && m.Region.GetType() != typeof(TavernRegion))
 			{
                 if ( m.Thirst >= 1 )
 				{
 					m.Thirst -= 1;
-				// added to give thirst value a real meaning.
-					if ( m.Thirst < 5 )
-						m.SendMessage( "Thou art extremely thirsty." );
-					else if ( m.Thirst < 10 )
-						m.SendMessage( "Thou art getting thirsty." );
+                    // added to give thirst value a real meaning.
+                    if (m.Thirst < 5)
+                        m.SendMessage("Thou art extremely thirsty.");
+                    else if (m.Thirst < 10)
+                        m.SendMessage("Thou art thirsty.");
+                    else if (m.Thirst < 14)
+                        m.SendMessage("Thou couldst use a drink.");
 				}
 				else
 				{
-					if ( m.Stam > 5 )
-						m.Stam -= 5;
-					m.SendMessage( "Thou art exhausted from thirst" );
+					//if ( m.Stam > (m.StamMax * 0.75) )
+						//m.Stam -= 5;
+					m.SendMessage( "Thou art exhausted from thirst!" );
 				}
 			}
 		}
@@ -98,9 +103,15 @@ namespace Server.Items
 	// Create the timer that monitors the current state of hunger
 	public class HitsDecayTimer : Timer
 	{
-		public static void Initialize()
+        static bool active = false;
+
+        public static void Initialize()
 		{
-			new HitsDecayTimer().Start();
+            //If these changes work, the hunger system will only be activated based on a value in server.cfg
+            //I don't think this worked
+            active = Config.Get("Server.UseHunger", false);
+
+            new HitsDecayTimer().Start();
 		}
 		// Based on the same timespan used in RegenRates.cs
 		public HitsDecayTimer() : base( TimeSpan.FromSeconds( 11 ), TimeSpan.FromSeconds( 11 ) )
@@ -110,7 +121,8 @@ namespace Server.Items
 		
 		protected override void OnTick()
 		{
-			HitsDecay();
+            if (active)
+                HitsDecay();
 		}
 		// Check the NetState and call the decaying function
 		public static void HitsDecay()
@@ -124,18 +136,18 @@ namespace Server.Items
 		// Check hunger level if below the value set take away 1 hit
 		public static void HitsDecaying( Mobile m )
 		{
-			if ( m != null && m.Hunger < 5 && m.Hits > 3 )
+			if ( m != null && m.Hunger < 5 && m.Hits > 3)
 			{
 				switch (m.Hunger)
 				{
-					case 4: m.Hits -= 1; break;
-					case 3: m.Hits -= 1; break;
-					case 2: m.Hits -= 2; break;
-					case 1: m.Hits -= 2; break;
+					case 4: //m.Hits -= 1; break;
+					case 3: //m.Hits -= 1; break;
+					case 2: //m.Hits -= 2; break;
+					case 1: //m.Hits -= 2; break;
 					case 0:
 					{
-						m.Hits -= 3;
-						m.SendMessage( "Thou art starving to death!" );
+						//m.Hits -= 3;
+						//m.SendMessage( "Thou art starving to death!" );
 						break;
 					}
 				}
@@ -145,9 +157,15 @@ namespace Server.Items
 	// Create the timer that monitors the current state of thirst
 	public class StamDecayTimer : Timer
 	{
-		public static void Initialize()
+        static bool active = false;
+
+        public static void Initialize()
 		{
-			new StamDecayTimer().Start();
+            //If these changes work, the hunger system will only be activated based on a value in server.cfg
+            //I don't think this worked
+            active = Config.Get("Server.UseHunger", false);
+
+            new StamDecayTimer().Start();
 		}
 		// Based on the same timespan used in RegenRates.cs
 		public StamDecayTimer() : base( TimeSpan.FromSeconds( 7 ), TimeSpan.FromSeconds( 7 ) )
@@ -157,7 +175,8 @@ namespace Server.Items
 		
 		protected override void OnTick()
 		{
-			StamDecay();
+            if (active)
+                StamDecay();
 		}
 		// Check the NetState and call the decaying function
 		public static void StamDecay()
@@ -171,18 +190,18 @@ namespace Server.Items
 		// Check thirst level if below the value set take away 1 point of stam
 		public static void StamDecaying( Mobile m )
 		{
-			if ( m != null && m.Thirst < 5 && m.Stam > 3 )
-			{
+			if ( m != null && m.Thirst < 5 && m.Stam > 3 && m.Region.GetType() != typeof(DreamRegion) && m.Region.GetType() != typeof(TavernRegion))
+            {
 				switch (m.Thirst)
 				{
-					case 4: m.Stam -= 1; break;
-					case 3: m.Stam -= 1; break;
-					case 2: m.Stam -= 2; break;
-					case 1: m.Stam -= 2; break;
+					case 4: //m.Stam -= 1; break;
+					case 3: //m.Stam -= 1; break;
+					case 2: //m.Stam -= 2; break;
+					case 1: //m.Stam -= 2; break;
 					case 0:
 					{
-						m.Stam -= 3;
-						m.SendMessage( "Thou art exhausted from thirst!" );
+						//m.Stam -= 3;
+						//m.SendMessage( "Thou art exhausted from thirst!" );
 						break;
 					}
 				}

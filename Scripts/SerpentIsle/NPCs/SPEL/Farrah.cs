@@ -19,9 +19,12 @@ namespace Server.SerpentIsle
         }
         public override void InitSBInfo()
         {
-            m_SBInfos.Add(new SBThief());
-            m_SBInfos.Add(new SBTailor());
-            m_SBInfos.Add(new SBRangedWeapon());
+            if(Map != Map.SerpentIsle)
+            {
+                m_SBInfos.Add(new SBThief());
+                m_SBInfos.Add(new SBTailor());
+                m_SBInfos.Add(new SBRangedWeapon());
+            }
         }
 
         private static bool m_Talked;
@@ -30,9 +33,17 @@ namespace Server.SerpentIsle
         {
             "Walk softly, we do not know what lairs we will travel.",
             "My name is Farrah, and I practice not being seen.",
-            "Byron's cape makes a great distraction, even if he doesn't know it.",
-            "I hope you do not plan to make so much noise once we're through.",
+            "Byron's cape makes a great distraction, even if he dost not know it.",
+            "I hope thou dost not plan to make so much noise once we are through.",
             "One can accomplish much from the shadows.",
+        };
+
+        string[] sicsay = new string[]
+        {
+            "This may have been a mistake.",
+            "I am starting to doubt Triplicate's abilities.",
+            "Now that we are here, what do we do?",
+            "Perhaps there are people somewhere nearby.",
         };
 
         [Constructable]
@@ -47,6 +58,7 @@ namespace Server.SerpentIsle
 
         public override void InitBody()
         {
+            Name = "Farrah";
             Title = "of the Shadows";
             SpeechHue = Utility.RandomDyedHue();
             Body = 0x191;
@@ -112,7 +124,10 @@ namespace Server.SerpentIsle
                 if (m.InRange(this, 5))
                 {
                     m_Talked = true;
-                    SayRandom(kfcsay, this);
+                    if (Map == Map.SerpentIsle)
+                        SayRandom(sicsay, this);
+                    else
+                        SayRandom(kfcsay, this);
                     this.Move(GetDirectionTo(m.Location));
                     SpamTimer t = new SpamTimer();
                     t.Start();

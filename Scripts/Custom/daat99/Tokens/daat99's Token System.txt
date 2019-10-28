@@ -1,0 +1,132 @@
+Changelog:
+v1.6
+15/11/2005: Raelis fixed a crash in his Vendor stone, here's the update.
+
+v1.5
+10/09/2005: Updated the TokenVendorStone to the new vendor stone that was released at 09-05-2005 by raelis (great job raelis).
+04/09/2005: Tweaked a bit the token calculation formula, it should give a bit less tokens now.
+27/08/2005: Added a hidden constructable to allow scriptors to send min\max token amount arguments to the script.
+24/08/2005: Fixed a typo in lady luck exchange gump (ThanX Turmoil for reporting it).
+08/08/2005: Modified Lady Luck title to reflect the new token exchange feature.
+
+v1.4
+05/08/2005: Added an option to disable\enable the lottery or the token exchange in the [props of lady luck.
+05/08/2005: Added an exchange tokens\gold context menu to lady luck. You can set the TokenCostInGold via [props on any lady luck.
+
+v1.3
+29/07/2005: Fixed an exploit with LadyLuck (ThanX Kiara for reporting it)
+
+v1.2
+21/05/2005: Fixed a problem with tokens from OWLTR not working as a standalone
+
+v1.1
+12/04/2005: Added a method to give tokens to ledger from scripts.
+
+v1.0
+29/03/2005: Fixed a problem with safe trash4tokens backpack doesn't open gump in 2d clients (thanx Disillusion).
+28/03/2005: Fixed a typo in the token ledger making the min check value 1001 instead of 1000.
+
+v0.9
+27/03/2005: Make a limit of 1k tokens for checks (can't write less then 1000)
+27/03/2005: Added a safe trash4tokens backpack, players can trash everything but they'll get 2-5 tokens for each NOT stackable item (to avoid exploits).
+
+v0.8 HOTFIX
+23/03/2005: Fixed a mistake in lady luck that reset the reward if updated between drawings.
+
+v0.7
+23/03/2005: Added option to extract normal tokens from the ledger (for those who like to see it).
+23/03/2005: Fixed several bugs in the lottery system and added some functions.
+21/03/2005: fixed some typos in the lottery system.
+v0.6
+06/03/2005: Added Lady Luck, new token lottery system.
+05/03/2005: Made the code use less cpu using finditembytype instead of foreach item.
+v0.5
+16/02/2005: In the last release I fixed a compatibility issue with the original vendor stone and made it not compile on its own. sorry about that, it's fixed now can work solo and with the original.
+v0.4
+15/02/2005: Fixed a compatibility issue with old vendor stone.
+v0.3
+14/02/2005: Rewrote the backward compatibility code in much better way (ThanX UOT for your help).
+13/02/2005: added NOt blessed LootTokenCheck in case anyone want to add tokens to monsters loot manually.
+ (if they get 2.15bil it'll set negative value ==> GM I LOST MY TOKENS).
+13/02/2005: added multiple checks to make sure players won't get over 2,000,000,000 tokens in 1 ledger.
+v0.2
+13/02/2005: Added an option to add old tokens to the token ledger.
+13/02/2005: Renamed "Token Stone" to "Token Vendor Stone" to avoid compatibility problems with some older token systems.
+v0.1
+11/02/2005: after close to 22 hours of scripting finished daat99's Token System.
+10/02/2005: got permission from Viago to start working on token system after seeing his post.
+
+Credits to daat99's Token System v0.1 Runuo 1.0.0:
+Took the "invisible tokens" idea from Viago's token system (ThanX a lot for your permission Viago ;) )
+Took the Ultimate Prize Stone and modded it to accept daat99tokens as default (from the token ledger) also fixed a few things.
+Thanx to Murzin for all the english help :)
+
+Description:
+Token System:
+A token system with much less lag then you used to :)
+The tokens are stored as a variable in a "token ledger" which make it without the endless lag of countless of tokens around the world.
+Tokens are given based on a complex formula that takes into acount most of the factors that make monsters strong and harder to kill rather then the simple fame == reward and those kinds.
+Each token ledger can store up to 2,147,483,647 token (yes over 2 billion, just think about the lag they'll do without it MUAHAHAHA).
+The Token Ledger values can be modified by admins ONLY, if a gm want to give someone tokens he'll have to give him a token check.
+Each token ledger is protected with the serial number of the character himself so other players can't steal the tokens (they can steal the token ledger, they just can't use the tokens in it).
+If for any reason you want to give an existing token ledger to another player then the admin can dclick the ledger and select the new owner for it.
+Token ledgers are spawned as "An Empty Token Ledger", that means they don't have owner.
+Once a player double click on an empty token ledger the name will be changed to "<player name>'s Token Ledger" and from then on he'll be the only 1 who can use it (it'll reset the tokens on it too, just in case).
+The token checks can be used only when they're inside the backpack of the user and they'll only add their value to the token ledger in his pack and if he owns it.
+Added LootTokenCheck in case anyone want to add it manually to monsters.
+
+Token Stone:
+Token Stone (which is basically the Ultimate Prize Stone by Raelis) When you [add tokenstone in game the currency is auto set to the currency the tokens uses (daat99tokens), you can change the currency to whatever you want, ThanX Raelis for great script :)
+Players can make Token Checks when using the token ledger gump (gm's can make them with [add tokencheck #amount#).
+
+Lady Luck Lottery & Exchange:
+Lady Luck is an npc that sell lottery tickets and exchange gold\tokens.
+Lady luck will sell lottery tickets only if the EnableLottery property is set to true in [props on Lady Luck.
+Each lottery ticket cost 1k tokens (taken from the players token ledger).
+The lottery is set to repeat every 168 hours (can be changed with [props on her).
+There will always be a winner and the reward will be half the cost of the tickets sold since the last drawing.
+If nobody claimed his reward then the reward will be added to the next drawing reward (half the cost of tickets).
+The players can use [lottery to tell them when the next drawing will take place, which ticket won the last drawing and what was the reward.
+To claim your reward just drop the ticket on LadyLuck and she'll tell you if you won or not.
+In case you won there'll be a nice fireworks above you and you'll get token check and fireworks wand.
+Lady luck will exchange token\gold only if the EnableExchange property is set to true in the [props on Lady luck.
+Token\gold exchange rate is set to 500gold=1token by default, this can be changed in [props TokensCostInGold property.
+
+
+Safe Trash 4 Tokens Backpack:
+The Safe trash 4 tokens backpack is basically my safe backpack script that give the player 3 minutes to get his stuff out of the pack.
+It'll trash everything you put in it but it'll give you a 2-5 tokens reward for every item that is NOT stackable (won't reward bandages\gold etc but it'll delete them).
+It'll add the tokens to the player token ledger and show him a message that tell him how much tokens he got and thank him for cleaning the shard.
+
+
+Pakcage include 3 files:
+daat99's Token System.cs 	This file holds everything you need to have tokens.
+daat99's Token System.txt 	this readme file
+Token Vendor Stone.cs 		This file will add vendor stone that use this system tokens (daat99tokens) as default currency (currency can be changed to anything you want). <== This is based on the Ultimate Prize Stone script by Raelis, all credits goes for him
+
+Installation (only for standalone):
+1. Place all the files anywhere in **\runuo\scripts\custom\**
+2. Restart the server and let your players have fun :)
+
+If you want to give your players tokens for each monster they kill follow step 3:
+
+3. In BaseCreature.cs look for those 2 lines:
+
+		Titles.AwardFame( ds.m_Mobile, totalFame, true );
+		Titles.AwardKarma( ds.m_Mobile, totalKarma, true );
+
+	Add just after them this line:
+
+		GiveTokens.CalculateTokens(ds.m_Mobile, this);
+
+If you want to add tokens to a monster manually add this line to the monster:
+	AddItem( new Daat99Tokens( 1000 ) ); // replace the 1000 with any amount of tokens you want.
+
+
+P.S.
+You will have to give your players the "Token Ledger" and they'll need to dclick it before they can get tokens.
+I suggest adding it in charactercreation.cs
+
+Thanx goes to:
+#RunUO: A_Li_N, UOT, ArteGordon, jjarmis, ssalter, Raelis.
+Shards: Allure of the Unknown.

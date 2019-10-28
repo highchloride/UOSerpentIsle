@@ -142,34 +142,44 @@ namespace Server.Services.TownCryer
             AddButton(320, 525, 0x627, 0x628, 9, GumpButtonType.Reply, 0);
         }
 
+        //UOSI
         private void BuildCityPage()
         {
-            AddButton(233, 150, City == City.Britain ? 0x5E5 : 0x5E4, City == City.Britain ? 0x5E5 : 0x5E4, 10, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Britain));
-            
-            AddButton(280, 150, City == City.Jhelom ? 0x5E7 : 0x5E6, City == City.Jhelom ? 0x5E7 : 0x5E6, 11, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Jhelom));
-            
-            AddButton(327, 150, City == City.Minoc ? 0x5E5 : 0x5E4, City == City.Minoc ? 0x5E5 : 0x5E4, 12, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Minoc));
+            //AddButton(233, 150, City == City.Britain ? 0x5E5 : 0x5E4, City == City.Britain ? 0x5E5 : 0x5E4, 10, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Britain));
 
-            AddButton(374, 150, City == City.Moonglow ? 0x5E3 : 0x5E2, City == City.Moonglow ? 0x5E3 : 0x5E2, 13, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Moonglow));
+            //AddButton(280, 150, City == City.Jhelom ? 0x5E7 : 0x5E6, City == City.Jhelom ? 0x5E7 : 0x5E6, 11, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Jhelom));
 
-            AddButton(418, 150, City == City.NewMagincia ? 0x5DD : 0x5DC, City == City.NewMagincia ? 0x5DD : 0x5DC, 14, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.NewMagincia));
+            //AddButton(327, 150, City == City.Minoc ? 0x5E5 : 0x5E4, City == City.Minoc ? 0x5E5 : 0x5E4, 12, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Minoc));
 
-            AddButton(463, 150, City == City.SkaraBrae ? 0x5DF : 0x5DE, City == City.SkaraBrae ? 0x5DF : 0x5DE, 15, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.SkaraBrae));
+            //AddButton(374, 150, City == City.Moonglow ? 0x5E3 : 0x5E2, City == City.Moonglow ? 0x5E3 : 0x5E2, 13, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Moonglow));
 
-            AddButton(509, 150, City == City.Trinsic ? 0x5E1 : 0x5E0, City == City.Trinsic ? 0x5E1 : 0x5E0, 16, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Trinsic));
+            //AddButton(418, 150, City == City.NewMagincia ? 0x5DD : 0x5DC, City == City.NewMagincia ? 0x5DD : 0x5DC, 14, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.NewMagincia));
 
-            AddButton(555, 150, City == City.Vesper ? 0x5ED : 0x5ED, City == City.Vesper ? 0x5ED : 0x5EC, 17, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Vesper));
+            //AddButton(463, 150, City == City.SkaraBrae ? 0x5DF : 0x5DE, City == City.SkaraBrae ? 0x5DF : 0x5DE, 15, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.SkaraBrae));
 
-            AddButton(601, 150, City == City.Yew ? 0x5E9 : 0x5E8, City == City.Yew ? 0x5E9 : 0x5E8, 18, GumpButtonType.Reply, 0);
-            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Yew));
+            //AddButton(509, 150, City == City.Trinsic ? 0x5E1 : 0x5E0, City == City.Trinsic ? 0x5E1 : 0x5E0, 16, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Trinsic));
+
+            //AddButton(555, 150, City == City.Vesper ? 0x5ED : 0x5ED, City == City.Vesper ? 0x5ED : 0x5EC, 17, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Vesper));
+
+            //AddButton(601, 150, City == City.Yew ? 0x5E9 : 0x5E8, City == City.Yew ? 0x5E9 : 0x5E8, 18, GumpButtonType.Reply, 0);
+            //AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Yew));
+
+            AddButton(233, 150, City == City.Monitor ? 0x5E5 : 0x5E4, City == City.Monitor ? 0x5E5 : 0x5E4, 10, GumpButtonType.Reply, 0);
+            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Monitor));
+
+            AddButton(280, 150, City == City.Fawn ? 0x5E7 : 0x5E6, City == City.Fawn ? 0x5E7 : 0x5E6, 11, GumpButtonType.Reply, 0);
+            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Fawn));
+
+            AddButton(327, 150, City == City.Moonshade ? 0x5E5 : 0x5E4, City == City.Moonshade ? 0x5E5 : 0x5E4, 12, GumpButtonType.Reply, 0);
+            AddTooltip(CityLoyaltySystem.GetCityLocalization(City.Moonshade));
 
             AddHtmlLocalized(0, 260, 854, 20, CenterLoc, String.Format("#{0}", TownCryerSystem.GetCityLoc(this.City)), 0, false, false); // The Latest News from the City of ~1_CITY~
 
@@ -302,57 +312,57 @@ namespace Server.Services.TownCryer
                         Refresh();
                         break;
                     }
-                case 10:
+                case 10: //UOSI
                     {
-                        City = City.Britain;
+                        City = City.Monitor;
                         Refresh();
                         break;
                     }
                 case 11:
                     {
-                        City = City.Jhelom;
+                        City = City.Fawn;
                         Refresh();
                         break;
                     }
                 case 12:
                     {
-                        City = City.Minoc;
+                        City = City.Moonshade;
                         Refresh();
                         break;
                     }
                 case 13:
                     {
-                        City = City.Moonglow;
+                       // City = City.Moonglow;
                         Refresh();
                         break;
                     }
                 case 14:
                     {
-                        City = City.NewMagincia;
+                       // City = City.NewMagincia;
                         Refresh();
                         break;
                     }
                 case 15:
                     {
-                        City = City.SkaraBrae;
+                       // City = City.SkaraBrae;
                         Refresh();
                         break;
                     }
                 case 16:
                     {
-                        City = City.Trinsic;
+                       // City = City.Trinsic;
                         Refresh();
                         break;
                     }
                 case 17:
                     {
-                        City = City.Vesper;
+                       // City = City.Vesper;
                         Refresh();
                         break;
                     }
                 case 18:
                     {
-                        City = City.Yew;
+                        //City = City.Yew;
                         Refresh();
                         break;
                     }

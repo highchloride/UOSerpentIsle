@@ -6,14 +6,16 @@ using Server.Items;
 
 namespace Server.Mobiles
 {
-    class Petra : TalkingBaseCreature
+    class Petra : TalkingBaseVendor
     {
+        private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
+
         [Constructable]
-        public Petra() : base(AIType.AI_Mage, FightMode.None, 5, 1, 0.1, 0.2)
+        public Petra() : base("the Barkeep")
         {
             Name = "Petra";
             Female = true;
-            InitBody();
+            //InitBody();
             SetHits(HitsMax);
         }
 
@@ -21,16 +23,16 @@ namespace Server.Mobiles
         {
         }
 
-        public void InitBody()
+        public override void InitBody()
         {
             Body = 0x191;
             Hue = 996;
             SpeechHue = Utility.RandomDyedHue();
 
-            InitOutfit();
+            //InitOutfit();
         }
 
-        public void InitOutfit()
+        public override void InitOutfit()
         {
             Item hair = new Item(8252)
             {
@@ -41,6 +43,18 @@ namespace Server.Mobiles
             AddItem(hair);            
 
             PackGold(50, 200);
+        }
+
+        protected override List<SBInfo> SBInfos
+        {
+            get
+            {
+                return this.m_SBInfos;
+            }
+        }
+        public override void InitSBInfo()
+        {
+            this.m_SBInfos.Add(new SBBarkeeper());
         }
 
         public override void Serialize(GenericWriter writer)

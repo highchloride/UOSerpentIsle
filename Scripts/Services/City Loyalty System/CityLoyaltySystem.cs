@@ -8,21 +8,26 @@ using System.Globalization;
 using Server.Network;
 using Server.Commands;
 using Server.Items;
+using Server.Engines.SeasonalEvents;
 
 namespace Server.Engines.CityLoyalty
 {
+    //UOSI - Added my towns
 	public enum City
 	{
-		Moonglow,
-		Britain,
-		Jhelom,
-		Yew,
-		Minoc,
-		Trinsic,
-		SkaraBrae,
-		NewMagincia,
-		Vesper
-	}
+		//Moonglow,
+		//Britain,
+		//Jhelom,
+		//Yew,
+		//Minoc,
+		//Trinsic,
+		//SkaraBrae,
+		//NewMagincia,
+		//Vesper,
+        Monitor,
+        Fawn,
+        Moonshade
+    }
 	
 	public enum LoyaltyRating
 	{
@@ -78,7 +83,7 @@ namespace Server.Engines.CityLoyalty
         MaritimeGuild = 1154050,
         MerchantsAssociation = 1154051,
         MiningCooperative = 1154052,
-        LeageOfRangers = 1154053,
+        LeagueOfRangers = 1154053,
         GuildOfAssassins = 1154054,
         WarriorsGuild = 1154055,
     }
@@ -98,6 +103,7 @@ namespace Server.Engines.CityLoyalty
         public static readonly int AnnouncementPeriod = Config.Get("CityLoyalty.AnnouncementPeriod", 48);
 
         public static readonly TimeSpan LoveAtrophyDuration = TimeSpan.FromHours(40);
+        public static Map SystemMap { get { return Siege.SiegeShard ? Map.Felucca : Map.Trammel; } }
 
         public override TextDefinition Name { get { return new TextDefinition(String.Format("{0}", this.City.ToString())); } }
         public override bool AutoAdd { get { return false; } }
@@ -112,21 +118,12 @@ namespace Server.Engines.CityLoyalty
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public City City { get; private set; }
-		
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int CompletedTrades { get; set; }
 
         [CommandProperty(AccessLevel.GameMaster)]
 		public CityDefinition Definition { get; set; }
 		
 		[CommandProperty(AccessLevel.GameMaster)]
-		public long Treasury { get; set; }
-		
-		[CommandProperty(AccessLevel.GameMaster)]
 		public CityElection Election { get; set; }
-
-        [CommandProperty(AccessLevel.GameMaster)]
-        public TradeDeal ActiveTradeDeal { get; set; }
 
         [CommandProperty(AccessLevel.GameMaster)]
         public DateTime TradeDealStart { get; set; }
@@ -152,9 +149,21 @@ namespace Server.Engines.CityLoyalty
         [CommandProperty(AccessLevel.GameMaster)]
         public CityMessageBoard Board { get; set; }
 
+        [CommandProperty(AccessLevel.GameMaster)]
+        public string Headline { get; set; }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public string Body { get; set; }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public DateTime PostedOn { get; set; }
+
         private Mobile _Governor;
         private Mobile _GovernorElect;
         private bool _PendingGovernor;
+        private long _Treasury;
+        private TradeDeal _ActiveTradeDeal;
+        private int _CompletedTrades;
 
         [CommandProperty(AccessLevel.GameMaster)]
         public Mobile GovernorElect 
@@ -166,6 +175,9 @@ namespace Server.Engines.CityLoyalty
                     Governor = null;
 
                 _GovernorElect = value;
+
+                if (Stone != null)
+                    Stone.InvalidateProperties();
             }
         }
 
@@ -209,13 +221,43 @@ namespace Server.Engines.CityLoyalty
         }
 
         [CommandProperty(AccessLevel.GameMaster)]
-        public string Headline { get; set; }
+        public long Treasury
+        {
+            get { return _Treasury; }
+            set
+            {
+                _Treasury = value;
+
+                if (Stone != null)
+                    Stone.InvalidateProperties();
+            }
+        }
 
         [CommandProperty(AccessLevel.GameMaster)]
-        public string Body { get; set; }
+        public TradeDeal ActiveTradeDeal
+        {
+            get { return _ActiveTradeDeal; }
+            set
+            {
+                _ActiveTradeDeal = value;
+
+                if (Stone != null)
+                    Stone.InvalidateProperties();
+            }
+        }
 
         [CommandProperty(AccessLevel.GameMaster)]
-        public DateTime PostedOn { get; set; }
+        public int CompletedTrades
+        {
+            get { return _CompletedTrades; }
+            set
+            {
+                _CompletedTrades = value;
+
+                if (Stone != null)
+                    Stone.InvalidateProperties();
+            }
+        }
 
         private Dictionary<Mobile, DateTime> CitizenWait { get; set; }
 
@@ -328,15 +370,16 @@ namespace Server.Engines.CityLoyalty
 		public virtual void AwardLove(Mobile from, double love, bool message = true)
 		{
             CityLoyaltyEntry entry = GetPlayerEntry<CityLoyaltyEntry>(from, true);
-			
+
 			if(entry.Hate > 10)
 			{
 				double convert = entry.Hate / 75;
                 entry.Neutrality += (int)convert;
                 entry.Hate -= (int)convert;
 			}
-			
-			foreach(CityLoyaltySystem sys in Cities.Where(s => s.City != this.City))
+
+            // TODO: Re-Enable this for The Awakening Event
+            /*foreach (CityLoyaltySystem sys in Cities.Where(s => s.City != this.City))
 			{
                 CityLoyaltyEntry e = sys.GetPlayerEntry<CityLoyaltyEntry>(from, true);
 
@@ -346,7 +389,7 @@ namespace Server.Engines.CityLoyalty
                     e.Love -= (int)convert;
                     e.Neutrality += (int)convert;
 				}
-			}
+			}*/
 
             if (message && entry.ShowGainMessage)
             {
@@ -492,16 +535,6 @@ namespace Server.Engines.CityLoyalty
 			}
 		}
 
-        public void PayTradeDealCost()
-        {
-            if (Treasury >= TradeDealCost)
-                Treasury -= TradeDealCost;
-            else
-            {
-                OnNewTradeDeal(TradeDeal.None);
-            }
-        }
-
         public void OnNewTradeDeal(TradeDeal newtradedeal)
         {
             if(ActiveTradeDeal == TradeDeal.None)
@@ -550,6 +583,10 @@ namespace Server.Engines.CityLoyalty
                 {
                     entry.UtilizingTradeDeal = true;
                     BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.CityTradeDeal, 1154168, 1154169, new TextDefinition((int)ActiveTradeDeal), true));
+
+                    ActivateTradeDeal(m, ActiveTradeDeal);
+
+                    m.Delta(MobileDelta.WeaponDamage);
 
                     m.SendLocalizedMessage(1154075); // You gain the benefit of your City's Trade Deal!
                 }
@@ -648,7 +685,7 @@ namespace Server.Engines.CityLoyalty
 
         public static bool HasTradeDeal(Mobile m, TradeDeal deal)
         {
-            CityLoyaltySystem sys = GetCitizenship(m);
+            CityLoyaltySystem sys = GetCitizenship(m, false);
 
             if (sys != null)
             {
@@ -679,7 +716,10 @@ namespace Server.Engines.CityLoyalty
                     CityLoyaltyEntry entry = sys.GetPlayerEntry<CityLoyaltyEntry>(pm, true);
 
                     if (entry != null && entry.UtilizingTradeDeal)
+                    {
                         BuffInfo.AddBuff(pm, new BuffInfo(BuffIcon.CityTradeDeal, 1154168, 1154169, new TextDefinition((int)sys.ActiveTradeDeal), true));
+                        ActivateTradeDeal(pm, sys.ActiveTradeDeal);
+                    }
                 }
 
                 int message;
@@ -698,6 +738,23 @@ namespace Server.Engines.CityLoyalty
                     pm.SendLocalizedMessage(message);
                 });
             }
+        }
+
+        public static void ActivateTradeDeal(Mobile m, TradeDeal deal)
+        {
+            switch (deal)
+            {
+                case TradeDeal.OrderOfEngineers: m.AddStatMod(new StatMod(StatType.Dex, String.Format("TradeDeal_{0}", StatType.Dex), 3, TimeSpan.Zero)); break;
+                case TradeDeal.MiningCooperative: m.AddStatMod(new StatMod(StatType.Str, String.Format("TradeDeal_{0}", StatType.Str), 3, TimeSpan.Zero)); break;
+                case TradeDeal.LeagueOfRangers: m.AddStatMod(new StatMod(StatType.Int, String.Format("TradeDeal_{0}", StatType.Int), 3, TimeSpan.Zero)); break;
+            }
+        }
+
+        public static void RemoveTradeDeal(Mobile m)
+        {
+            m.RemoveStatMod(String.Format("TradeDeal_{0}", StatType.Dex));
+            m.RemoveStatMod(String.Format("TradeDeal_{0}", StatType.Str));
+            m.RemoveStatMod(String.Format("TradeDeal_{0}", StatType.Int));
         }
 
         public static void OnBODTurnIn(Mobile from, int gold)
@@ -722,7 +779,7 @@ namespace Server.Engines.CityLoyalty
 
             rights.ForEach(store =>
                 {
-                    CityLoyaltySystem city = CityLoyaltySystem.GetCitizenship(store.m_Mobile);
+                    CityLoyaltySystem city = CityLoyaltySystem.GetCitizenship(store.m_Mobile, false);
 
                     if (city != null)
                         city.AwardLove(store.m_Mobile, 1 * (spawnLevel + 1), 0.10 > Utility.RandomDouble());
@@ -773,7 +830,8 @@ namespace Server.Engines.CityLoyalty
 
                 if (DateTime.UtcNow > _NextAtrophy)
                 {
-                    sys.PlayerTable.ForEach(t =>
+                    // TODO: Re-Enable this for The Awakening Event
+                    /*sys.PlayerTable.ForEach(t =>
                     {
                         CityLoyaltyEntry entry = t as CityLoyaltyEntry;
 
@@ -787,22 +845,27 @@ namespace Server.Engines.CityLoyalty
                             if (owner.LastOnline + LoveAtrophyDuration < DateTime.UtcNow)
                                 entry.Love -= entry.Love / 75;
                         }
-                    });
+                    });*/
 
                     _NextAtrophy = DateTime.UtcNow + TimeSpan.FromDays(1);
                 }
 
                 if (sys.NextTradeDealCheck != DateTime.MinValue && sys.NextTradeDealCheck < DateTime.UtcNow)
                 {
-                    sys.PayTradeDealCost();
+                    if (sys.Treasury >= TradeDealCost)
+                    {
+                        sys.Treasury -= TradeDealCost;
+                        sys.NextTradeDealCheck = DateTime.UtcNow + TimeSpan.FromDays(TradeDealCostPeriod);
+                    }
+                    else
+                    {
+                        sys.OnNewTradeDeal(TradeDeal.None);
+                    }
                 }
 
                 foreach (CityLoyaltyEntry entry in sys.PlayerTable.OfType<CityLoyaltyEntry>())
                 {
-                    if (entry.TradeDealExpired)
-                    {
-                        entry.CheckTradeDeal();
-                    }
+                    entry.CheckTradeDeal();
                 }
 
                 if (sys.Election != null)
@@ -810,7 +873,14 @@ namespace Server.Engines.CityLoyalty
                     sys.Election.OnTick();
                 }
                 else
+                {
                     sys.Election = new CityElection(sys);
+                }
+
+                if (sys.Stone != null)
+                {
+                    sys.Stone.InvalidateProperties();
+                }
             }
 
             CityTradeSystem.OnTick();
@@ -845,42 +915,31 @@ namespace Server.Engines.CityLoyalty
             return Cities.FirstOrDefault(sys => sys.IsCitizen(from, staffIsCitizen));
 		}
 
-        public static bool ApplyCityTitle(PlayerMobile pm, ref string prefix, ref string name, ref string suffix)
+        public static bool ApplyCityTitle(PlayerMobile pm, ObjectPropertyList list, string prefix, int loc)
         {
-			if (String.IsNullOrWhiteSpace(pm.OverheadTitle))
-			{
-				return false;
-			}
+            if (loc == 1154017)
+            {
+                CityLoyaltySystem city = GetCitizenship(pm);
 
-			var loc = Utility.ToInt32(pm.OverheadTitle.TrimStart('#'));
+                if (city != null)
+                {
+                    CityLoyaltyEntry entry = city.GetPlayerEntry<CityLoyaltyEntry>(pm, true);
 
-			if (loc != 1154017)
-			{
-				return false;
-			}
+                    if (entry != null && !String.IsNullOrEmpty(entry.CustomTitle))
+                    {
+                        prefix = String.Format("{0} {1} the {2}", prefix, pm.Name, entry.CustomTitle);
+                        list.Add(1154017, String.Format("{0}\t{1}", prefix, city.Definition.Name)); // ~1_TITLE~ of ~2_CITY~
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                list.Add(1151487, "{0} \t{1} the \t#{2}", prefix, pm.Name, loc); // ~1NT_PREFIX~~2NT_NAME~~3NT_SUFFIX~
+                return true;
+            }
 
-			CityLoyaltySystem city = GetCitizenship(pm);
-
-			if (city != null)
-			{
-				CityLoyaltyEntry entry = city.GetPlayerEntry<CityLoyaltyEntry>(pm, true);
-
-				if (entry != null && !String.IsNullOrWhiteSpace(entry.CustomTitle))
-				{
-					if (String.IsNullOrWhiteSpace(suffix))
-					{
-						suffix = String.Format("the {0} of {1}", entry.CustomTitle, city.Definition.Name);
-					}
-					else
-					{
-						suffix = String.Format("the {0} of {1} {2}", entry.CustomTitle, city.Definition.Name, suffix);
-					}
-
-					return true;
-				}
-			}
-
-			return false;
+            return false;
         }
 
         public static bool HasCustomTitle(PlayerMobile pm, out string str)
@@ -899,20 +958,24 @@ namespace Server.Engines.CityLoyalty
             return str != null;
         }
 
+        //UOSI
 		public static City GetRandomCity()
 		{
-			switch(Utility.Random(11))
+			switch(Utility.Random(2))
 			{
 				default:
-				case 0: return City.Moonglow;
-				case 1: return City.Britain;
-				case 2: return City.Jhelom;
-				case 3: return City.Yew;
-				case 4: return City.Minoc;
-				case 5: return City.Trinsic;
-				case 6: return City.SkaraBrae;
-				case 7: return City.NewMagincia;
-				case 10: return City.Vesper;
+                case 0: return City.Monitor;
+                case 1: return City.Fawn;
+                case 2: return City.Moonshade;
+				//case 0: return City.Moonglow;
+				//case 1: return City.Britain;
+				//case 2: return City.Jhelom;
+				//case 3: return City.Yew;
+				//case 4: return City.Minoc;
+				//case 5: return City.Trinsic;
+				//case 6: return City.SkaraBrae;
+				//case 7: return City.NewMagincia;
+				//case 10: return City.Vesper;
 			}
 		}
 		
@@ -942,16 +1005,21 @@ namespace Server.Engines.CityLoyalty
 			switch(city)
 			{
 				default: return 0;
-				case City.Moonglow: return 1098171;
-				case City.Britain: return 1098172;
-				case City.Jhelom: return 1098173;
-				case City.Yew: return 1098174;
-				case City.Minoc: return 1098175;
-				case City.Trinsic: return 1098170;
-				case City.SkaraBrae: return 1098178;
-				case City.NewMagincia: return 1098177;
-				case City.Vesper: return 1098176;
-			}
+				//case City.Moonglow: return 1098171;
+				//case City.Britain: return 1098172;
+				//case City.Jhelom: return 1098173;
+				//case City.Yew: return 1098174;
+				//case City.Minoc: return 1098175;
+				//case City.Trinsic: return 1098170;
+				//case City.SkaraBrae: return 1098178;
+				//case City.NewMagincia: return 1098177;
+				//case City.Vesper: return 1098176;
+                //UOSI
+                case City.Monitor: return 1098171;
+                case City.Fawn: return 1098172;
+                case City.Moonshade: return 1098173;
+
+            }
 		}
 
         public static int GetCityLocalization(City city)
@@ -959,15 +1027,19 @@ namespace Server.Engines.CityLoyalty
             switch (city)
             {
                 default: return 0;
-                case City.Moonglow: return 1011344;
-                case City.Britain: return 1011028;
-                case City.Jhelom: return 1011343;
-                case City.Yew: return 1011032;
-                case City.Minoc: return 1011031;
-                case City.Trinsic: return 1011029;
-                case City.SkaraBrae: return 1011347;
-                case City.NewMagincia: return 1011345;
-                case City.Vesper: return 1011030;
+                //case City.Moonglow: return 1011344;
+                //case City.Britain: return 1011028;
+                //case City.Jhelom: return 1011343;
+                //case City.Yew: return 1011032;
+                //case City.Minoc: return 1011031;
+                //case City.Trinsic: return 1011029;
+                //case City.SkaraBrae: return 1011347;
+                //case City.NewMagincia: return 1011345;
+                //case City.Vesper: return 1011030;
+                //UOSI
+                case City.Monitor: return 1114143;
+                case City.Fawn: return 1114148;
+                case City.Moonshade: return 1114146;
             }
         }
 		
@@ -1068,15 +1140,19 @@ namespace Server.Engines.CityLoyalty
 		    switch(city)
 			{
 				default: return null;
-				case City.Moonglow: return Moonglow;
-				case City.Britain: return Britain;
-				case City.Jhelom: return Jhelom;
-				case City.Yew: return Yew;
-				case City.Minoc: return Minoc;
-				case City.Trinsic: return Trinsic;
-				case City.SkaraBrae: return SkaraBrae;
-				case City.NewMagincia: return NewMagincia;
-				case City.Vesper: return Vesper;
+				//case City.Moonglow: return Moonglow;
+				//case City.Britain: return Britain;
+				//case City.Jhelom: return Jhelom;
+				//case City.Yew: return Yew;
+				//case City.Minoc: return Minoc;
+				//case City.Trinsic: return Trinsic;
+				//case City.SkaraBrae: return SkaraBrae;
+				//case City.NewMagincia: return NewMagincia;
+				//case City.Vesper: return Vesper;
+                //UOSI
+                case City.Monitor: return Monitor;
+                case City.Fawn: return Fawn;
+                case City.Moonshade: return Moonshade;
 			}
 		}
 
@@ -1091,13 +1167,24 @@ namespace Server.Engines.CityLoyalty
             var origin = GetCityInstance(entry.Origin);
             int gold = entry.CalculateGold();
 
-            origin.AddToTreasury(from, gold);
-            from.SendLocalizedMessage(1154761, String.Format("{0}\t{1}", gold.ToString("N0", CultureInfo.GetCultureInfo("en-US")), origin.Definition.Name)); // ~1_val~ gold has been deposited into the ~2_NAME~ City treasury for your efforts!
+            if (gold > 0)
+            {
+                origin.AddToTreasury(from, gold);
+                from.SendLocalizedMessage(1154761, String.Format("{0}\t{1}", gold.ToString("N0", CultureInfo.GetCultureInfo("en-US")), origin.Definition.Name)); // ~1_val~ gold has been deposited into the ~2_NAME~ City treasury for your efforts!
+            }
 
-            origin.AwardLove(from, 150);
-            dest.AwardLove(from, 150);
+            if (entry.Distance > 0)
+            {
+                origin.AwardLove(from, 150);
+                dest.AwardLove(from, 150);
+            }
 
             origin.CompletedTrades++;
+
+            if (CityTradeSystem.KrampusEncounterActive)
+            {
+                KrampusEncounter.Encounter.OnTradeComplete(from, entry);
+            }
 		}
 
         public static void OnSlimTradeComplete(Mobile from, TradeEntry entry)
@@ -1105,33 +1192,44 @@ namespace Server.Engines.CityLoyalty
             var dest = GetCityInstance(entry.Destination);
             var origin = GetCityInstance(entry.Origin);
 
-            origin.AwardHate(from, 25);
-            dest.AwardHate(from, 25);
+            if (entry.Distance > 0)
+            {
+                origin.AwardHate(from, 25);
+                dest.AwardHate(from, 25);
+            }
         }
 
-        public static Moonglow Moonglow { get; set; }
-        public static Britain Britain { get; set; }
-        public static Jhelom Jhelom { get; set; }
-        public static Yew Yew { get; set; }
-        public static Minoc Minoc { get; set; }
-        public static Trinsic Trinsic { get; set; }
-        public static SkaraBrae SkaraBrae { get; set; }
-        public static NewMagincia NewMagincia { get; set; }
-        public static Vesper Vesper { get; set; }
+        //public static Moonglow Moonglow { get; set; }
+        //public static Britain Britain { get; set; }
+        //public static Jhelom Jhelom { get; set; }
+        //public static Yew Yew { get; set; }
+        //public static Minoc Minoc { get; set; }
+        //public static Trinsic Trinsic { get; set; }
+        //public static SkaraBrae SkaraBrae { get; set; }
+        //public static NewMagincia NewMagincia { get; set; }
+        //public static Vesper Vesper { get; set; }
+        //UOSI
+        public static Monitor Monitor { get; set; }
+        public static Fawn Fawn { get; set; }
+        public static Moonshade Moonshade { get; set; }
 
         public static CityTradeSystem CityTrading { get; set; }
 
         public static void ConstructSystems()
         {
-            Moonglow = new Moonglow();
-            Britain = new Britain();
-            Jhelom = new Jhelom();
-            Yew = new Yew();
-            Minoc = new Minoc();
-            Trinsic = new Trinsic();
-            SkaraBrae = new SkaraBrae();
-            NewMagincia = new NewMagincia();
-            Vesper = new Vesper();
+            //Moonglow = new Moonglow();
+            //Britain = new Britain();
+            //Jhelom = new Jhelom();
+            //Yew = new Yew();
+            //Minoc = new Minoc();
+            //Trinsic = new Trinsic();
+            //SkaraBrae = new SkaraBrae();
+            //NewMagincia = new NewMagincia();
+            //Vesper = new Vesper();
+            //UOSI
+            Monitor = new Monitor();
+            Fawn = new Fawn();
+            Moonshade = new Moonshade();
 
             CityTrading = new CityTradeSystem();
         }
@@ -1220,18 +1318,18 @@ namespace Server.Engines.CityLoyalty
                     break;
             }
 
-            if (version == 0 && this.City == City.Britain)
-            {
-                int count = reader.ReadInt();
-                for (int i = 0; i < count; i++)
-                {
-                    Mobile m = reader.ReadMobile();
-                    DateTime dt = reader.ReadDateTime();
+            //if (version == 0 && this.City == City.Britain)
+            //{
+            //    int count = reader.ReadInt();
+            //    for (int i = 0; i < count; i++)
+            //    {
+            //        Mobile m = reader.ReadMobile();
+            //        DateTime dt = reader.ReadDateTime();
 
-                    if (m != null && dt > DateTime.UtcNow)
-                        CitizenWait[m] = dt;
-                }
-            }
+            //        if (m != null && dt > DateTime.UtcNow)
+            //            CitizenWait[m] = dt;
+            //    }
+            //}
 
             // City Bulletin Board Location
             if (version == 1)
@@ -1239,12 +1337,12 @@ namespace Server.Engines.CityLoyalty
                 Timer.DelayCall(TimeSpan.FromSeconds(10), () =>
                     {
                         Board = new CityMessageBoard(City, 0xA0C5);
-                        Board.MoveToWorld(Definition.BoardLocation, Map.Trammel);
+                        Board.MoveToWorld(Definition.BoardLocation, SystemMap);
                         Console.WriteLine("City Message Board for {0} Converted!", City.ToString());
                         /*if (Board != null)
                         {
                             //Board.ItemID = 0xA0C5;
-                            //board.MoveToWorld(Definition.BoardLocation, Map.Trammel);
+                            //board.MoveToWorld(Definition.BoardLocation, SystemMap);
 
 
                             Console.WriteLine("City Message Board for {0} Converted!", City.ToString());
@@ -1258,186 +1356,250 @@ namespace Server.Engines.CityLoyalty
 		}
 	}
 	
-	public class Moonglow : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.Moonglow; } }
+	//public class Moonglow : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.Moonglow; } }
 
-		public Moonglow() : base(City.Moonglow)
-		{
-			Definition = new CityDefinition (
-							 City.Moonglow,
-							 new Point3D(4480, 1173, 0),
-							 new Point3D(4416, 1044, -2),
-                             new Point3D(4480, 1172, 0),
-                             new Point3D(4551, 1051, 0),
-                             new Point3D(4478, 1170, 0),
-							 "Moonglow",
-							 1114143,
-							 1154524
-							 );
-		}
-	}
+	//	public Moonglow() : base(City.Moonglow)
+	//	{
+	//		Definition = new CityDefinition (
+	//						 City.Moonglow,
+	//						 new Point3D(4480, 1173, 0),
+	//						 new Point3D(4416, 1044, -2),
+ //                            new Point3D(4480, 1172, 0),
+ //                            new Point3D(4551, 1051, 0),
+ //                            new Point3D(4478, 1170, 0),
+	//						 "Moonglow",
+	//						 1114143,
+	//						 1154524
+	//						 );
+	//	}
+	//}
 	
-	public class Britain : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.Britain; } }
+	//public class Britain : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.Britain; } }
 
-		public Britain() : base(City.Britain)
-		{
-			Definition = new CityDefinition (
-							 City.Britain,
-                             new Point3D(1445, 1694, 0),
-                             new Point3D(1436, 1760, -2),
-                             new Point3D(1446, 1694, 0),
-                             new Point3D(1417, 1715, 20),
-                             new Point3D(1481, 1718, 0),
-							 "Britain",
-							 1114148,
-							 1154521
-							 );
-		}
-	}
+	//	public Britain() : base(City.Britain)
+	//	{
+	//		Definition = new CityDefinition (
+	//						 City.Britain,
+ //                            new Point3D(1445, 1694, 0),
+ //                            new Point3D(1436, 1760, -2),
+ //                            new Point3D(1446, 1694, 0),
+ //                            new Point3D(1417, 1715, 20),
+ //                            new Point3D(1481, 1718, 0),
+	//						 "Britain",
+	//						 1114148,
+	//						 1154521
+	//						 );
+	//	}
+	//}
 	
-	public class Jhelom : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.Jhelom; } }
+	//public class Jhelom : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.Jhelom; } }
 
-		public Jhelom() : base(City.Jhelom)
-		{
-			Definition = new CityDefinition (
-							 City.Jhelom,
-							 new Point3D(1336, 3769, 0),
-							 new Point3D(1377, 3879, 0),
-                             new Point3D(1336, 3770, 0),
-                             new Point3D(1379, 3797, 0),
-                             new Point3D(1333, 3776, 0),
-							 "Jhelom",
-							 1114146,
-							 1154522
-							 );
-		}
-	}
+	//	public Jhelom() : base(City.Jhelom)
+	//	{
+	//		Definition = new CityDefinition (
+	//						 City.Jhelom,
+	//						 new Point3D(1336, 3769, 0),
+	//						 new Point3D(1377, 3879, 0),
+ //                            new Point3D(1336, 3770, 0),
+ //                            new Point3D(1379, 3797, 0),
+ //                            new Point3D(1333, 3776, 0),
+	//						 "Jhelom",
+	//						 1114146,
+	//						 1154522
+	//						 );
+	//	}
+	//}
 	
-	public class Yew : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.Yew; } }
+	//public class Yew : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.Yew; } }
 
-		public Yew() : base(City.Yew)
-		{
-			Definition = new CityDefinition (
-							 City.Yew,
-							 new Point3D(632, 863, 0),
-							 new Point3D(621, 1043, 0),
-                             new Point3D(631, 863, 0),
-                             new Point3D(385, 914, 0),
-                             new Point3D(626, 863, 0),
-							 "Yew",
-							 1114138,
-							 1154529
-							 );
-		}
-	}
+	//	public Yew() : base(City.Yew)
+	//	{
+	//		Definition = new CityDefinition (
+	//						 City.Yew,
+	//						 new Point3D(632, 863, 0),
+	//						 new Point3D(621, 1043, 0),
+ //                            new Point3D(631, 863, 0),
+ //                            new Point3D(385, 914, 0),
+ //                            new Point3D(626, 863, 0),
+	//						 "Yew",
+	//						 1114138,
+	//						 1154529
+	//						 );
+	//	}
+	//}
 	
-	public class Minoc : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.Minoc; } }
+	//public class Minoc : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.Minoc; } }
 
-		public Minoc() : base(City.Minoc)
-		{
-			Definition = new CityDefinition (
-							 City.Minoc,
-							 new Point3D(2514, 558, 0),
-							 new Point3D(2499, 398, 15),
-                             new Point3D(2514, 559, 0),
-                             new Point3D(2424, 533, 0),
-                             new Point3D(2522, 558, 0),
-							 "Minoc",
-							 1114139,
-							 1154523
-							 );
-		}
-	}
+	//	public Minoc() : base(City.Minoc)
+	//	{
+	//		Definition = new CityDefinition (
+	//						 City.Minoc,
+	//						 new Point3D(2514, 558, 0),
+	//						 new Point3D(2499, 398, 15),
+ //                            new Point3D(2514, 559, 0),
+ //                            new Point3D(2424, 533, 0),
+ //                            new Point3D(2522, 558, 0),
+	//						 "Minoc",
+	//						 1114139,
+	//						 1154523
+	//						 );
+	//	}
+	//}
 	
-	public class Trinsic : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.Trinsic; } }
+	//public class Trinsic : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.Trinsic; } }
 
-		public Trinsic() : base(City.Trinsic)
-		{
-			Definition = new CityDefinition (
-							 City.Trinsic,
-							 new Point3D(1907, 2682, 0),
-                             new Point3D(2061, 2855, -2), 
-                             new Point3D(1907, 2683, 0),
-                             new Point3D(1851, 2772, 0),
-                             new Point3D(1907, 2679, 0),
-							 "Trinsic",
-							 1114142,
-							 1154527
-							 );
-		}
-	}
+	//	public Trinsic() : base(City.Trinsic)
+	//	{
+	//		Definition = new CityDefinition (
+	//						 City.Trinsic,
+	//						 new Point3D(1907, 2682, 0),
+ //                            new Point3D(2061, 2855, -2), 
+ //                            new Point3D(1907, 2683, 0),
+ //                            new Point3D(1851, 2772, 0),
+ //                            new Point3D(1907, 2679, 0),
+	//						 "Trinsic",
+	//						 1114142,
+	//						 1154527
+	//						 );
+	//	}
+	//}
 	
-	public class SkaraBrae : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.SkaraBrae; } }
+	//public class SkaraBrae : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.SkaraBrae; } }
 
-		public SkaraBrae() : base(City.SkaraBrae)
-		{
-            CityLoyaltySystem.SkaraBrae = this;
-			Definition = new CityDefinition (
-							 City.SkaraBrae,
-							 new Point3D(587, 2153, 0),
-							 new Point3D(645, 2228, -2),
-                             new Point3D(586, 2153, 0),
-                             new Point3D(571, 2210, 0),
-                             new Point3D(580, 2155, 0),
-							 "Skara Brae",
-							 1114145,
-							 1154526
-							 );
-		}
-	}
+	//	public SkaraBrae() : base(City.SkaraBrae)
+	//	{
+ //           CityLoyaltySystem.SkaraBrae = this;
+	//		Definition = new CityDefinition (
+	//						 City.SkaraBrae,
+	//						 new Point3D(587, 2153, 0),
+	//						 new Point3D(645, 2228, -2),
+ //                            new Point3D(586, 2153, 0),
+ //                            new Point3D(571, 2210, 0),
+ //                            new Point3D(580, 2155, 0),
+	//						 "Skara Brae",
+	//						 1114145,
+	//						 1154526
+	//						 );
+	//	}
+	//}
 	
-	public class NewMagincia : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.NewMagincia; } }
+	//public class NewMagincia : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.NewMagincia; } }
 
-		public NewMagincia() : base(City.NewMagincia)
-		{
-            CityLoyaltySystem.NewMagincia = this;
-			Definition = new CityDefinition (
-							 City.NewMagincia,
-							 new Point3D(3795, 2247, 20),
-							 new Point3D(3677, 2254, 20),
-                             new Point3D(3796, 2247, 20),
-                             new Point3D(3680, 2269, 26),
-                             new Point3D(3795, 2259, 20),
-							 "Magincia",
-							 1114141,
-							 1154525
-							 );
-		}
-	}
+	//	public NewMagincia() : base(City.NewMagincia)
+	//	{
+ //           CityLoyaltySystem.NewMagincia = this;
+	//		Definition = new CityDefinition (
+	//						 City.NewMagincia,
+	//						 new Point3D(3795, 2247, 20),
+	//						 new Point3D(3677, 2254, 20),
+ //                            new Point3D(3796, 2247, 20),
+ //                            new Point3D(3680, 2269, 26),
+ //                            new Point3D(3795, 2259, 20),
+	//						 "Magincia",
+	//						 1114141,
+	//						 1154525
+	//						 );
+	//	}
+	//}
 	
-	public class Vesper : CityLoyaltySystem
-	{
-        public override PointsType Loyalty { get { return PointsType.Vesper; } }
+	//public class Vesper : CityLoyaltySystem
+	//{
+ //       public override PointsType Loyalty { get { return PointsType.Vesper; } }
 
-		public Vesper() : base(City.Vesper)
-		{
-            CityLoyaltySystem.Vesper = this;
-			Definition = new CityDefinition (
-							 City.Vesper,
-							 new Point3D(2891, 683, 0),
-							 new Point3D(3004, 834, 0),
-                             new Point3D(2891, 682, 0),
-                             new Point3D(3004, 822, 0),
-                             new Point3D(2899, 685, 0),
-							 "Vesper",
-							 1114140,
-							 1154528
-							 );
-		}
-	}
+	//	public Vesper() : base(City.Vesper)
+	//	{
+ //           CityLoyaltySystem.Vesper = this;
+	//		Definition = new CityDefinition (
+	//						 City.Vesper,
+	//						 new Point3D(2891, 683, 0),
+	//						 new Point3D(3004, 834, 0),
+ //                            new Point3D(2891, 682, 0),
+ //                            new Point3D(3004, 822, 0),
+ //                            new Point3D(2899, 685, 0),
+	//						 "Vesper",
+	//						 1114140,
+	//						 1154528
+	//						 );
+	//	}
+	//}
+
+    //UOSI - Added my towns
+    public class Monitor : CityLoyaltySystem
+    {
+        public override PointsType Loyalty { get { return PointsType.Monitor; } }
+
+        public Monitor() : base(City.Monitor)
+        {
+            CityLoyaltySystem.Monitor = this;
+            Definition = new CityDefinition(
+                City.Monitor,
+                new Point3D(350, 1417, 0),
+                new Point3D(356, 1497, 0),
+                new Point3D(348, 1429, 0),
+                new Point3D(402, 1392, 0),
+                new Point3D(356, 1426, 0),
+                "Monitor",
+                1114143,
+                1154524
+                );
+        }
+    }
+
+    public class Fawn : CityLoyaltySystem
+    {
+        public override PointsType Loyalty { get { return PointsType.Fawn; } }
+
+        public Fawn() : base(City.Fawn)
+        {
+            CityLoyaltySystem.Fawn = this;
+            Definition = new CityDefinition(
+                City.Fawn,
+                new Point3D(410, 995, 0),
+                new Point3D(369, 925, 0),
+                new Point3D(410, 998, 0),
+                new Point3D(424, 995, 0),
+                new Point3D(375, 971, 0),
+                "Fawn",
+                1114148,
+                1154521
+                );
+        }
+    }
+
+    public class Moonshade : CityLoyaltySystem
+    {
+        public override PointsType Loyalty { get { return PointsType.Moonshade; } }
+
+        public Moonshade() : base(City.Moonshade)
+        {
+            CityLoyaltySystem.Moonshade = this;
+            Definition = new CityDefinition(
+                City.Moonshade,
+                new Point3D(1120, 993, 0),
+                new Point3D(1086, 1006, 0),
+                new Point3D(1121, 990, 0),
+                new Point3D(1130, 996, 0),
+                new Point3D(1091, 986, 0),
+                "Moonshade",
+                1114146,
+                1154522
+                );
+        }
+    }
 }

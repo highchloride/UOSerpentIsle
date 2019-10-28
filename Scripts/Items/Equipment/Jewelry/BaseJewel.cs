@@ -21,7 +21,7 @@ namespace Server.Items
         Diamond
     }
 
-    public abstract class BaseJewel : Item, ICraftable, ISetItem, IWearableDurability, IResource, IVvVItem, IOwnerRestricted, ITalismanProtection, IFactionItem
+    public abstract class BaseJewel : Item, ICraftable, ISetItem, IWearableDurability, IResource, IVvVItem, IOwnerRestricted, ITalismanProtection, IFactionItem, IArtifact, ICombatEquipment, IQuality
     {
         #region Factions
         private FactionItem m_FactionState;
@@ -315,6 +315,18 @@ namespace Server.Items
             get { return m_GorgonLenseType; }
             set { m_GorgonLenseType = value; InvalidateProperties(); }
         }
+
+        public virtual int[] BaseResists
+        {
+            get
+            {
+                return new int[] { 0, 0, 0, 0, 0 };
+            }
+        }
+
+        public virtual void OnAfterImbued(Mobile m, int mod, int value)
+        {
+        }
         #endregion
 
         #region Runic Reforging
@@ -454,6 +466,8 @@ namespace Server.Items
             #endregion
 
             jewel.m_AosSkillBonuses = new AosSkillBonuses(newItem, m_AosSkillBonuses);
+
+            base.OnAfterDuped(newItem);
         }
 
         public virtual int ArtifactRarity
@@ -781,22 +795,10 @@ namespace Server.Items
             return name;
         }
 
-        public override void AddWeightProperty(ObjectPropertyList list)
+        public override void AddCraftedProperties(ObjectPropertyList list)
         {
-            base.AddWeightProperty(list);
-
-            if (IsVvVItem)
-                list.Add(1154937); // VvV Item
-        }
-
-        public override void GetProperties(ObjectPropertyList list)
-        {
-            base.GetProperties(list);
-
             if (OwnerName != null)
-            {
                 list.Add(1153213, OwnerName);
-            }
 
             if (m_Crafter != null)
                 list.Add(1050043, m_Crafter.TitleName); // crafted by ~1_NAME~
@@ -805,7 +807,20 @@ namespace Server.Items
                 list.Add(1063341); // exceptional
 
             if (IsImbued)
-                list.Add(1080418); // (Imbued)            
+                list.Add(1080418); // (Imbued)
+        }
+
+        public override void AddWeightProperty(ObjectPropertyList list)
+        {
+            base.AddWeightProperty(list);
+
+            if (IsVvVItem)
+                list.Add(1154937); // VvV Item
+        }
+
+        public override void AddNameProperties(ObjectPropertyList list)
+        {
+            base.AddNameProperties(list);           
 
             #region Factions
             FactionEquipment.AddFactionProperties(this, list);
@@ -968,16 +983,15 @@ namespace Server.Items
             if (m_HitPoints >= 0 && m_MaxHitPoints > 0)
                 list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~
 
-            EnchantedHotItem.AddProperties(this, list);
-
             if (IsSetItem && !m_SetEquipped)
             {
                 list.Add(1072378); // <br>Only when full set is present:				
                 SetHelper.GetSetProperties(list, this);
             }
+        }
 
-            AddHonestyProperty(list);
-
+        public override void AddItemPowerProperties(ObjectPropertyList list)
+        {
             if (m_ItemPower != ItemPower.None)
             {
                 if (m_ItemPower <= ItemPower.LegendaryArtifact)
@@ -1001,7 +1015,7 @@ namespace Server.Items
         {
             bool drop = base.DropToWorld(from, p);
 
-            EnchantedHotItem.CheckDrop(from, this);
+            EnchantedHotItemSocket.CheckDrop(from, this);
 
             return drop;
         }

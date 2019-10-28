@@ -1,5 +1,6 @@
 using System;
 using System.Xml;
+using Server.Mobiles;
 using Server.Spells.Chivalry;
 using Server.Spells.Fourth;
 using Server.Spells.Seventh;

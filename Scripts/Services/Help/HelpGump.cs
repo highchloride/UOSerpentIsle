@@ -65,25 +65,25 @@ namespace Server.Engines.Help
 
             this.AddPage(1);
 
-            if (isYoung)
-            {
-                this.AddButton(80, 75, 5540, 5541, 9, GumpButtonType.Reply, 2);
-                this.AddHtml(110, 75, 450, 58, @"<BODY><BASEFONT COLOR=BLACK><u>Young Player Haven Transport.</u> Select this option if you want to be transported to Haven.</BODY>", true, true);
+            //if (isYoung) NOBODY GOES TO HAVEN DAMMIT
+            //{
+            //    this.AddButton(80, 75, 5540, 5541, 9, GumpButtonType.Reply, 2);
+            //    this.AddHtml(110, 75, 450, 58, @"<BODY><BASEFONT COLOR=BLACK><u>Young Player Haven Transport.</u> Select this option if you want to be transported to Haven.</BODY>", true, true);
 
-                this.AddButton(80, 140, 5540, 5541, 1, GumpButtonType.Reply, 2);
-                this.AddHtml(110, 140, 450, 58, @"<u>General question about Ultima Online.</u> Select this option if you have a general gameplay question, need help learning to use a skill, or if you would like to search the UO Knowledge Base.", true, true);
+            //    this.AddButton(80, 140, 5540, 5541, 1, GumpButtonType.Reply, 2);
+            //    this.AddHtml(110, 140, 450, 58, @"<u>General question about Ultima Online.</u> Select this option if you have a general gameplay question, need help learning to use a skill, or if you would like to search the UO Knowledge Base.", true, true);
 
-                this.AddButton(80, 205, 5540, 5541, 2, GumpButtonType.Reply, 0);
-                this.AddHtml(110, 205, 450, 58, @"<u>My character is physically stuck in the game.</u> This choice only covers cases where your character is physically stuck in a location they cannot move out of. This option will only work two times in 24 hours.", true, true);
+            //    this.AddButton(80, 205, 5540, 5541, 2, GumpButtonType.Reply, 0);
+            //    this.AddHtml(110, 205, 450, 58, @"<u>My character is physically stuck in the game.</u> This choice only covers cases where your character is physically stuck in a location they cannot move out of. This option will only work two times in 24 hours.", true, true);
 
-                this.AddButton(80, 270, 5540, 5541, 0, GumpButtonType.Page, 3);
-                this.AddHtml(110, 270, 450, 58, @"<u>Another player is harassing me.</u> Another player is verbally harassing your character. When you select this option you will be sending a text log to Origin Systems. To see what constitutes harassment please visit " + (SupportWebsite == null ? "http://support.uo.com/gm_9.html" : SupportWebsite) + ".", true, true);
+            //    this.AddButton(80, 270, 5540, 5541, 0, GumpButtonType.Page, 3);
+            //    this.AddHtml(110, 270, 450, 58, @"<u>Another player is harassing me.</u> Another player is verbally harassing your character. When you select this option you will be sending a text log to Origin Systems. To see what constitutes harassment please visit " + (SupportWebsite == null ? "http://support.uo.com/gm_9.html" : SupportWebsite) + ".", true, true);
 
-                this.AddButton(80, 335, 5540, 5541, 0, GumpButtonType.Page, 2);
-                this.AddHtml(110, 335, 450, 58, @"<u>Other.</u> If you are experiencing a problem in the game that does not fall into one of the other categories or is not addressed on the Support web page (located at  " + (SupportWebsite == null ? "http://support.uo.com" : SupportWebsite) + "), please use this option.", true, true);
-            }
-            else
-            {
+            //    this.AddButton(80, 335, 5540, 5541, 0, GumpButtonType.Page, 2);
+            //    this.AddHtml(110, 335, 450, 58, @"<u>Other.</u> If you are experiencing a problem in the game that does not fall into one of the other categories or is not addressed on the Support web page (located at  " + (SupportWebsite == null ? "http://support.uo.com" : SupportWebsite) + "), please use this option.", true, true);
+            //}
+            //else
+            //{ 
                 this.AddButton(80, 90, 5540, 5541, 1, GumpButtonType.Reply, 2);
                 this.AddHtml(110, 90, 450, 74, @"<u>General question about Ultima Online.</u> Select this option if you have a general gameplay question, need help learning to use a skill, or if you would like to search the UO Knowledge Base.", true, true);
 
@@ -95,7 +95,7 @@ namespace Server.Engines.Help
 
                 this.AddButton(80, 330, 5540, 5541, 0, GumpButtonType.Page, 2);
                 this.AddHtml(110, 330, 450, 74, @"<u>Other.</u> If you are experiencing a problem in the game that does not fall into one of the other categories or is not addressed on the Support web page (located at  " + (SupportWebsite == null ? "http://support.uo.com" : SupportWebsite) + "), please use this option.", true, true);
-            }
+            //}
 
             this.AddPage(2);
 

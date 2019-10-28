@@ -17,7 +17,8 @@ namespace Server.Engines.Harvest
 {
 	public class DynamicMining : HarvestSystem
 	{
-		public static HarvestSystem GetSystem(BaseAxe axe)
+        //UOSI - Modified this from BaseAxe to Item to try to allow for things like shovels
+		public static HarvestSystem GetSystem(Item axe)
 		{
 			Map map;
 			Point3D loc;
@@ -49,7 +50,7 @@ namespace Server.Engines.Harvest
 					}
 				}
 			}
-			
+
 			return null;//Nothing to harvest
 		}
 		

@@ -23,7 +23,7 @@ namespace Server.Engines.Quests
 		Spellweaving = 13,
 		SpellweavingS = 14,
 		UnfadingMemories = 15,
-		PercolemTheHunter = 16,
+		Empty = 16,
 		KingVernixQuests = 17,
 		DoughtyWarriors = 18,
 		HonorOfDeBoors = 19,
@@ -35,7 +35,11 @@ namespace Server.Engines.Quests
 		FlintTheQuartermaster = 25,
 		AnimalTraining = 26,
         PaladinsOfTrinsic = 27,
-        RightingWrong = 28
+        RightingWrong = 28,
+        Ritual = 29,
+
+		//UOSI
+        MonitorCrypts = 30
 	}
 
 	public class BaseChain

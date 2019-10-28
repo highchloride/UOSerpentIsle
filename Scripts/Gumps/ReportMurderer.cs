@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Server.Misc;
 using Server.Mobiles;
 using Server.Network;
+using Server.Spells;
 
 namespace Server.Gumps
 {
@@ -43,9 +44,12 @@ namespace Server.Gumps
                 {
                     if (!Core.SE || !((PlayerMobile)m).RecentlyReported.Contains(ai.Attacker))
                     {
-                        killers.Add(ai.Attacker);
-                        ai.Reported = true;
-                        ai.CanReportMurder = false;
+                        if (!killers.Contains(ai.Attacker))
+                        {
+                            killers.Add(ai.Attacker);
+                            ai.Reported = true;
+                            ai.CanReportMurder = false;
+                        }
                     }
                 }
                 if (ai.Attacker.Player && (DateTime.UtcNow - ai.LastCombatTime) < TimeSpan.FromSeconds(30.0) && !toGive.Contains(ai.Attacker))
@@ -78,6 +82,11 @@ namespace Server.Gumps
                 Titles.AwardKarma(g, karmaAward, true);
 
                 Server.Items.XmlQuest.RegisterKill(m, g);
+
+                if (killers.Contains(g))
+                {
+                    EventSink.InvokePlayerMurdered(new PlayerMurderedEventArgs(g, m));
+                }
             }
 
             if (m is PlayerMobile && ((PlayerMobile)m).NpcGuild == NpcGuild.ThievesGuild)
@@ -153,7 +162,7 @@ namespace Server.Gumps
 
         public static void CheckMurderer(Mobile m)
         {
-            if (m.AccessLevel == AccessLevel.Player && m.Murderer && m.Map != null && m.Map.Rules != MapRules.FeluccaRules)
+            if (m.AccessLevel == AccessLevel.Player && m.Murderer && SpellHelper.RestrictRedTravel && m.Map != null && m.Map.Rules != MapRules.FeluccaRules)
             {
                 Timer.DelayCall(TimeSpan.FromSeconds(1), () =>
                 {
