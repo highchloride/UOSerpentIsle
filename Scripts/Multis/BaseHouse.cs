@@ -68,7 +68,7 @@ namespace Server.Multis
         [CommandProperty(AccessLevel.GameMaster)]
         public bool RestrictDecay { get; set; }
 
-        public virtual TimeSpan DecayPeriod { get { return TimeSpan.FromDays(5.0); } }
+        public virtual TimeSpan DecayPeriod { get { return TimeSpan.FromDays(14.0); } } //UOSI: The default is 5 days
 
         public virtual DecayType DecayType
         {

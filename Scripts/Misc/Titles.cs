@@ -5,6 +5,7 @@ using Server.Items;
 using Server.Mobiles;
 using System.Collections.Generic;
 using Server.Accounting;
+using Server.Engines.XmlSpawner2;
 
 namespace Server.Misc
 {
@@ -217,7 +218,7 @@ namespace Server.Misc
 
             bool showSkillTitle = beheld.ShowFameTitle && ((beholder == beheld) || (beheld.Fame >= 5000));
 
-            if (Core.SA && beheld.ShowFameTitle && beheld is PlayerMobile && ((PlayerMobile)beheld).FameKarmaTitle != null)
+            if (Core.UOR && beheld.ShowFameTitle && beheld is PlayerMobile && ((PlayerMobile)beheld).FameKarmaTitle != null) //UOSI- Core.SA
             {
                 title.AppendFormat(((PlayerMobile)beheld).FameKarmaTitle, beheld.Name, beheld.Female ? "Lady" : "Lord");
             }
@@ -234,7 +235,7 @@ namespace Server.Misc
             {
                 PlayerMobile.ChampionTitleInfo info = ((PlayerMobile)beheld).ChampionTitles;
 
-                if (Core.SA)
+                if (Core.UOR) //UOSI- Core.SA
                 {
                     if (((PlayerMobile)beheld).CurrentChampTitle != null)
                         title.AppendFormat(((PlayerMobile)beheld).CurrentChampTitle);
@@ -271,12 +272,54 @@ namespace Server.Misc
 
             string customTitle = beheld.Title;
 
-            if (Core.SA)
+            if (Core.UOR) //UOSI- Core.SA
             {
+                #region Level System
+                PlayerMobile pm = beheld as PlayerMobile;
+                XMLPlayerLevelAtt xmlplayer = (XMLPlayerLevelAtt)XmlAttach.FindAttachment(pm, typeof(XMLPlayerLevelAtt));
+                Configured c = new Configured();
+
+                if (beheld is PlayerMobile && ((PlayerMobile)beheld).PaperdollSkillTitle != null)
+                {
+                    if (c.PaperdollLevel)
+                    {
+                        string d = LevelCore.Display(pm, new Configured());
+                        title.Append(" - Level " + d + ", ").Append(((PlayerMobile)beheld).PaperdollSkillTitle);
+                    }
+                    else
+                        title.Append(", ").Append(((PlayerMobile)beheld).PaperdollSkillTitle);
+                }
+                else if (beheld is PlayerMobile && ((PlayerMobile)beheld).PaperdollSkillTitle == null)
+                {
+                    string d = LevelCore.Display(pm, new Configured());
+                    if (c.PaperdollLevel)
+                    {
+                        if (pm.AccessLevel > AccessLevel.Player && c.StaffHasLevel)
+                        {
+                            title.Append(" - Level " + d);
+                        }
+                        else
+                        {
+                            if (pm.AccessLevel < AccessLevel.GameMaster)
+                            {
+                                title.Append(" - Level " + d);
+                            }
+                        }
+
+                    }
+                }
+
+                else if (beheld is BaseVendor)
+                    title.AppendFormat(" {0}", customTitle);
+
+
+                /*
                 if (beheld is PlayerMobile && ((PlayerMobile)beheld).PaperdollSkillTitle != null)
                     title.Append(", ").Append(((PlayerMobile)beheld).PaperdollSkillTitle);
-                else if (beheld is BaseVendor) 
-					title.AppendFormat(" {0}", customTitle);
+                else if (beheld is BaseVendor)
+                    title.AppendFormat(" {0}", customTitle);
+                */
+                #endregion
             }
             else if (customTitle != null && (customTitle = customTitle.Trim()).Length > 0)
             {

@@ -20,7 +20,7 @@ namespace Server.Accounting
 	[PropertyObject]
 	public class Account : IAccount, IComparable, IComparable<Account>
 	{
-		public static readonly TimeSpan YoungDuration = TimeSpan.FromHours(2.0); //UOSI 40 hours of young by default. No thanks.
+		public static readonly TimeSpan YoungDuration = TimeSpan.FromHours(20.0); //UOSI 40 hours of young by default. No thanks.
 		public static readonly TimeSpan InactiveDuration = TimeSpan.FromDays(180.0);
 		public static readonly TimeSpan EmptyInactiveDuration = TimeSpan.FromDays(30.0);
 

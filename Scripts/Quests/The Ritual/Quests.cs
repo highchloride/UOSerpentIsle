@@ -258,6 +258,7 @@ namespace Server.Engines.Quests.RitualQuest
             }
         }
 
+        /* UOSI - Removed as part of the Bexil crash 6/6/2020
         public class BexilRegion : BaseRegion
         {
             public override bool AllowHousing(Mobile from, Point3D p)
@@ -273,6 +274,7 @@ namespace Server.Engines.Quests.RitualQuest
                 }
             }
 
+            
             public BexilRegion()
                 : base("Bexil Region", Map.TerMur, Region.DefaultPriority, new Rectangle2D(386, 3356, 35, 51))
             {
@@ -301,12 +303,15 @@ namespace Server.Engines.Quests.RitualQuest
                     bex.MoveToWorld(new Point3D(403, 3391, 38), Map.TerMur);
                 }
             }
+        
 
-            public override bool CheckTravel(Mobile traveller, Point3D p, Server.Spells.TravelCheckType type)
+        public override bool CheckTravel(Mobile traveller, Point3D p, Server.Spells.TravelCheckType type)
             {
                 return false;
             }
+            
         }
+        */
 
         public override void Serialize(GenericWriter writer)
         {
@@ -324,6 +329,7 @@ namespace Server.Engines.Quests.RitualQuest
             Charm = reader.ReadItem() as DreamSerpentCharm;
         }
     }
+    
 
     public class FilthyLifeStealersQuest : BaseQuest
     {

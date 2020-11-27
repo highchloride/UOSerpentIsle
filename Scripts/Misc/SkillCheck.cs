@@ -135,10 +135,17 @@ namespace Server.Misc
 		{
 			var skill = from.Skills[skillName];
 
-			if (skill == null)
-				return false;
+            if (from.Skills[skill.SkillName].Value <= 0.0)
+            { from.SendMessage("You know nothing about how this is done."); return false; }
 
-			var value = skill.Value;
+            #region Level System Skills
+            LevelHandler.DoGainSkillExp(from, skill, skillName);
+            #endregion
+
+            if (skill == null)
+				return false;            
+
+            var value = skill.Value;
 
 			//TODO: Is there any other place this can go?
 			if (skillName == SkillName.Fishing && BaseGalleon.FindGalleonAt(from, from.Map) is TokunoGalleon)
@@ -161,7 +168,14 @@ namespace Server.Misc
 		{
 			var skill = from.Skills[skillName];
 
-			if (skill == null)
+            if (from.Skills[skill.SkillName].Value <= 0.0)
+            { from.SendMessage("You know nothing about how this is done."); return false; }
+
+            #region Level System Skills
+            LevelHandler.DoGainSkillExp(from, skill, skillName);
+            #endregion
+
+            if (skill == null)
 				return false;
 
 			CrystalBallOfKnowledge.TellSkillDifficulty(from, skillName, chance);
@@ -191,6 +205,9 @@ namespace Server.Misc
             var skill = from.Skills[sk];
             var gains = 0;
 
+            if (from.Skills[skill.SkillName].Value <= 0.0)
+            { from.SendMessage("You know nothing about how this is done."); return false; }
+
             for (int i = 0; i < amount; i++)
             {
                 var gc = GetGainChance(from, skill, (skill.Value - minSkill) / (maxSkill - minSkill), true);
@@ -218,7 +235,7 @@ namespace Server.Misc
 		public static bool CheckSkill(Mobile from, Skill skill, object obj, double chance)
 		{
 			if (from.Skills.Cap == 0)
-				return false;
+				return false;            
 
             var success = Utility.Random(100) <= (int)(chance * 100);
             var gc = GetGainChance(from, skill, chance, success);
@@ -273,7 +290,10 @@ namespace Server.Misc
 			if (skill == null)
 				return false;
 
-			var value = skill.Value;
+            if (from.Skills[skill.SkillName].Value <= 0.0)
+            { from.SendMessage("You know nothing about how this is done."); return false; }
+
+            var value = skill.Value;
 
 			if (value < minSkill)
 				return false; // Too difficult
@@ -285,14 +305,26 @@ namespace Server.Misc
 
 			CrystalBallOfKnowledge.TellSkillDifficulty(from, skillName, chance);
 
-			return CheckSkill(from, skill, target, chance);
+            #region Level System Skills
+            LevelHandler.DoGainSkillExp(from, skill, skillName);
+            #endregion
+
+            return CheckSkill(from, skill, target, chance);
 		}
 
 		public static bool Mobile_SkillCheckDirectTarget(Mobile from, SkillName skillName, object target, double chance)
 		{
 			var skill = from.Skills[skillName];
 
-			if (skill == null)
+            if (from.Skills[skill.SkillName].Value <= 0.0)
+            { from.SendMessage("You know nothing about how this is done."); return false; }
+                
+
+            #region Level System Skills
+            LevelHandler.DoGainSkillExp(from, skill, skillName);
+            #endregion
+
+            if (skill == null)
 				return false;
 
 			CrystalBallOfKnowledge.TellSkillDifficulty(from, skillName, chance);
@@ -336,6 +368,14 @@ namespace Server.Misc
 
         public static void Gain(Mobile from, Skill skill)
         {
+            #region Level System
+            Configured c = new Configured();
+            if (c.DisableSkillGain == true && from is PlayerMobile)
+            {
+                return;
+            }
+            #endregion
+
             Gain(from, skill, (int)(from.Region.SkillGain(from) * 10));
         }
 

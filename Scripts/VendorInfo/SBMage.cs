@@ -47,7 +47,7 @@ namespace Server.Mobiles
                 //UOSI - removed some of the potions. Go see an alchemist!
                 Add(new GenericBuyInfo(typeof(RefreshPotion), 15, 10, 0xF0B, 0, true));
                 //Add(new GenericBuyInfo(typeof(AgilityPotion), 15, 10, 0xF08, 0, true));
-                Add(new GenericBuyInfo(typeof(NightSightPotion), 15, 10, 0xF06, 0, true));
+                //Add(new GenericBuyInfo(typeof(NightSightPotion), 15, 10, 0xF06, 0, true));
                 Add(new GenericBuyInfo(typeof(LesserHealPotion), 15, 10, 0xF0C, 0, true));
                 //Add(new GenericBuyInfo(typeof(StrengthPotion), 15, 10, 0xF09, 0, true));
                 //Add(new GenericBuyInfo(typeof(LesserPoisonPotion), 15, 10, 0xF0A, 0, true));
@@ -112,7 +112,7 @@ namespace Server.Mobiles
 
                 foreach (KeyValuePair<int, int> x in Retorno4)
                 {
-                    Add(new GenericBuyInfo(types[x.Key], 12 + (x.Value / (8 * 4)), rnd.Next(1,10), x.Value, 0, true));
+                    Add(new GenericBuyInfo(types[x.Key], 12 + (x.Value / (8 * 4)), 10, x.Value, 0, true)); //UOSI Changed so there's 10 of each scroll sold, from rnd.Next(1,10)
                 }
             }
 			

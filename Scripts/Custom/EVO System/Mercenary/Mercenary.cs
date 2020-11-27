@@ -66,6 +66,8 @@ namespace Xanthos.Evo
 			hair.Hue = Utility.RandomNondyedHue();
 			hair.Layer = Layer.Hair;
 			hair.Movable = false;
+            PassiveSpeed = 0.4;
+            ActiveSpeed = 0.2;
 			AddItem( hair );
 
 			if ( Female = Utility.RandomBool() )

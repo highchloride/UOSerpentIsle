@@ -42,7 +42,7 @@ namespace Server.Regions
 
                 if(!hasCrystal)
                 {
-                    Timer.DelayCall(TimeSpan.FromSeconds(5), () => OnBeforeDream(m as PlayerMobile));
+                    Timer.DelayCall(TimeSpan.FromSeconds(2), () => OnBeforeDream(m as PlayerMobile));
                 }
             }            
         }
@@ -63,6 +63,14 @@ namespace Server.Regions
                 return;
 
             m.SendMessage("Thou hast fallen asleep.");
+
+            //Is the player trying to drag anything? if so, drop it into backpack.
+            Item held = m.Holding;
+
+            if(held != null)
+            {
+                m.AddToBackpack(held);
+            }
 
             //Create the player's box and label it
             MetalBox playerBox = new MetalBox();
@@ -96,9 +104,16 @@ namespace Server.Regions
             //Move the container away
             playerBox.MoveToWorld(new Point3D(0, 0, 0), Map.SerpentIsle);
 
-            //Move pets away
-            foreach (Mobile mobile in m.AllFollowers)
+            Mobile pMount = null;
+            if (m.Mounted)
+                pMount = m.Mount as Mobile;
+
+            foreach (Mobile mobile in ((PlayerMobile)m).AllFollowers)
             {
+                if (pMount != null)
+                    if (mobile == pMount)
+                        continue;
+
                 mobile.MoveToWorld(new Point3D(0, 0, 0), Map.SerpentIsle);
                 mobile.Frozen = true;
             }

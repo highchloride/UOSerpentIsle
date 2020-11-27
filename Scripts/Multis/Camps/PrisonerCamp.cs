@@ -9,11 +9,14 @@ namespace Server.Multis
      {
         private BaseDoor m_Gate;
         private int m_CampType = 0;
+        private Key m_key;
 
          [Constructable]
          public PrisonerCamp(int CampType = 4) : base( 0x1D4C )
          {
             m_CampType = CampType;
+            m_key = new Key(KeyType.Iron, Key.RandomValue());
+            m_key.Name = "Prison Key";
          }
 
          public override void AddComponents()
@@ -21,8 +24,10 @@ namespace Server.Multis
              IronGate gate = new IronGate( DoorFacing.EastCCW );
              m_Gate = gate;
 
-             gate.KeyValue = Key.RandomValue();
+
+            gate.KeyValue = m_key.KeyValue;
              gate.Locked = true;
+            
 
              AddItem( gate, -2, 1, 0 );
 			 AddCampChests();
@@ -151,7 +156,7 @@ namespace Server.Multis
 
             TreasureMapChest.Fill(chest, Utility.Random(10, 40), Utility.Random(1,2), false, Map.SerpentIsle); //UOSI draws random values for level and luck
 
-            this.AddItem(chest, -2, 2, 0);
+            this.AddItem(chest, -1, 2, 0);
 
             LockableContainer crates = null;
 
@@ -172,7 +177,7 @@ namespace Server.Multis
             }
 
             crates.TrapType = TrapType.ExplosionTrap;
-            crates.TrapPower = Utility.RandomMinMax(30, 40);
+            crates.TrapPower = Utility.RandomMinMax(20, 40);
             crates.TrapLevel = 2;
 
             crates.RequiredSkill = 76;
@@ -183,6 +188,7 @@ namespace Server.Multis
             crates.DropItem(new Gold(Utility.RandomMinMax(100, 400)));
             crates.DropItem(new Arrow(10));
             crates.DropItem(new Bolt(10));
+            crates.DropItem(m_key);
 
             crates.LiftOverride = true;
 

@@ -46,7 +46,9 @@ namespace Server.Mobiles
         }
         public override void InitSBInfo()
         {
-            this.m_SBInfos.Add(new SBMage());
+            //UOSI updated to use SBPoor
+            //this.m_SBInfos.Add(new SBMage());
+            this.m_SBInfos.Add(new SBMagePoor());
         }
 
         public override void InitOutfit()

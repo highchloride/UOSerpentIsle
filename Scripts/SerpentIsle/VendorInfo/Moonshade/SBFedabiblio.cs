@@ -31,6 +31,7 @@ namespace Server.Mobiles
         {
             public InternalBuyInfo()
             {
+                Random rnd = new Random();
                 Add(new GenericBuyInfo(typeof(Spellbook), 18, 10, 0xEFA, 0));
 
                 if (Core.AOS)
@@ -54,22 +55,22 @@ namespace Server.Mobiles
                 Add(new GenericBuyInfo(typeof(LesserCurePotion), 15, 10, 0xF07, 0, true));
                 //Add(new GenericBuyInfo(typeof(LesserExplosionPotion), 21, 10, 0xF0D, 0, true));
 
-                Add(new GenericBuyInfo(typeof(BlackPearl), 5, 20, 0xF7A, 0));
-                Add(new GenericBuyInfo(typeof(Bloodmoss), 5, 20, 0xF7B, 0));
-                Add(new GenericBuyInfo(typeof(Garlic), 3, 20, 0xF84, 0));
-                Add(new GenericBuyInfo(typeof(Ginseng), 3, 20, 0xF85, 0));
-                Add(new GenericBuyInfo(typeof(MandrakeRoot), 3, 20, 0xF86, 0));
-                Add(new GenericBuyInfo(typeof(Nightshade), 3, 20, 0xF88, 0));
-                Add(new GenericBuyInfo(typeof(SpidersSilk), 3, 20, 0xF8D, 0));
-                Add(new GenericBuyInfo(typeof(SulfurousAsh), 3, 20, 0xF8C, 0));
+                Add(new GenericBuyInfo(typeof(BlackPearl), 5, rnd.Next(30, 120), 0xF7A, 0));
+                Add(new GenericBuyInfo(typeof(Bloodmoss), 5, rnd.Next(30, 120), 0xF7B, 0));
+                Add(new GenericBuyInfo(typeof(Garlic), 3, rnd.Next(50, 150), 0xF84, 0));
+                Add(new GenericBuyInfo(typeof(Ginseng), 3, rnd.Next(50, 150), 0xF85, 0));
+                Add(new GenericBuyInfo(typeof(MandrakeRoot), 3, rnd.Next(30, 120), 0xF86, 0));
+                Add(new GenericBuyInfo(typeof(Nightshade), 3, rnd.Next(30, 120), 0xF88, 0));
+                Add(new GenericBuyInfo(typeof(SpidersSilk), 3, rnd.Next(30, 120), 0xF8D, 0));
+                Add(new GenericBuyInfo(typeof(SulfurousAsh), 3, rnd.Next(30, 120), 0xF8C, 0));
 
                 if (Core.AOS)
                 {
-                    Add(new GenericBuyInfo(typeof(BatWing), 3, 999, 0xF78, 0));
-                    Add(new GenericBuyInfo(typeof(DaemonBlood), 6, 999, 0xF7D, 0));
-                    Add(new GenericBuyInfo(typeof(PigIron), 5, 999, 0xF8A, 0));
-                    Add(new GenericBuyInfo(typeof(NoxCrystal), 6, 999, 0xF8E, 0));
-                    Add(new GenericBuyInfo(typeof(GraveDust), 3, 999, 0xF8F, 0));
+                    Add(new GenericBuyInfo(typeof(BatWing), 3, rnd.Next(30, 120), 0xF78, 0));
+                    Add(new GenericBuyInfo(typeof(DaemonBlood), 6, rnd.Next(30, 120), 0xF7D, 0));
+                    Add(new GenericBuyInfo(typeof(PigIron), 5, rnd.Next(30, 120), 0xF8A, 0));
+                    Add(new GenericBuyInfo(typeof(NoxCrystal), 6, rnd.Next(30, 120), 0xF8E, 0));
+                    Add(new GenericBuyInfo(typeof(GraveDust), 3, rnd.Next(30, 120), 0xF8F, 0));
                 }
 
                 Type[] types = Loot.RegularScrollTypes;
@@ -93,7 +94,7 @@ namespace Server.Mobiles
                  *  Magery Random Scrolls
                  *  by joew
                 */
-                Random rnd = new Random();
+                //Random rnd = new Random();
                 List<KeyValuePair<int, int>> Retorno4 = new List<KeyValuePair<int, int>>(); // Array contains scrolls
                 Retorno4 = RandomScroll(1, rnd.Next(4, 5)); // RandomScroll(Circle, Amount) => Sorts Amount units of circle Circle.
 
@@ -116,7 +117,7 @@ namespace Server.Mobiles
 
                 foreach (KeyValuePair<int, int> x in Retorno4)
                 {
-                    Add(new GenericBuyInfo(types[x.Key], 12 + (x.Value / (8 * 4)), rnd.Next(1, 10), x.Value, 0, true));
+                    Add(new GenericBuyInfo(types[x.Key], 12 + (x.Value / (8 * 4)), 10, x.Value, 0, true));
                 }
             }
 
@@ -171,7 +172,8 @@ namespace Server.Mobiles
                 MageryScrolls.Add(new KeyValuePair<string, int>("GreaterHealScroll", 0x1F49));
                 MageryScrolls.Add(new KeyValuePair<string, int>("LightningScroll", 0x1F4A));
                 MageryScrolls.Add(new KeyValuePair<string, int>("ManaDrainScroll", 0x1F4B));
-                MageryScrolls.Add(new KeyValuePair<string, int>("RecallScroll", 0x1F4C));
+                MageryScrolls.Add(new KeyValuePair<string, int>("GreaterHealScroll", 0x1F49)); // Double to make the numbers the same while removing the travel spells that we don't want.
+                //MageryScrolls.Add(new KeyValuePair<string, int>("RecallScroll", 0x1F4C));
 
                 // Fifth Circle Scrolls
                 MageryScrolls.Add(new KeyValuePair<string, int>("BladeSpiritsScroll", 0x1F4D));
@@ -188,7 +190,8 @@ namespace Server.Mobiles
                 MageryScrolls.Add(new KeyValuePair<string, int>("EnergyBoltScroll", 0x1F56));
                 MageryScrolls.Add(new KeyValuePair<string, int>("ExplosionScroll", 0x1F57));
                 MageryScrolls.Add(new KeyValuePair<string, int>("InvisibilityScroll", 0x1F58));
-                MageryScrolls.Add(new KeyValuePair<string, int>("MarkScroll", 0x1F59));
+                MageryScrolls.Add(new KeyValuePair<string, int>("EnergyBoltScroll", 0x1F56)); // Double to make the numbers the same while removing the travel spells that we don't want.
+                //MageryScrolls.Add(new KeyValuePair<string, int>("MarkScroll", 0x1F59));
                 MageryScrolls.Add(new KeyValuePair<string, int>("MassCurseScroll", 0x1F5A));
                 MageryScrolls.Add(new KeyValuePair<string, int>("ParalyzeFieldSpell", 0x1F5B));
                 MageryScrolls.Add(new KeyValuePair<string, int>("RevealScroll", 0x1F5C));
@@ -197,11 +200,12 @@ namespace Server.Mobiles
                 MageryScrolls.Add(new KeyValuePair<string, int>("ChainLightningScroll", 0x1F5D));
                 MageryScrolls.Add(new KeyValuePair<string, int>("EnergyFieldScroll", 0x1F5E));
                 MageryScrolls.Add(new KeyValuePair<string, int>("FlamestrikeScroll", 0x1F5F));
-                MageryScrolls.Add(new KeyValuePair<string, int>("GateTravelScroll", 0x1F60));
+                //MageryScrolls.Add(new KeyValuePair<string, int>("GateTravelScroll", 0x1F60));
                 MageryScrolls.Add(new KeyValuePair<string, int>("ManaVampireScroll", 0x1F61));
                 MageryScrolls.Add(new KeyValuePair<string, int>("MassDispelScroll", 0x1F62));
                 MageryScrolls.Add(new KeyValuePair<string, int>("MeteorStormScroll", 0x1F63));
                 MageryScrolls.Add(new KeyValuePair<string, int>("PolymorphScroll", 0x1F64));
+                MageryScrolls.Add(new KeyValuePair<string, int>("PolymorphScroll", 0x1F64));// Double to make the numbers the same while removing the travel spells that we don't want.
 
                 // Eighth Circle Scrolls
                 MageryScrolls.Add(new KeyValuePair<string, int>("EarthquakeScroll", 0x1F65));

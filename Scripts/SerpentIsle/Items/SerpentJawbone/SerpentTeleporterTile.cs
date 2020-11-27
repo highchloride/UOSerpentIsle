@@ -84,6 +84,8 @@ namespace Server.Items
                     {
                         if (type == typeof(SerpentToothMonitor))
                             m_RequiredTooth = new SerpentToothMonitor();
+                        else if (type == typeof(SerpentToothMoonshade))
+                            m_RequiredTooth = new SerpentToothMoonshade();
                     }
                     break;
             }                

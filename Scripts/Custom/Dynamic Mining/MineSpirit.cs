@@ -64,8 +64,28 @@ namespace Server.Mobiles
 			{
 				//can use cliloc cf 1007072 if ores not custom
 				string ore = m_OreType.Name;//UOSI: Changed it to just the regular name for now //use substring, my customs ore have a getname method
+
+                switch(ore)
+                {
+                    case "DullCopperOre":
+                        {
+                            ore = "Dull Copper ore";
+                            break;
+                        }
+                    case "IronOre":
+                        {
+                            ore = "Iron ore";
+                            break;
+                        }
+                    default:
+                        {
+                            ore = "ore";
+                            break;
+                        }
+                }
+
 				
-				return "You place some "+ore+ " in your backpack";
+				return "You place some " +ore+ " in your backpack";
 			}
 		}
 		

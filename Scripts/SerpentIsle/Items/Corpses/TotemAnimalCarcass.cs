@@ -9,7 +9,9 @@ namespace Server.SerpentIsle.Items.Corpses
     public class TotemAnimalCarcass : Item
     {
         public TotemAnimalCarcass()
-        { }
+        {
+            LootType = LootType.Blessed;
+        }
 
         public TotemAnimalCarcass(Serial serial) : base(serial)
         { }

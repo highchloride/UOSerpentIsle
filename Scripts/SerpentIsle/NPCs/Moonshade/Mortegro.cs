@@ -6,14 +6,16 @@ using Server.Items;
 
 namespace Server.Mobiles
 {
-    class Mortegro : TalkingBaseCreature
+    class Mortegro : TalkingBaseVendor
     {
+        private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
+
         [Constructable]
-        public Mortegro() : base(AIType.AI_Mage, FightMode.None, 5, 1, 0.1, 0.2)
+        public Mortegro() : base("the Necromancer")
         {
             Name = "Mortegro";
             Female = false;
-            InitBody();
+            //InitBody();
             SetHits(HitsMax);
         }
 
@@ -21,7 +23,7 @@ namespace Server.Mobiles
         {
         }
 
-        public void InitBody()
+        public override void InitBody()
         {
             Body = 0x190;
             Hue = 33791;
@@ -30,7 +32,7 @@ namespace Server.Mobiles
             InitOutfit();
         }
 
-        public void InitOutfit()
+        public override void InitOutfit()
         {
             Item hair = new Item(8261)
             {
@@ -62,6 +64,18 @@ namespace Server.Mobiles
             //AddItem(shoes);
 
             PackGold(50, 200);
+        }
+
+        protected override List<SBInfo> SBInfos
+        {
+            get
+            {
+                return this.m_SBInfos;
+            }
+        }
+        public override void InitSBInfo()
+        {
+            this.m_SBInfos.Add(new SBMortegro());
         }
 
         public override void Serialize(GenericWriter writer)

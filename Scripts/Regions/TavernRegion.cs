@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using Server.Mobiles;
+using Server.Targeting;
+using Xanthos.ShrinkSystem;
 
 namespace Server.Regions
 {
@@ -18,7 +20,7 @@ namespace Server.Regions
         {
             base.OnEnter(m);
 
-            //UOSI
+            //UOSI - Do not apply anything below here to anything that isn't a Playermobile.
             if (!(m is PlayerMobile))
                 return;
 
@@ -30,37 +32,26 @@ namespace Server.Regions
             if (!(m.Region.GetType() == typeof(TavernRegion)))
                 return;
 
-            switch(Utility.Random(2))
+            if (m.Hunger != 20 || m.Thirst != 20)
             {
-                default:
-                case 0:
-                    {
-                        if(m.Hunger < 20)
-                        {
-                            m.Hunger += 1;
-                            break;
-                        }
-                        else
-                        {
-                            goto case 1;
-                        }
-                    }                    
-                case 1:
-                    if (m.Thirst < 20)
-                    {
-                        m.Thirst += 1;
-                        break;
-                    }
-                    else
-                    {
-                        if (m.Hunger < 21)
-                            goto case 0;
-                        else
-                            break;
-                    }
+                if (m.Hunger > m.Thirst)
+                    m.Thirst++;
+                else
+                    m.Hunger++;
             }
 
             Timer.DelayCall(TimeSpan.FromSeconds(11), () => RegainHunger(m as PlayerMobile));
+        }
+
+        public override bool OnDoubleClick(Mobile m, object o)
+        {
+            if(o is ShrinkItem)
+            {
+                m.SendMessage("You cannot do this in a tavern.");
+                return false;
+            }
+
+            return base.OnDoubleClick(m, o);
         }
     }
 }

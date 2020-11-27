@@ -205,7 +205,13 @@ namespace Server.Items
         public virtual double IDChange { get { return 0.5; } }
         public virtual bool DeleteOnDestroy { get { return true; } }
         public virtual bool Alive { get { return !Destroyed; } }
-        public virtual bool CanDamage { get { return true; } }
+
+        private bool m_CanDamage;
+        public virtual bool CanDamage
+        {
+            get { return m_CanDamage; }
+            set { m_CanDamage = value; }
+        }
 
         public override int PhysicalResistance { get { return ResistBasePhys; } }
         public override int FireResistance { get { return ResistBaseFire; } }

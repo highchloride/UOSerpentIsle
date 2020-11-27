@@ -54,8 +54,15 @@ namespace Server.ContextMenus
 
 			if (target is Mobile)
 			{
-				((Mobile)target).GetContextMenuEntries(from, list);
-			}
+                //UOSI - Commented out to remove context menus from NPCs
+                //((Mobile)target).GetContextMenuEntries(from, list);
+
+                //UOSI - This should let us get the context menu for ourselves only
+                if (from.Serial == target.Serial)
+                {
+                    ((Mobile)target).GetContextMenuEntries(from, list);
+                }
+            }            
 			else if (target is Item)
 			{
 				((Item)target).GetContextMenuEntries(from, list);

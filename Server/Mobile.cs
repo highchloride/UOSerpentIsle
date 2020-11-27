@@ -1590,7 +1590,21 @@ namespace Server
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public int Thirst { get { return m_Thirst; } set { m_Thirst = value; } }
+		public int Thirst
+        {
+            get { return m_Thirst; }
+            set
+            {
+                int oldValue = m_Thirst;
+
+                if(oldValue != value)
+                {
+                    m_Thirst = value;
+
+                    EventSink.InvokeThirstChanged(new ThirstChangedEventArgs(this, oldValue));
+                }                
+            }
+        }
 
 		[CommandProperty(AccessLevel.Decorator)]
 		public int BAC { get { return m_BAC; } set { m_BAC = value; } }
@@ -9997,12 +10011,12 @@ namespace Server
 
 		public void InvalidateProperties()
 		{
-			if (!ObjectPropertyList.Enabled)
-			{
-				return;
-			}
+            if (!ObjectPropertyList.Enabled)
+            {
+                return;
+            }
 
-			if (m_Map != null && m_Map != Map.Internal && !World.Loading)
+            if (m_Map != null && m_Map != Map.Internal && !World.Loading)
 			{
 				ObjectPropertyList oldList = m_PropertyList;
 				Packet.Release(ref m_PropertyList);

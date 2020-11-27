@@ -76,8 +76,16 @@ namespace Server.Regions
             }
 
             //Move pets back
+            Mobile pMount = null;
+            if (m.Mounted)
+                pMount = m.Mount as Mobile;
+
             foreach (Mobile mobile in ((PlayerMobile)m).AllFollowers)
             {
+                if (pMount != null)
+                    if (mobile == pMount)
+                        continue;
+
                 mobile.MoveToWorld(new Point3D(650, 881, 0), Map.SerpentIsle);
                 mobile.Frozen = false;
             }
@@ -136,5 +144,14 @@ namespace Server.Regions
             return base.OnBeginSpellCast(m, s);
         }
 
+        public override bool OnSkillUse(Mobile m, int Skill)
+        {
+            if(Skill == 35)
+            {
+                m.SendMessage("This doesn't seem possible.");
+                return false;
+            }
+            return base.OnSkillUse(m, Skill);
+        }
     }
 }

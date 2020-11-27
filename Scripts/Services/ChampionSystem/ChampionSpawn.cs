@@ -50,6 +50,13 @@ namespace Server.Engines.CannedEvil
             get { return m_Creatures; }
         }
 
+        //UOSI - Enable/Disable the Ghost Check functionality that kicks the dead out of the fight
+        [CommandProperty(AccessLevel.GameMaster)]
+        public bool GhostCheckActive
+        {
+            get; set;
+        }
+
 		[CommandProperty(AccessLevel.GameMaster)]
 		public string GroupName { get; set; }
 
@@ -715,7 +722,7 @@ namespace Server.Engines.CannedEvil
                 Respawn();
             }
 
-            if (m_Timer != null && m_Timer.Running && _NextGhostCheck < DateTime.UtcNow)
+            if (GhostCheckActive && m_Timer != null && m_Timer.Running && _NextGhostCheck < DateTime.UtcNow)
             {
                 foreach (var ghost in m_Region.GetEnumeratedMobiles().OfType<PlayerMobile>().Where(pm => !pm.Alive && (pm.Corpse == null || pm.Corpse.Deleted)))
                 {

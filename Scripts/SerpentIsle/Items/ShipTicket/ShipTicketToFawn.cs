@@ -63,8 +63,17 @@ namespace Server.Items
                         //shipTicketTele.OnMoveOver(from);
                         from.SendMessage("Thy ticket is taken as thou board the vessel.");
                         from.MoveToWorld(shipTicketTele.DestFawn, Map.SerpentIsle);
+
+                        Mobile pMount = null;
+                        if (from.Mounted)
+                            pMount = from.Mount as Mobile;
+
                         foreach(Mobile mobile in ((PlayerMobile)from).AllFollowers)
                         {
+                            if (pMount != null)
+                                if (mobile == pMount)
+                                    continue;
+
                             mobile.MoveToWorld(from.Location, Map.SerpentIsle);
                         }
                             

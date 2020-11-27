@@ -151,8 +151,8 @@ namespace Xanthos.ShrinkSystem
 			else if ( ShrinkCommands.LockDown == true && !m_IgnoreLockDown )
 				from.SendMessage( 54, "The server is on a shrinkitem lockdown. You cannot unshrink your pet at this time." );
 
-			else if ( !m_Pet.CanBeControlledBy( from ))
-				from.SendMessage( "You do not have the required skills to control this pet.");
+			//else if ( !m_Pet.CanBeControlledBy( from ))
+				//from.SendMessage( "You do not have the required skills to control this pet.");
 
 			else
 				UnshrinkPet( from );

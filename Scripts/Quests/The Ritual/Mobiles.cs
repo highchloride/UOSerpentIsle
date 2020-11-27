@@ -70,6 +70,7 @@ namespace Server.Engines.Quests.RitualQuest
         }
     }
 
+    /* UOSI - Removed due to crashing the server
     public class Bexil : MondainQuester
     {
         public override Type[] Quests { get { return new Type[] { typeof(CatchMeIfYouCanQuest) }; } }
@@ -243,6 +244,7 @@ namespace Server.Engines.Quests.RitualQuest
             }
         }
     }
+    */
 
     public class Grubbix : MondainQuester
     {

@@ -14,10 +14,9 @@ namespace Server.Items
                 "This baffling tome",
                 "discusses nonsense terms",
                 "like 'serialization' and",
-                "overall seems to",
-                "advocate a philosophy",
-                "called 'break it til you",
-                "make it.'"
+                "seems to advocate",
+                "a philosophy called",
+                "'break it til you make it.'"
             )
         );
 

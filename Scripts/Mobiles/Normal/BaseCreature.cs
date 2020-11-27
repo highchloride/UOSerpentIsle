@@ -1455,6 +1455,22 @@ namespace Server.Mobiles
 
         public override string ApplyNameSuffix(string suffix)
         {
+            #region Level System
+            Configured c = new Configured();
+            XMLPetLevelAtt petxml2 = (XMLPetLevelAtt)XmlAttach.FindAttachment(this, typeof(XMLPetLevelAtt));
+            int cl = LevelCore.CreatureLevel(this, new Configured());
+            if (c.CreatureLevels && petxml2 == null)
+            {
+                if (cl > 0)
+                {
+                    if (suffix.Length == 0)
+                        suffix = String.Concat(suffix, "(level " + cl + ")");
+                    else
+                        suffix = String.Concat(suffix, " (level " + cl + ")");
+                }
+            }
+            #endregion
+
             if (IsParagon && !GivesMLMinorArtifact)
             {
                 if (suffix.Length == 0)
@@ -1469,6 +1485,24 @@ namespace Server.Mobiles
 
             return base.ApplyNameSuffix(suffix);
         }
+
+        #region Player Level system - BaseCreature Expansion
+        public override void GetProperties(ObjectPropertyList list)
+        {
+            base.GetProperties(list);
+            ConfiguredPetXML cp2 = new ConfiguredPetXML();
+            XMLPetLevelAtt petxml = (XMLPetLevelAtt)XmlAttach.FindAttachment(this, typeof(XMLPetLevelAtt));
+            if (cp2.LevelBelowPet)
+            {
+                if (petxml != null)
+                {
+                    int petlevelint = LevelCore.PetLevelXML(this, new Configured());
+                    list.Add("<BASEFONT COLOR=#7FCAE7>Level: <BASEFONT COLOR=#17FF01>" + petlevelint);
+                }
+            }
+
+        }
+        #endregion
 
         public virtual bool CheckControlChance(Mobile m)
         {

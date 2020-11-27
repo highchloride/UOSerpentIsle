@@ -201,8 +201,8 @@ namespace Server.Misc
 
             newChar.Hue = args.Hue | 0x8000;
 
-			newChar.Hunger = 20;
-            newChar.Thirst = 20; //UOSI added for the hunger/thirst system
+			newChar.Hunger = 18;
+            newChar.Thirst = 18; //UOSI added for the hunger/thirst system
 
 			var young = false;
 

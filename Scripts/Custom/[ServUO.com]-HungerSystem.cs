@@ -23,13 +23,13 @@ namespace Server.Items
         public static void Initialize()
 		{
             //If these changes work, the hunger system will only be activated based on a value in server.cfg
-            //I don't think this worked
+            //I don't think this worked - SCRATCH THAT IT WORKS
             active = Config.Get("Server.UseHunger", false);
 
             new FoodDecayTimer().Start();
 		}
 
-		public FoodDecayTimer() : base( TimeSpan.FromMinutes( 10 ), TimeSpan.FromMinutes( 10 ) )
+		public FoodDecayTimer() : base( TimeSpan.FromMinutes( 6 ), TimeSpan.FromMinutes( 10 ) )
 		{
 			Priority = TimerPriority.OneMinute;
 		}
@@ -46,8 +46,15 @@ namespace Server.Items
 			{
 				if ( state.Mobile != null && state.Mobile.AccessLevel == AccessLevel.Player && !state.Mobile.IsYoung() && state.ConnectedFor > new TimeSpan(5000)) // Check if player and not young and actually connected
                 {
-					HungerDecay( state.Mobile );
-					ThirstDecay( state.Mobile );
+                    switch(Utility.Random(2))
+                    {
+                        case 0:
+                            HungerDecay(state.Mobile);
+                            break;
+                        case 1:
+                            ThirstDecay(state.Mobile);
+                            break;
+                    }					
                 }
 			}
 		}

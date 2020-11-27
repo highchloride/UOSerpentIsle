@@ -27,8 +27,8 @@ namespace Server.Items
         {
             get
             {
-                return DynamicMining.GetSystem(this);
-                //return Mining.System; //UOSI - Trying to include this in the Dynamic Mining system.
+                //return DynamicMining.GetSystem(this);
+                return Mining.System; //UOSI - Trying to include this in the Dynamic Mining system.
             }
         }
         public override void Serialize(GenericWriter writer)

@@ -28,15 +28,15 @@ namespace Server.Mobiles
         {
             get
             {
-                return this.m_SBInfos;
+                return m_SBInfos;
             }
         }
         public override void InitSBInfo()
         {
             if (!Core.AOS)
-                this.m_SBInfos.Add(new SBHouseDeed());
+                m_SBInfos.Add(new SBHouseDeed());
 
-            this.m_SBInfos.Add(new SBArchitect());
+            m_SBInfos.Add(new SBArchitect());
         }
 
         public override void Serialize(GenericWriter writer)

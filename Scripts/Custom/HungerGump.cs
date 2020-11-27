@@ -31,8 +31,7 @@ namespace Server.Commands
 			Mobile from = e.Mobile;
 			from.CloseGump( typeof( gumpfaim ) );
 			from.SendGump( new gumpfaim ( from ) );
-		}
-		
+		}		
 	}
 }
 
@@ -40,9 +39,10 @@ namespace Server.Gumps
 {
 	public class gumpfaim : SuperGump
 	{
-
         GumpLabel hungerLabel;
         GumpLabel thirstLabel;
+
+        bool eventUpdate = false;
 
         public gumpfaim(Mobile caller, int x = 0, int y = 0) : base(caller, null, 0, 0)
 		{
@@ -52,7 +52,10 @@ namespace Server.Gumps
             this.Y = y;
 
             AutoRefresh = true;
-            AutoRefreshRate = new TimeSpan(0, 0, 5);
+            //AutoRefreshRate = new TimeSpan(0, 0, 5);
+
+            AllowMultiple = false;
+
 
 			Closable = true;
 			Dragable = true;
@@ -60,10 +63,42 @@ namespace Server.Gumps
 			AddPage(0);
 
             CreateGump();
+
+            //EventSink.HungerChanged += OnHunger;
+            //EventSink.ThirstChanged += OnThirst;
+
             //AddLabel(60, 90, 0, "Refresh");
            // AddButton(115, 90, 2130, 2129, 1, GumpButtonType.Reply, 1); // Okay button
         }
 
+        private void OnHunger(HungerChangedEventArgs e)
+        {
+            if (eventUpdate)
+                return;
+
+            eventUpdate = true;
+            RefreshGump();
+        }
+
+        private void OnThirst(ThirstChangedEventArgs e)
+        {
+            //if (eventUpdate)
+            //    return;
+
+            //eventUpdate = true;
+            //RefreshGump();
+
+            Gump hungerGump = User.FindGump(typeof(gumpfaim)) as Gump;
+            if (hungerGump != null)
+            {
+                User.CloseGump(typeof(gumpfaim));
+                User.SendGump(new gumpfaim(User));
+            }
+            else
+            {
+                User.SendGump(new gumpfaim(User, this.X, this.Y));
+            }
+        }
         private void CreateGump()
         {
             AddBackground(0, 0, /*295*/ 215, 114, 5054);
@@ -86,12 +121,28 @@ namespace Server.Gumps
             thirstLabel.Text = string.Format("Thirst: {0} / 20", User.Thirst);
         }
 
-        protected override void OnAutoRefresh()
+        private void RefreshGump()
         {
-            User.CloseGump(typeof(gumpfaim));
-            User.SendGump(new gumpfaim(User, this.X, this.Y));
-            //base.OnAutoRefresh();
+            Gump hungerGump = User.FindGump(typeof(gumpfaim)) as Gump;
+            if (hungerGump != null)
+            {
+                User.CloseGump(typeof(gumpfaim));
+                User.SendGump(new gumpfaim(User));
+            }
+            else
+            {
+                User.SendGump(new gumpfaim(User, this.X, this.Y));
+            }
+
+            eventUpdate = false;
         }
+
+        //protected override void OnAutoRefresh()
+        //{
+        //    User.CloseGump(typeof(gumpfaim));
+        //    User.SendGump(new gumpfaim(User, this.X, this.Y));
+        //    base.OnAutoRefresh();
+        //}
 
         public override void OnResponse( Server.Network.NetState sender, RelayInfo info )
 		{

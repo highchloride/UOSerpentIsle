@@ -27,6 +27,14 @@ namespace Server.Engines.BulkOrders
             Rectangle2D rec = ItemBounds.Table[0x2258];
 
             AddItem(115 + rec.Width / 2 - rec.X, 110 + rec.Height / 2 - rec.Y, 0x2258, BulkOrderSystem.GetBodHue(this.BODType));
+
+            #region Level System Mod
+            Configured c = new Configured();
+            if (c.GainExpFromBods == true)
+            {
+                LevelHandler.BodGainEXP(user, (int)points);
+            }
+            #endregion
         }
 
         private static void OnSave(Mobile m, object state)

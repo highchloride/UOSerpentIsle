@@ -71,106 +71,131 @@ namespace Server.Items
 
         public override void OnDoubleClick( Mobile from )
 		{
-			if ( this.ItemID == 0xA21 ) // EMPTY
-			{
-				bool soaked;
-				CheckWater( from, 3, out soaked );
+            bool soaked;
 
-				if ( !IsChildOf( from.Backpack ) ) 
-				{
-					from.SendMessage( "This must be in your backpack to fill." );
-					return;
-				}
-				else if ( soaked )
-				{
-					from.PlaySound( 0x240 );
-					this.ItemID = 0x98F;
-					this.Name = "waterskin";
-                    this.Quantity = this.MaxQuantity;
-                    InvalidateProperties();
+            if (this.Quantity == this.MaxQuantity) //Full
+            {
+                DrinkWater(from);
+            }
+            else if(this.Quantity < this.MaxQuantity) //Not full
+            {
+                CheckWater(from, 3, out soaked);
+                if(soaked)
+                {
+                    FillWater(from, soaked);
                 }
-				else
-				{
-					from.SendMessage( "You can only fill this at a water trough, tub, fountain, or barrel!" ); 
-				}
-			}
-			else
-			{
-				if ( !IsChildOf( from.Backpack ) ) 
-				{
-					from.SendMessage( "This must be in your backpack to drink." );
-					return;
-				}
-				else
-				{
-                    //If thirsty
-					if ( from.Thirst < 20 )
-					{
-                        //Add to thirst and normalize to 20
-						from.Thirst += 5;
-                        if (from.Thirst > 20)
-                            from.Thirst = 20;
+                else if(!soaked && this.Quantity > 0)
+                {
+                    DrinkWater(from);
+                }
+                else if(!soaked && this.Quantity == 0)
+                {
+                    from.SendMessage("You can only fill this at a water trough, tub, fountain, or barrel!");
+                }                
+            }
+            else //Inbetween
+            {
 
-						// Send message to character about their current thirst value
-						int iThirst = from.Thirst;
-						if ( iThirst < 5 )
-							from.SendMessage( "You drink the water but are still extremely thirsty" );
-						else if ( iThirst < 10 )
-							from.SendMessage( "You drink the water and feel less thirsty" );
-						else if ( iThirst < 15 )
-							from.SendMessage( "You drink the water and feel much less thirsty" ); 
-						else
-							from.SendMessage( "You drink the water and are no longer thirsty" );
+            }
+        }
 
-                        //Drinking anim
-                        if ( from.Body.IsHuman && !from.Mounted )
-							from.Animate( 34, 5, 1, true, false, 0 );
+        private void DrinkWater(Mobile from)
+        {
+            if (!IsChildOf(from.Backpack))
+            {
+                from.SendMessage("This must be in your backpack to drink.");
+                return;
+            }
+            else
+            {
+                //If thirsty
+                if (from.Thirst < 20)
+                {
+                    //Add to thirst and normalize to 20
+                    from.Thirst += 5;
+                    if (from.Thirst > 20)
+                        from.Thirst = 20;
 
-						from.PlaySound( Utility.RandomList( 0x30, 0x2D6 ) );
+                    // Send message to character about their current thirst value
+                    int iThirst = from.Thirst;
+                    if (iThirst < 5)
+                        from.SendMessage("You drink the water but are still extremely thirsty");
+                    else if (iThirst < 10)
+                        from.SendMessage("You drink the water and feel less thirsty");
+                    else if (iThirst < 15)
+                        from.SendMessage("You drink the water and feel much less thirsty");
+                    else
+                        from.SendMessage("You drink the water and are no longer thirsty");
 
-                        
-                        this.Quantity -= 1;
-                        InvalidateProperties();
+                    //Drinking anim
+                    if (from.Body.IsHuman && !from.Mounted)
+                        from.Animate(34, 5, 1, true, false, 0);
 
-                        if (this.Quantity == 0)
+                    from.PlaySound(Utility.RandomList(0x30, 0x2D6));
+
+
+                    this.Quantity -= 1;
+                    InvalidateProperties();
+
+                    if (this.Quantity == 0)
+                    {
+                        this.ItemID = 0xA21;
+                        this.Name = "waterskin";
+                        from.SendMessage("Thou hast emptied thine waterskin.");
+                    }
+
+                    int iHeal = (int)from.Skills[SkillName.TasteID].Value;
+                    int iHurt = from.StamMax - from.Stam;
+
+                    if (iHurt > 0) // WIZARD DID THIS FOR TASTE ID
+                    {
+                        if (iHeal > iHurt)
                         {
-                            this.ItemID = 0xA21;
-                            this.Name = "waterskin";
-                            from.SendMessage("Thou hast emptied thine waterskin.");
-                        }					
+                            iHeal = iHurt;
+                        }
 
-						int iHeal = (int)from.Skills[SkillName.TasteID].Value;
-						int iHurt = from.StamMax - from.Stam;
+                        from.Stam = from.Stam + iHeal;
 
-						if ( iHurt > 0 ) // WIZARD DID THIS FOR TASTE ID
-						{
-							if ( iHeal > iHurt )
-							{
-								iHeal = iHurt;
-							}
+                        if (from.Poisoned)
+                        {
+                            if ((int)from.Skills[SkillName.TasteID].Value >= Utility.RandomMinMax(1, 100))
+                            {
+                                from.CurePoison(from);
+                                from.SendLocalizedMessage(1010059); // You have been cured of all poisons.
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    from.SendMessage("Thou art simply too quenched to drink any more!");
+                    //from.Thirst = 20;
+                }
+            }
+        }
 
-							from.Stam = from.Stam + iHeal;
+        private void FillWater(Mobile from, bool soaked)
+        {
+            if (!IsChildOf(from.Backpack))
+            {
+                from.SendMessage("This must be in your backpack to use.");
+                return;
+            }
+            else if (soaked)
+            {
+                from.PlaySound(0x240);
+                this.ItemID = 0x98F;
+                this.Name = "waterskin";
+                this.Quantity = this.MaxQuantity;
+                InvalidateProperties();
+            }
+            else
+            {
+                from.SendMessage("You can only fill this at a water trough, tub, fountain, or barrel!");
+            }
+        }
 
-							if ( from.Poisoned )
-							{
-								if ( (int)from.Skills[SkillName.TasteID].Value >= Utility.RandomMinMax( 1, 100 ) )
-								{
-									from.CurePoison( from );
-									from.SendLocalizedMessage( 1010059 ); // You have been cured of all poisons.
-								}
-							}
-						}
-					}
-					else
-					{
-						from.SendMessage( "Thou art simply too quenched to drink any more!" );
-						//from.Thirst = 20;
-					}
-				}
-			}
-		}
-
-		public Waterskin( Serial serial ) : base( serial )
+        public Waterskin( Serial serial ) : base( serial )
 		{
 		}
 

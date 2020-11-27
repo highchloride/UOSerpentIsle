@@ -47,7 +47,7 @@ using Server.Engines.VendorSearching;
 using Server.Targeting;
 
 using RankDefinition = Server.Guilds.RankDefinition;
-using Server.SerpentIsle.Systems.MoreLogging;
+//using Server.SerpentIsle.Systems.MoreLogging;
 #endregion
 
 namespace Server.Mobiles
@@ -1265,9 +1265,25 @@ namespace Server.Mobiles
                 ReportMurdererGump.CheckMurderer(from);
 
                 //UOSI
-                gumpfaim hungerGump = new gumpfaim(from);
-                from.CloseGump(typeof(gumpfaim));
-                from.SendGump(hungerGump);
+                Gump hungerGump = from.FindGump(typeof(gumpfaim)) as Gump;
+                if (hungerGump != null)
+                {
+                    from.CloseGump(typeof(gumpfaim));
+                    from.SendGump(new gumpfaim(from));
+                }
+                else
+                {
+                    from.SendGump(new gumpfaim(from));
+                }
+
+                EventSink.HungerChanged += RefreshHungerGump;
+                EventSink.ThirstChanged += RefreshThirstGump;
+
+
+                if ((from.Region.GetType() == typeof(Regions.DreamRegion)) && from.AccessLevel == AccessLevel.Player)
+                {
+                    from.Kill();
+                }
             }
             else if (Siege.SiegeShard && from.Map == Map.Trammel && from.AccessLevel == AccessLevel.Player)
             {
@@ -1294,7 +1310,36 @@ namespace Server.Mobiles
             }
         }
 
-		private bool m_NoDeltaRecursion;
+        //UOSI
+        private static void RefreshHungerGump(HungerChangedEventArgs e)
+        {
+            Gump hungerGump = e.Mobile.FindGump(typeof(gumpfaim)) as Gump;
+            if (hungerGump != null)
+            {
+                e.Mobile.CloseGump(typeof(gumpfaim));
+                e.Mobile.SendGump(new gumpfaim(e.Mobile));
+            }
+            else
+            {
+                e.Mobile.SendGump(new gumpfaim(e.Mobile));
+            }
+        }
+
+        private static void RefreshThirstGump(ThirstChangedEventArgs e)
+        {
+            Gump hungerGump = e.Mobile.FindGump(typeof(gumpfaim)) as Gump;
+            if (hungerGump != null)
+            {
+                e.Mobile.CloseGump(typeof(gumpfaim));
+                e.Mobile.SendGump(new gumpfaim(e.Mobile));
+            }
+            else
+            {
+                e.Mobile.SendGump(new gumpfaim(e.Mobile));
+            }
+        }
+
+        private bool m_NoDeltaRecursion;
 
 		public void ValidateEquipment()
 		{
@@ -2302,13 +2347,13 @@ namespace Server.Mobiles
 					}
 				}
 
-                if (Core.SA)
+                if (Core.UOR) //UOSI Core.SA)
                 {
                     list.Add(new TitlesMenuEntry(this));
 
 					if (Alive)
 					{
-						QuestHelper.GetContextMenuEntries(list);
+						//QuestHelper.GetContextMenuEntries(list); UOSI just uncomment it, no changes
 					}
 				}
                 else if (Core.ML)
@@ -2331,7 +2376,7 @@ namespace Server.Mobiles
                     m_Quest.GetContextMenuEntries(list);
                 }
 
-			    if (Alive && Core.SA)
+			    if (Alive && Core.UOR)//UOSI Core.SA)
 			    {
                     list.Add(new Engines.Points.LoyaltyRating(this));
 			    }
@@ -2405,10 +2450,11 @@ namespace Server.Mobiles
 				}
 				#endregion
 
-                if (!Core.SA && Alive)
-				{
-					list.Add(new CallbackEntry(6210, ToggleChampionTitleDisplay));
-				}
+                //UOSI ends up being duplicate with the above changes. Uncomment to revert- no changes
+    //            if (!Core.SA && Alive)
+				//{
+				//	list.Add(new CallbackEntry(6210, ToggleChampionTitleDisplay));
+				//}
 
 				if (DisabledPvpWarning)
 				{
@@ -5267,13 +5313,23 @@ namespace Server.Mobiles
 
 		public override void GetProperties(ObjectPropertyList list)
 		{
-			base.GetProperties(list);
+            #region Player Level system
+            Configured cf = new Configured();
+            XMLPlayerLevelAtt xmlplayer = (XMLPlayerLevelAtt)XmlAttach.FindAttachment(this, typeof(XMLPlayerLevelAtt));
+            if (cf.LevelBelowToon && xmlplayer != null)
+            {
+                string d = LevelCore.Display(this, new Configured());
+                list.Add("<BASEFONT COLOR=#7FCAE7>Level: <BASEFONT COLOR=#17FF01>" + d);
+            }
+            #endregion
+
+            base.GetProperties(list);
 
             //UOSI: Shows Shard Staff
             if (AccessLevel > AccessLevel.Player)
                 list.Add(1060847, "{0}\t{1}", "Shard", Enum.GetName(typeof(AccessLevel), AccessLevel));
 
-            if (Core.SA)
+            if (Core.UOR) //UOSICore.SA)
             {
                 if (m_SubtitleSkillTitle != null)
                     list.Add(1042971, m_SubtitleSkillTitle);
@@ -5283,7 +5339,7 @@ namespace Server.Mobiles
             }
 
 			#region Mondain's Legacy Titles
-			if (Core.ML && m_RewardTitles != null && m_SelectedTitle > -1)
+			if (Core.UOR && m_RewardTitles != null && m_SelectedTitle > -1) //UOSI Core.ML
 			{
 				if (m_SelectedTitle < m_RewardTitles.Count)
 				{
@@ -5742,39 +5798,39 @@ namespace Server.Mobiles
 		}
 
         //UOSI - Commented out as part of the October 2019 Merge
-		//protected override void AlterName(ref string prefix, ref string name, ref string suffix)
-		//{
-		//	base.AlterName(ref prefix, ref name, ref suffix);
+        //protected override void AlterName(ref string prefix, ref string name, ref string suffix)
+        //{
+        //    base.AlterName(ref prefix, ref name, ref suffix);
 
-		//	if (!CityLoyaltySystem.ApplyCityTitle(this, ref prefix, ref name, ref suffix))
-		//	{
-		//		if (!String.IsNullOrWhiteSpace(m_OverheadTitle))
-		//		{
-		//			if (String.IsNullOrWhiteSpace(suffix))
-		//			{
-		//				suffix = m_OverheadTitle;
-		//			}
-		//			else
-		//			{
-		//				suffix = String.Format("{0} {1}", m_OverheadTitle, suffix);
-		//			}
-		//		}
-		//	}
+        //    if (!CityLoyaltySystem.ApplyCityTitle(this, ref prefix, ref name, ref suffix))
+        //    {
+        //        if (!String.IsNullOrWhiteSpace(m_OverheadTitle))
+        //        {
+        //            if (String.IsNullOrWhiteSpace(suffix))
+        //            {
+        //                suffix = m_OverheadTitle;
+        //            }
+        //            else
+        //            {
+        //                suffix = String.Format("{0} {1}", m_OverheadTitle, suffix);
+        //            }
+        //        }
+        //    }
 
-		//	if (Map == Faction.Facet && ViceVsVirtueSystem.IsVvV(this, false, true))
-		//	{
-		//		if (!String.IsNullOrWhiteSpace(suffix) && !suffix.EndsWith("]") && !suffix.EndsWith(" "))
-		//		{
-		//			suffix += " ";
-		//		}
-				
-		//		suffix += "[VvV]";
-		//	}
-		//}
+        //    if (Map == Faction.Facet && ViceVsVirtueSystem.IsVvV(this, false, true))
+        //    {
+        //        if (!String.IsNullOrWhiteSpace(suffix) && !suffix.EndsWith("]") && !suffix.EndsWith(" "))
+        //        {
+        //            suffix += " ";
+        //        }
+
+        //        suffix += "[VvV]";
+        //    }
+        //}
         #endregion
 
-		#region MyRunUO Invalidation
-		private bool m_ChangedMyRunUO;
+        #region MyRunUO Invalidation
+        private bool m_ChangedMyRunUO;
 
 		public bool ChangedMyRunUO { get { return m_ChangedMyRunUO; } set { m_ChangedMyRunUO = value; } }
 

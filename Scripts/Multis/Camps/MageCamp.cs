@@ -29,8 +29,9 @@ namespace Server.Multis
 
             AddItem(new Sign(SignType.Mage, SignFacing.West), -5, 5, -4);
 
-            AddMobile(new Mage(), -4, 3, 7, 0);
-            AddMobile(new Mage(), 4, -2, 0, 0);
+            //UOSI - Removed these guys so I can use the XMLSpawner to add mages manually
+            //AddMobile(new Mage(), -4, 3, 7, 0);
+            //AddMobile(new Mage(), 4, -2, 0, 0);
 
             //SetDecayTime();
             RefreshDecay(true);

@@ -25,6 +25,9 @@ namespace Server.Misc
                 case DFAlgorithm.Standard:
                     {
                         fatigue = (damage * (m.HitsMax / m.Hits) * ((double)m.Stam / m.StamMax)) - 5;
+
+                        fatigue = fatigue - (fatigue / 3); //UOSI - Test to reduce lost stamina on hit
+
                     }
                     break;
                 case DFAlgorithm.PainSpike:

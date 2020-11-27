@@ -185,9 +185,9 @@ namespace Server.Mobiles
         {
             base.OnDeath(c);
 
-            NecromancerSpellbook book = new NecromancerSpellbook();
-            book.Content = (1ul << book.BookCount) - 1;
-            c.DropItem(book);
+            //NecromancerSpellbook book = new NecromancerSpellbook();
+            //book.Content = (1ul << book.BookCount) - 1;
+            //c.DropItem(book);
         }
 
         public override void OnDamage(int amount, Mobile from, bool willKill)

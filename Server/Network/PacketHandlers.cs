@@ -1704,23 +1704,23 @@ namespace Server.Network
 			}
 			else if (target is Mobile)
 			{
-				var o = (Mobile)target;
+                var o = (Mobile)target;
 
-				if (Utility.InUpdateRange(m, o))
-				{
-					if (MobileClickOverride == null || !MobileClickOverride(m, o))
-					{
-						if (SingleClickProps && m.ViewOPL)
-						{
-							o.OnAosSingleClick(m);
-						}
-						else if (m.Region.OnSingleClick(m, o))
-						{
-							o.OnSingleClick(m);
-						}
-					}
-				}
-			}
+                if (Utility.InUpdateRange(m, o))
+                {
+                    if (MobileClickOverride == null || !MobileClickOverride(m, o))
+                    {
+                        if (SingleClickProps && m.ViewOPL)
+                        {
+                            o.OnAosSingleClick(m);
+                        }
+                        else if (m.Region.OnSingleClick(m, o))
+                        {
+                            o.OnSingleClick(m);
+                        }
+                    }
+                }
+            }
 		}
 
 		public static void LookReq(NetState state, PacketReader pvSrc)
@@ -2228,17 +2228,23 @@ namespace Server.Network
 		{
 			var target = World.FindEntity(pvSrc.ReadInt32());
 
-            if (target != null && ObjectPropertyList.Enabled)
+            //UOSI - AOS UOR Patch to get context menus w/ UOR props - delete this and uncomment below to restore
+            if(target != null)
             {
-                if (!state.Mobile.ViewOPL)
-                {
-                    HandleSingleClick(state.Mobile, target);
-                }
-                else
-                {
-                    ContextMenu.Display(state.Mobile, target);
-                }
+                ContextMenu.Display(state.Mobile, target);
             }
+
+            //if (target != null && ObjectPropertyList.Enabled)
+            //{
+            //    if (!state.Mobile.ViewOPL)
+            //    {
+            //        HandleSingleClick(state.Mobile, target);
+            //    }
+            //    else
+            //    {
+            //        ContextMenu.Display(state.Mobile, target);
+            //    }
+            //}
 		}
 
 		public static void CloseStatus(NetState state, PacketReader pvSrc)

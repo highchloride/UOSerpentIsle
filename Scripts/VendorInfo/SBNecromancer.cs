@@ -44,6 +44,8 @@ namespace Server.Mobiles
                 Add(new GenericBuyInfo(typeof(BlankScroll), 5, 20, 0x0E34, 0));
 				//Add( new GenericBuyInfo( typeof( RecallRune ), 25, 10, 0x1f14, 0 ) );
 				Add( new GenericBuyInfo( typeof( Spellbook ), 50, 10, 0xEFA, 0 ) );
+
+                Add(new GenericBuyInfo(typeof(GraveRobbersShovel), 5000, 10, 0xF39, 0));
 			
 				Type[] types = Loot.RegularScrollTypes;
 			

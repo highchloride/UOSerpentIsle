@@ -20,6 +20,8 @@ namespace Server.Multis
         Orc
     }
 
+
+
     public abstract class BaseCamp : BaseMulti
     {
         private List<Item> m_Items;
@@ -31,6 +33,50 @@ namespace Server.Multis
         private Mobile m_Prisoner;
         private CampType m_Camp;
         #endregion
+
+        public static void Initialize()
+        {
+            Timer.DelayCall(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5), OnTick);
+        }
+
+        public static List<BaseCamp> _Camps = new List<BaseCamp>();
+
+        //private List<Item> m_Items;
+        //private List<Mobile> m_Mobiles;
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public DateTime TimeOfDecay { get; set; }
+
+        //[CommandProperty(AccessLevel.GameMaster)]
+        //public BaseCreature Prisoner { get; set; }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public BaseContainer Treasure1 { get; set; }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public BaseContainer Treasure2 { get; set; }
+
+        //public override bool HandlesOnMovement
+        //{
+        //    get { return true; }
+        //}
+
+        //[CommandProperty(AccessLevel.GameMaster)]
+        //public virtual TimeSpan DecayDelay { get { return TimeSpan.FromMinutes(30.0); } }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public bool Decaying { get { return TimeOfDecay != DateTime.MinValue; } }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public bool ForceDecay
+        {
+            get { return false; }
+            set { SetDecayTime(); }
+        }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public bool RestrictDecay { get; set; }
+
         public BaseCamp(int multiID)
             : base(multiID)
         {
@@ -105,6 +151,34 @@ namespace Server.Multis
         public virtual void AddComponents()
         {
         }
+
+        public virtual void CheckDecay()
+        {
+            if (RestrictDecay)
+                return;
+
+            if (!Decaying)
+            {
+                if (((Treasure1 == null || Treasure1.Items.Count == 0) && (Treasure2 == null || Treasure2.Items.Count == 0)) ||
+                    (Prisoner != null && (Prisoner.Deleted || !Prisoner.CantWalk)))
+                {
+                    SetDecayTime();
+                }
+            }
+            else if (TimeOfDecay < DateTime.UtcNow)
+            {
+                Delete();
+            }
+        }
+
+        public virtual void SetDecayTime()
+        {
+            if (Deleted || RestrictDecay)
+                return;
+
+            TimeOfDecay = DateTime.UtcNow + DecayDelay;
+        }
+
 
         public virtual void RefreshDecay(bool setDecayTime)
         {
@@ -2098,6 +2172,19 @@ namespace Server.Multis
                         break;
                     }
             }
+        }
+
+        public static void OnTick()
+        {
+            List<BaseCamp> list = new List<BaseCamp>(_Camps);
+
+            list.ForEach(c =>
+            {
+                if (!c.Deleted && c.Map != null && c.Map != Map.Internal && !c.RestrictDecay)
+                    c.CheckDecay();
+            });
+
+            ColUtility.Free(list);
         }
     }
 

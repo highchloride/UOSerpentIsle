@@ -1,4 +1,4 @@
-#region Header
+﻿#region Header
 //   Vorspire    _,-'/-'/  SkillCodex.cs
 //   .      __,-; ,'( '/
 //    \.    `-.__`-._`:_,-._       _ , . ``

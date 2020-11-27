@@ -133,9 +133,24 @@ namespace Server.Mobiles
 
 		public void UpdateBuyInfo()
 		{
-			int priceScalar = GetPriceScalar();
+            #region Level Vendor Discount Edit
+            Configured c = new Configured();
+            Town town = Town.FromRegion(Region);
+            int priceScalar = GetPriceScalar();
 
-			var buyinfo = (IBuyItemInfo[])m_ArmorBuyInfo.ToArray(typeof(IBuyItemInfo));
+            if (c.DiscountsForLevels == true)
+            {
+                if (this is LevelVendor10 || this is LevelVendor20 || this is LevelVendor30 || this is LevelVendor40 ||
+                    this is LevelVendor50 || this is LevelVendor60 || this is LevelVendor70 || this is LevelVendor80 ||
+                    this is LevelVendor90 || this is LevelVendor100 || this is LevelVendor120 || this is LevelVendor140 ||
+                    this is LevelVendor160 || this is LevelVendor180 || this is LevelVendor200 || this is LevelVendor230 ||
+                    this is LevelVendor250)
+                {
+                    priceScalar = (int)(priceScalar * 0.6);
+                }
+            }
+
+            var buyinfo = (IBuyItemInfo[])m_ArmorBuyInfo.ToArray(typeof(IBuyItemInfo));
 
 			if (buyinfo != null)
 			{
@@ -143,11 +158,13 @@ namespace Server.Mobiles
 				{
 					info.PriceScalar = priceScalar;
 				}
-			}
-		}
-		#endregion
+                
+            }
+            #endregion
+        }
+        #endregion
 
-		private class BulkOrderInfoEntry : ContextMenuEntry
+        private class BulkOrderInfoEntry : ContextMenuEntry
 		{
 			private readonly Mobile m_From;
 			private readonly BaseVendor m_Vendor;

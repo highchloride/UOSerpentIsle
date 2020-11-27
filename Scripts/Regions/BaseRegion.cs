@@ -9,6 +9,8 @@ using Server.Spells.Fourth;
 using Server.Spells.Seventh;
 using Server.Spells.Sixth;
 
+using Server.ContextMenus;
+
 namespace Server.Regions
 {
     public enum SpawnZLevel
@@ -34,6 +36,7 @@ namespace Server.Regions
         private int[] m_RectangleWeights;
         private int m_TotalWeight;
 
+        //UOSI
         public override bool OnBeginSpellCast(Mobile m, ISpell s)
         {
             if ((s is GateTravelSpell || s is RecallSpell || s is MarkSpell || s is SacredJourneySpell) && m.IsPlayer())
@@ -45,6 +48,7 @@ namespace Server.Regions
 
             return base.OnBeginSpellCast(m, s);
         }
+
         public BaseRegion(string name, Map map, int priority, params Rectangle2D[] area)
             : base(name, map, priority, area)
         {

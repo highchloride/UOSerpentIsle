@@ -6,10 +6,12 @@ using Server.Items;
 
 namespace Server.Mobiles
 {
-    class Torrissio : TalkingBaseCreature
+    class Torrissio : TalkingBaseVendor
     {
+        private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
+
         [Constructable]
-        public Torrissio() : base(AIType.AI_Mage, FightMode.None, 5, 1, 0.1, 0.2)
+        public Torrissio() : base("the Mystic")
         {
             Name = "Torrissio";
             Female = false;
@@ -84,6 +86,18 @@ namespace Server.Mobiles
             AddItem(shoes);
 
             PackGold(50, 200);
+        }
+
+        protected override List<SBInfo> SBInfos
+        {
+            get
+            {
+                return this.m_SBInfos;
+            }
+        }
+        public override void InitSBInfo()
+        {
+            this.m_SBInfos.Add(new SBTorrissio());
         }
 
         public override void Serialize(GenericWriter writer)
