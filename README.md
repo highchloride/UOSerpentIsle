@@ -25,17 +25,19 @@ Scripts/SerpentIsle holds both fully-custom scripts and plug-and-play scripts th
   
   -Dungeons such as the Dreamlands and the Dark Path have been converted as well.
   
-  -A lore-friendly starting camp and character creation sequence have been constructed, located to the northeast of Vesper.
+  -A lore-friendly starting camp and character creation sequence have been constructed, located to the northeast of Vesper. These will likely be removed.
   
   -Overland passages have been added to mountain ranges where such geography was impossible in the '93 game. This does not interfere with existing undermountain geography.
   
   -Monitor, Fawn, Moonshade, Monk Isle and Sleeping Bull are entirely mapped out.
   
-  -Castle of the White Dragon is entirely mapped out and Castle Shamino is underway.
+  -Castle of the White Dragon and Castle Shamino are mapped out. CWD is missing its basement.
   
   -Undercities such as Spinebreaker, Skullcrusher, and Furnace are mapped and awaiting details.
+
+  -The Knight's Test has been mapped and set up. Early feedback is that its far too easy.
   
-  -Dungeons such as the Mountains of Freedom, the Knight's Test, ice caves and the Goblin Tunnels.
+  -Dungeons such as the Mountains of Freedom, ice caves and the Goblin Tunnels.
   
   -Minor locations on the map, such as Erstam's Isle, the portal beside Gorlab, etc.
   
