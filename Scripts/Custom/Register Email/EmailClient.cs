@@ -25,7 +25,7 @@ namespace Server.Misc
 
         public static string EmailServer = "smtp.gmail.com"; // Your mail server here
         public static string User = "highchloride@gmail.com"; // Your username here
-        public static string Pass = "fanta5!a1A"; // Your password here
+        public static string Pass = ""; // Your password here
 
         public static int ServerPort = 587; //SMTP Server Port
 
